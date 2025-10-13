@@ -1,16 +1,185 @@
-:root { font-family: system-ui, Arial; }
-body { margin: 0; background:#fafafa; }
-.container { max-width: 960px; margin: 24px auto; padding: 0 16px; }
-.nav { display:flex; gap:12px; align-items:center; padding:12px 16px; background:#fff; border-bottom:1px solid #eee; }
-.brand { font-weight:700; text-decoration:none; color:#333; }
-.spacer { flex:1; }
-.nav a { text-decoration:none; color:#333; }
-.nav .btn, .nav button { margin-left:8px; padding:8px 12px; border:1px solid #ddd; background:#fff; border-radius:8px; cursor:pointer; }
-.auth-card { max-width:420px; margin:48px auto; background:#fff; padding:24px; border:1px solid #eee; border-radius:12px; }
-.auth-card h2 { margin-top:0; }
-.auth-card label { display:block; margin-top:12px; font-size:14px; color:#555; }
-.auth-card input, .auth-card select { width:100%; padding:10px; margin-top:6px; border:1px solid #ddd; border-radius:8px; }
-.auth-card button { width:100%; margin-top:16px; padding:10px; border:none; border-radius:8px; background:#111; color:#fff; cursor:pointer; }
-.error { background:#ffe9e9; border:1px solid #ffc6c6; color:#b10000; padding:8px 12px; border-radius:8px; margin-bottom:12px; }
-.divider { text-align:center; color:#888; margin:16px 0; }
-.user { margin-right:8px; color:#444; }
+/* ========== Root theme ========== */
+:root{
+  --bg-grad-start:#f6d94a;     /* nền vàng sáng (ngoài card) */
+  --bg-grad-end:#d0ad16;       /* vàng đậm hơn */
+  --card:#ffffff;              /* màu nền thẻ */
+  --field:#eef1f4;             /* màu input mặc định */
+  --text:#0f172a;              /* chữ đậm */
+  --muted:#64748b;             /* chữ phụ */
+  --line:#e5e7eb;              /* viền nhạt */
+  --accent:#ffd947;            /* vàng nút chính */
+  --ring:#0f172a12;            /* focus ring nhẹ */
+}
+
+/* ========== Reset / Base ========== */
+*{ box-sizing:border-box; }
+html, body{ height:100%; }
+body{
+  margin:0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  color:var(--text);
+  background:#fff; /* fallback khi không dùng canvas */
+}
+a{ color:inherit; }
+
+/* ========== Navbar tối giản (nếu cần) ========== */
+.nav{
+  display:flex; align-items:center; gap:12px;
+  padding:12px 16px;
+  background:#fff;
+  border-bottom:1px solid var(--line);
+}
+.brand{ font-weight:700; text-decoration:none; letter-spacing:.2px; }
+.spacer{ flex:1; }
+.nav a{ text-decoration:none; opacity:.9; }
+.nav .btn, .nav button{
+  margin-left:8px; padding:10px 14px;
+  border:1px solid var(--line); background:#fff; border-radius:12px; cursor:pointer;
+}
+.user{ margin-right:8px; color:var(--muted); }
+
+/* ========== Khung nền gradient vàng giống ảnh ========== */
+.auth-canvas{
+  min-height:100dvh;
+  background:
+    radial-gradient(1200px 600px at 15% 10%, rgba(255,255,255,.25) 0 40%, transparent 41%),
+    linear-gradient(135deg, var(--bg-grad-start), var(--bg-grad-end));
+  display:grid;
+  place-items:center;
+  padding:40px 16px;
+}
+
+/* ========== Card 2 cột ========== */
+.auth-card-2col{
+  width:min(1040px, 96vw);
+  min-height:540px;
+  background:var(--card);
+  border-radius:20px;
+  border:1px solid #00000010;
+  box-shadow:0 18px 40px rgba(17,24,39,.15);
+  overflow:hidden;
+  display:grid;
+  grid-template-columns:1.05fr 1fr;
+}
+
+/* ========== Panel trái: ảnh + blob vàng ========== */
+.auth-visual{
+  position:relative;
+  background:#eef6ff;           /* xanh nhạt để ảnh nổi */
+  display:grid; place-items:center;
+  padding:24px;
+}
+.auth-visual::before{
+  content:"";
+  position:absolute; inset:0;
+  background:
+    radial-gradient(120px 220px at 30% 30%, #ffd84a 0 60%, transparent 62%),
+    radial-gradient(180px 260px at 60% 65%, #e9c21f 0 60%, transparent 62%);
+  opacity:.9;                    /* tạo blob vàng */
+}
+.auth-visual img{
+  position:relative; z-index:1;
+  width:min(420px, 80%);
+  height:auto; object-fit:cover;
+  border-radius:18px;
+  box-shadow:0 10px 24px rgba(0,0,0,.18);
+}
+
+/* ========== Panel phải: form ========== */
+.auth-form-side{
+  padding:36px 40px;
+  background:#f8fafc;            /* xám- trắng rất nhạt */
+  display:flex; flex-direction:column; justify-content:center;
+}
+.auth-title{
+  margin:0 0 6px;
+  font-size:22px; font-weight:800; color:var(--text);
+}
+.auth-subtitle{
+  margin:0 0 22px; color:var(--muted);
+}
+
+/* ========== Trường nhập ========== */
+.input-group{ margin:14px 0; }
+.label{
+  display:block; margin:0 0 6px;
+  font-size:13px; color:var(--muted);
+}
+.input, .select{
+  width:100%;
+  padding:12px 16px;
+  background:var(--field);
+  border:1px solid transparent;
+  border-radius:999px;           /* pill */
+  outline:none;
+  color:var(--text);
+  transition:.18s ease;
+}
+.input::placeholder{ color:#9aa5b1; }
+.input:focus, .select:focus{
+  background:#fff;
+  border-color:#cdd3da;
+  box-shadow:0 0 0 6px var(--ring);
+}
+
+/* ========== Nút & meta ========== */
+.btn-primary{
+  width:100%;
+  padding:12px 14px;
+  border:none;
+  border-radius:12px;
+  background:var(--accent);
+  color:#111;
+  font-weight:800;
+  cursor:pointer;
+  box-shadow:0 6px 0 #caa71e;
+  transition:transform .05s ease, box-shadow .05s ease, opacity .2s;
+}
+.btn-primary:active{
+  transform:translateY(2px);
+  box-shadow:0 3px 0 #caa71e;
+}
+.btn-primary:disabled{ opacity:.6; cursor:not-allowed; }
+
+.auth-meta{
+  margin-top:10px; font-size:14px; color:var(--muted);
+}
+.auth-meta a{
+  color:#f2b400; text-decoration:none; font-weight:600;
+}
+
+/* ========== Divider + OAuth buttons ========== */
+.divider{
+  margin:18px 0; text-align:center; color:#94a3b8;
+}
+.oauth-row{
+  display:flex; gap:12px; justify-content:center; flex-wrap:wrap;
+}
+.oauth-btn{
+  display:flex; gap:8px; align-items:center;
+  border:1px solid var(--line);
+  background:#fff;
+  border-radius:12px;
+  padding:10px 14px;
+  font-weight:600;
+  cursor:pointer;
+}
+.oauth-btn img{ width:18px; height:18px; }
+
+/* ========== Thông báo lỗi ========== */
+.error{
+  background:#fff1f1;
+  border:1px solid #ffd6d6;
+  color:#b10000;
+  padding:10px 12px;
+  border-radius:12px;
+  margin:10px 0 14px;
+  font-size:14px;
+}
+
+/* ========== Responsive ========== */
+@media (max-width: 880px){
+  .auth-card-2col{ grid-template-columns:1fr; }
+  .auth-visual{ display:none; } /* ẩn panel ảnh trên mobile */
+  .auth-form-side{ padding:28px 20px; }
+}
