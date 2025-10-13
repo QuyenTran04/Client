@@ -1,15 +1,19 @@
-import { useEffect, useRef, useState } from "react";
-import { loginApi, googleApi } from "../services/auth";
+import { useState } from "react";
+import { registerApi } from "../../services/auth";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 
-export default function Login() {
+export default function Register() {
   const nav = useNavigate();
   const { setUser } = useAuth();
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    role: "student",
+  });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const googleBtnRef = useRef(null);
 
   const onChange = (e) =>
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
@@ -19,43 +23,20 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-      const { data } = await loginApi(form);
+      const { data } = await registerApi(form);
       setUser(data.user);
       nav("/");
     } catch (err) {
-      setError(err?.response?.data?.message || "Đăng nhập thất bại");
+      setError(err?.response?.data?.message || "Đăng ký thất bại");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    if (!window.google || !clientId) return;
-    window.google.accounts.id.initialize({
-      client_id: clientId,
-      callback: async (resp) => {
-        try {
-          const { data } = await googleApi(resp.credential);
-          setUser(data.user);
-          nav("/");
-        } catch (err) {
-          setError(err?.response?.data?.message || "Đăng nhập Google thất bại");
-        }
-      },
-    });
-    window.google.accounts.id.renderButton(googleBtnRef.current, {
-      theme: "outline",
-      size: "large",
-      shape: "pill",
-      text: "signin_with",
-      width: 280,
-    });
-  }, [nav, setUser]);
-
   return (
     <div className="auth-canvas">
       <div className="auth-card-2col">
+        {/* LEFT IMAGE + BLOBS */}
         <div className="auth-visual">
           <img
             alt="Balloon"
@@ -63,13 +44,28 @@ export default function Login() {
           />
         </div>
 
+        {/* RIGHT FORM */}
         <div className="auth-form-side">
-          <h2 className="auth-title">Welcome back 👋</h2>
-          <p className="auth-subtitle">Đăng nhập để tiếp tục</p>
+          <h2 className="auth-title">Create your Free Account</h2>
+          <p className="auth-subtitle">
+            Nhanh chóng và miễn phí — bắt đầu ngay!
+          </p>
 
           {error && <div className="error">{error}</div>}
 
           <form onSubmit={onSubmit}>
+            <div className="input-group">
+              <label className="label">Full Name</label>
+              <input
+                className="input"
+                name="name"
+                placeholder="Enter your Full Name here"
+                value={form.name}
+                onChange={onChange}
+                required
+              />
+            </div>
+
             <div className="input-group">
               <label className="label">Email</label>
               <input
@@ -90,32 +86,51 @@ export default function Login() {
                 name="password"
                 type="password"
                 placeholder="Enter your Password here"
+                minLength={6}
                 value={form.password}
                 onChange={onChange}
                 required
               />
             </div>
 
+            <div style={{ display: "none" }}>
+              <select name="role" value={form.role} onChange={onChange}>
+                <option value="student">student</option>
+                <option value="instructor">instructor</option>
+              </select>
+            </div>
+
             <button className="btn-primary" disabled={loading}>
-              {loading ? "Signing in..." : "Log in"}
+              {loading ? "Creating..." : "Create Account"}
             </button>
           </form>
 
           <p className="auth-meta" style={{ marginTop: 10 }}>
-            Chưa có tài khoản? <Link to="/register">Create Account</Link>
+            Already have an account? <Link to="/login">Log in</Link>
           </p>
 
           <div className="divider">— OR —</div>
+
           <div className="oauth-row">
-            <div ref={googleBtnRef} />
+            <button className="oauth-btn" type="button">
+              <img
+                alt="Google"
+                src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+              />
+              Sign up with Google
+            </button>
             <button className="oauth-btn" type="button">
               <img
                 alt="GitHub"
                 src="https://github.githubassets.com/favicons/favicon.svg"
               />
-              Sign in with GitHub
+              Sign up with GitHub
             </button>
           </div>
+
+          <p className="auth-meta" style={{ marginTop: 16 }}>
+            Reserved directs to Leo Barreto
+          </p>
         </div>
       </div>
     </div>

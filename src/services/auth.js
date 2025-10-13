@@ -1,4 +1,4 @@
-// src/services/auth.js
+
 import api from "./api";
 
 export const registerApi = (payload) => api.post("/auth/register", payload);

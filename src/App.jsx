@@ -1,9 +1,11 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
 import NavBar from "./components/NavBar";
 import { useAuth } from "./context/AuthContext";
+import Courses from "./pages/Courses";
+import CourseDetail from "./pages/CourseDetail";
 
 function GuestOnly({ children }) {
   const { user, loading } = useAuth();
@@ -33,6 +35,8 @@ export default function App() {
             </GuestOnly>
           }
         />
+        <Route path="/courses" element={<Courses />} />
+        <Route path="/courses/:id" element={<CourseDetail />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
