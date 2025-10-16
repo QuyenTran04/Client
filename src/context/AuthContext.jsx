@@ -17,7 +17,7 @@ export default function AuthProvider({ children }) {
   const refreshMe = useCallback(async () => {
     try {
       const { data } = await meApi();
-      setUser(data.user);
+      setUser(data?.user || null);
     } catch {
       setUser(null);
     } finally {
@@ -30,12 +30,18 @@ export default function AuthProvider({ children }) {
   }, [refreshMe]);
 
   const logout = async () => {
-    await logoutApi();
+    try {
+      await logoutApi();
+    } catch {}
     setUser(null);
   };
 
+  const isAdmin = (user?.role || "").toLowerCase() === "admin";
+
   return (
-    <AuthCtx.Provider value={{ user, setUser, loading, refreshMe, logout }}>
+    <AuthCtx.Provider
+      value={{ user, setUser, loading, refreshMe, logout, isAdmin }}
+    >
       {children}
     </AuthCtx.Provider>
   );
