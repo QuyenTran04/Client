@@ -10,7 +10,7 @@ export const getCourses = async (params = {}) => {
     sort: params.sort ?? "-createdAt",
     published: "true",
   });
-  const { data } = await api.get(`/courses?${query.toString()}`);
+  const { data } = await api.get(`/courses/getCourses`);
   if (Array.isArray(data))
     return { items: data, total: data.length, page: 1, limit: data.length };
   return data; // {items,total,page,limit}
@@ -18,7 +18,7 @@ export const getCourses = async (params = {}) => {
 
 // Chi tiết
 export const getCourseById = async (id) => {
-  const { data } = await api.get(`/courses/${id}`);
+  const { data } = await api.get(`/courses/getCourseById/${id}`);
   return data;
 };
 

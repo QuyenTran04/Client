@@ -5,7 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 
 export default function Login() {
   const nav = useNavigate();
-  const { setUser } = useAuth();
+  const { setUser, refreshMe } = useAuth(); // nhớ lấy refreshMe từ context
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -14,14 +14,23 @@ export default function Login() {
   const onChange = (e) =>
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
+  const redirectByRole = (user) => {
+    const role = (user?.role || "").toLowerCase();
+    // console.error(role); // chỉ debug nếu cần
+    if (role === "admin") nav("/admin/overview", { replace: true });
+    else nav("/", { replace: true });
+  };
+
   const onSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
     setError("");
     setLoading(true);
     try {
       const { data } = await loginApi(form);
       setUser(data.user);
-      nav("/");
+      await refreshMe(); // đồng bộ phiên từ cookie
+      redirectByRole(data.user);
     } catch (err) {
       setError(err?.response?.data?.message || "Đăng nhập thất bại");
     } finally {
@@ -31,27 +40,34 @@ export default function Login() {
 
   useEffect(() => {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    if (!window.google || !clientId) return;
+    if (!window.google || !clientId || !googleBtnRef.current) return;
+
     window.google.accounts.id.initialize({
       client_id: clientId,
       callback: async (resp) => {
+        setError("");
+        setLoading(true);
         try {
           const { data } = await googleApi(resp.credential);
           setUser(data.user);
-          nav("/");
+          await refreshMe();
+          redirectByRole(data.user);
         } catch (err) {
           setError(err?.response?.data?.message || "Đăng nhập Google thất bại");
+        } finally {
+          setLoading(false);
         }
       },
     });
+
     window.google.accounts.id.renderButton(googleBtnRef.current, {
       theme: "outline",
       size: "large",
       shape: "pill",
       text: "signin_with",
-      width: 280,
+      width: 260,
     });
-  }, [nav, setUser]);
+  }, [nav, setUser, refreshMe]);
 
   return (
     <div className="auth-canvas">
@@ -106,15 +122,10 @@ export default function Login() {
           </p>
 
           <div className="divider">— OR —</div>
+
           <div className="oauth-row">
             <div ref={googleBtnRef} />
-            <button className="oauth-btn" type="button">
-              <img
-                alt="GitHub"
-                src="https://github.githubassets.com/favicons/favicon.svg"
-              />
-              Sign in with GitHub
-            </button>
+            {/* Nếu muốn thêm GitHub thật sự, bạn sẽ cần OAuth flow riêng */}
           </div>
         </div>
       </div>
