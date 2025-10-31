@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { getCourseById, enrollCourse } from "../services/course";
 import { useAuth } from "../context/AuthContext";
 import "../css/courses.css";
+import AIChat from "../components/AIChat";
 
 export default function CourseDetail() {
   const { id } = useParams();
@@ -11,6 +12,7 @@ export default function CourseDetail() {
   const [loading, setLoading] = useState(true);
   const [enrolling, setEnrolling] = useState(false);
   const [error, setError] = useState("");
+  
 
   useEffect(() => {
     (async () => {

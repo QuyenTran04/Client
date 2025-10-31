@@ -9,7 +9,7 @@ import { AdminRoute, ProtectedRoute, GuestOnly } from "./context/RouteGuards";
  // đã tạo ở bước trước
 import Courses from "./pages/Courses";
 import CourseDetail from "./pages/CourseDetail";
-
+import AIChat from "./components/AIChat";
 // Admin pages
 import AdminLayout from "./pages/admin/AdminLayout";
 import Overview from "./pages/admin/Overview";
@@ -21,7 +21,6 @@ import AdminCourses from "./pages/admin/Courses"; // <— tránh trùng với tr
 function AppShell() {
   const location = useLocation();
   const isAdmin = location.pathname.startsWith("/admin");
-
   return (
     <>
       {/* Ẩn NavBar trong admin area */}
