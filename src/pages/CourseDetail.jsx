@@ -1,23 +1,21 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { getCourseById, enrollCourse } from "../services/course";
 import { useAuth } from "../context/AuthContext";
 import { getYouTubeEmbedUrl } from "../lib/utils";
 import "../css/courses.css";
-import AIChat from "../components/AIChat";
 
 export default function CourseDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   const [c, setC] = useState(null);
   const [loading, setLoading] = useState(true);
   const [enrolling, setEnrolling] = useState(false);
   const [error, setError] = useState("");
-  const [showPreview, setShowPreview] = useState(false);
-
-  // 👇 Bài học được chọn để làm ngữ cảnh cho AI
-  const [selectedLessonId, setSelectedLessonId] = useState(null);
+  const [activeTab, setActiveTab] = useState("overview");
+  const [selectedLesson, setSelectedLesson] = useState(null);
 
   useEffect(() => {
     let alive = true;
@@ -27,8 +25,7 @@ export default function CourseDetail() {
         const data = await getCourseById(id);
         if (!alive) return;
         setC(data);
-        setSelectedLessonId(null); // đổi khóa học thì reset lesson context
-      } catch (e) {
+      } catch {
         if (!alive) return;
         setError("Không tải được thông tin khóa học.");
       } finally {
@@ -40,12 +37,18 @@ export default function CourseDetail() {
     };
   }, [id]);
 
+  const handleViewLessons = () => {
+    if (!user) return navigate("/login");
+    navigate(`/courses/${id}/lessons`);
+  };
+
   const onEnroll = async () => {
-    if (!user) return (window.location.href = "/login");
+    if (!user) return navigate("/login");
     try {
       setEnrolling(true);
       await enrollCourse(id);
       alert("Đăng ký khóa học thành công!");
+      navigate(`/courses/${id}/lessons`);
     } catch (e) {
       alert(e?.response?.data?.message || "Đăng ký thất bại!");
     } finally {
@@ -53,66 +56,108 @@ export default function CourseDetail() {
     }
   };
 
+
+
   if (loading) {
     return (
-      <div className="container">
-        <div className="skeleton-page">
-          <div className="skeleton hero" />
-          <div className="skeleton row" />
-          <div className="skeleton row" />
-          <div className="skeleton card" />
-        </div>
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "40px 20px" }}>
+        <div style={{ animation: "pulse 2s infinite", height: 300, background: "#eee", borderRadius: 12, marginBottom: 20 }} />
+        <div style={{ animation: "pulse 2s infinite", height: 100, background: "#eee", borderRadius: 12 }} />
       </div>
     );
   }
 
   if (!c) {
     return (
-      <div className="container">
-        <div className="err card" style={{ padding: 16 }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "40px 20px" }}>
+        <div style={{ padding: 20, background: "#fee", border: "1px solid #fcc", borderRadius: 12, color: "#c33" }}>
           {error || "Không tìm thấy khóa học."}
         </div>
       </div>
     );
   }
 
-  const imgSrc = c.imageUrl || "/assets/placeholder-course.jpg";
-
   const embedUrl = getYouTubeEmbedUrl(c?.introVideoUrl || c?.trailerUrl || c?.videoUrl);
 
   return (
-    <div className="container course-detail">
-      {/* Hero / Header */}
-      <div className="cd-hero">
-        <div
-          className="cd-hero-bg"
-          style={{
-            backgroundImage: `linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.6)), url(${c.imageUrl || "/assets/placeholder-course.jpg"})`,
-          }}
-        />
-        <div className="cd-hero-inner">
-          <div className="cd-hero-badges">
-            <span className="badge">{c.category?.name || "Khóa học"}</span>
-            {c.level && <span className="badge outline">{c.level}</span>}
+    <div style={{ background: "#f8f9fa", minHeight: "100vh" }}>
+      {/* Hero Section */}
+      <div
+        style={{
+          backgroundImage: `linear-gradient(135deg, rgba(0,0,0,.5), rgba(0,0,0,.65)), url(${c.imageUrl || "/assets/placeholder-course.jpg"})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          color: "#fff",
+          padding: "60px 20px",
+          marginBottom: 40,
+        }}
+      >
+        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+          <div style={{ marginBottom: 12 }}>
+            <span style={{ display: "inline-block", background: "rgba(241, 178, 74, 0.9)", padding: "6px 12px", borderRadius: 6, fontSize: 13, fontWeight: 500, marginRight: 8 }}>
+              {c.category?.name || "Khóa học"}
+            </span>
+            {c.level && (
+              <span style={{ display: "inline-block", background: "rgba(255,255,255,0.2)", padding: "6px 12px", borderRadius: 6, fontSize: 13, border: "1px solid rgba(255,255,255,0.3)" }}>
+                {c.level}
+              </span>
+            )}
           </div>
-          <h1 className="cd-hero-title">{c.title}</h1>
-          <p className="cd-hero-desc">{c.description}</p>
-          <div className="cd-hero-meta">
+          <h1 style={{ margin: "16px 0", fontSize: "2.5rem", fontWeight: 700, lineHeight: 1.2 }}>{c.title}</h1>
+          <p style={{ fontSize: 16, marginBottom: 20, opacity: 0.95, lineHeight: 1.5 }}>{c.description}</p>
+          <div style={{ display: "flex", gap: 20, fontSize: 14, marginBottom: 24, opacity: 0.9 }}>
             <span>👨‍🏫 {c.instructor?.name || "Giảng viên"}</span>
-            {c.lessons?.length ? <span>• 📚 {c.lessons.length} bài học</span> : null}
-            {c.duration ? <span>• ⏱️ {c.duration} giờ</span> : null}
+            {c.lessons?.length && <span>📚 {c.lessons.length} bài học</span>}
+            {c.duration && <span>⏱️ {c.duration} giờ</span>}
+            {c.avgRating && <span>⭐ {c.avgRating}/5</span>}
           </div>
-          <div className="cd-hero-cta">
-            <button className="btn primary large" onClick={onEnroll} disabled={enrolling}>
-              {enrolling
-                ? "Đang đăng ký..."
-                : c.price
-                ? `Đăng ký • ${c.price.toLocaleString()}₫`
-                : "Bắt đầu học miễn phí"}
-
+          <div style={{ display: "flex", gap: 12 }}>
+            <button
+              onClick={onEnroll}
+              disabled={enrolling}
+              style={{
+                padding: "12px 28px",
+                background: "#f1b24a",
+                color: "#111",
+                border: "none",
+                borderRadius: 8,
+                fontSize: 15,
+                fontWeight: 600,
+                cursor: "pointer",
+                opacity: enrolling ? 0.7 : 1,
+              }}
+            >
+              {enrolling ? "Đang đăng ký..." : (c.price ? `Đăng ký • ${c.price.toLocaleString()}₫` : "Bắt đầu học")}
+            </button>
+            <button
+              onClick={handleViewLessons}
+              style={{
+                padding: "12px 28px",
+                background: "transparent",
+                color: "#fff",
+                border: "2px solid #fff",
+                borderRadius: 8,
+                fontSize: 15,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              📚 Xem bài học
             </button>
             {embedUrl && (
-              <button className="btn outline large" onClick={() => setShowPreview(true)}>
+              <button
+                onClick={() => {}}
+                style={{
+                  padding: "12px 28px",
+                  background: "transparent",
+                  color: "#fff",
+                  border: "2px solid #fff",
+                  borderRadius: 8,
+                  fontSize: 15,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
                 ▶ Xem trailer
               </button>
             )}
@@ -120,161 +165,310 @@ export default function CourseDetail() {
         </div>
       </div>
 
-      <div className="cd-content">
-        {/* Left column */}
-        <div className="cd-col">
-          <div className="cd-card">
-            <h2 className="cd-card-title">Giới thiệu khóa học</h2>
-            <p className="cd-text">{c.longDescription || c.description}</p>
-            {Array.isArray(c.outcomes) && c.outcomes.length > 0 && (
-              <div className="cd-list">
-                {c.outcomes.map((o, i) => (
-                  <div className="cd-list-item" key={i}>✅ {o}</div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="cd-card">
-            <h2 className="cd-card-title">Nội dung khóa học</h2>
-            {c.lessons?.length ? (
-              <ul className="lesson-list fancy">
-                {c.lessons.map((ls, idx) => (
-                  <li key={ls._id}>
-                    <div className="ls-left">
-                      <span className="ls-index">{idx + 1}</span>
-                      <span className="ls-title">{ls.title}</span>
-                    </div>
-                    {ls.duration && <span className="ls-time">{ls.duration} phút</span>}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="muted">Chưa có nội dung hiển thị.</p>
-            )}
-          </div>
-
-          {Array.isArray(c.requirements) && c.requirements.length > 0 && (
-            <div className="cd-card">
-              <h2 className="cd-card-title">Yêu cầu</h2>
-              <ul className="cd-bullets">
-                {c.requirements.map((r, i) => (
-                  <li key={i}>• {r}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-
-        {/* Right column */}
-        <div className="cd-col side">
-          {embedUrl && (
-            <div className="cd-card sticky">
-              <div className="video">
-                <div className="video-embed">
-                  <iframe
-                    src={embedUrl}
-                    title="Course Preview"
-                    className="w-full h-full"
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </div>
-              </div>
-              <button className="btn primary w-full" onClick={onEnroll} disabled={enrolling}>
-                {enrolling
-                  ? "Đang đăng ký..."
-                  : c.price
-                  ? `Đăng ký • ${c.price.toLocaleString()}₫`
-                  : "Bắt đầu học miễn phí"}
+      {/* Main Content */}
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 20px 40px", display: "grid", gridTemplateColumns: "1fr 350px", gap: 30 }}>
+        {/* Left Column - Content */}
+        <div>
+          {/* Tabs */}
+          <div style={{ display: "flex", gap: 0, borderBottom: "2px solid #e0e0e0", marginBottom: 30, background: "#fff", borderRadius: "8px 8px 0 0", overflow: "hidden" }}>
+            {["overview", "curriculum", "reviews"].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                style={{
+                  flex: 1,
+                  padding: "16px",
+                  border: "none",
+                  background: activeTab === tab ? "#fff" : "transparent",
+                  borderBottom: activeTab === tab ? "3px solid #f1b24a" : "none",
+                  cursor: "pointer",
+                  fontSize: 15,
+                  fontWeight: activeTab === tab ? 600 : 500,
+                  color: activeTab === tab ? "#111" : "#666",
+                  transition: "all 0.2s ease",
+                }}
+              >
+                {tab === "overview" && "Tổng quan"}
+                {tab === "curriculum" && "Nội dung"}
+                {tab === "reviews" && "Đánh giá"}
               </button>
-              <div className="cd-side-meta">
-                <div>⏱️ Tổng thời lượng: {c.duration || "—"}</div>
-                <div>📚 Số bài học: {c.lessons?.length || 0}</div>
-                <div>🗓️ Cập nhật: {c.updatedAt ? new Date(c.updatedAt).toLocaleDateString() : "—"}</div>
-                <div>🌐 Ngôn ngữ: {c.language || "Việt Nam"}</div>
+            ))}
+          </div>
+
+          {/* Overview Tab */}
+          {activeTab === "overview" && (
+            <div>
+              <div style={{ background: "#fff", padding: 24, borderRadius: 12, marginBottom: 24 }}>
+                <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 16 }}>Giới thiệu</h2>
+                <p style={{ lineHeight: 1.6, color: "#444", marginBottom: 20 }}>{c.longDescription || c.description}</p>
+
+                {c.outcomes?.length > 0 && (
+                  <div>
+                    <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Bạn sẽ học được</h3>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                      {c.outcomes.map((o, i) => (
+                        <div key={i} style={{ display: "flex", gap: 8 }}>
+                          <span style={{ color: "#4caf50", fontWeight: 700 }}>✓</span>
+                          <span style={{ color: "#555", fontSize: 14 }}>{o}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
+
+              {c.requirements?.length > 0 && (
+                <div style={{ background: "#fff", padding: 24, borderRadius: 12 }}>
+                  <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Yêu cầu</h3>
+                  <ul style={{ listStyle: "none", padding: 0 }}>
+                    {c.requirements.map((r, i) => (
+                      <li key={i} style={{ padding: "8px 0", color: "#555", fontSize: 14 }}>
+                        • {r}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           )}
 
-          <div className="cd-card">
-            <h3 className="cd-card-title small">Giảng viên</h3>
-            <div className="teacher">
-              <div
-                className="avatar"
-                style={{ backgroundImage: `url(${c.instructor?.avatar || "/assets/avatar.png"})` }}
-              />
-              <div>
-                <div className="name">{c.instructor?.name || "Giảng viên"}</div>
-                {c.instructor?.bio && <div className="muted small">{c.instructor.bio}</div>}
-              </div>
+          {/* Curriculum Tab */}
+          {activeTab === "curriculum" && (
+            <div style={{ background: "#fff", borderRadius: 12, overflow: "hidden" }}>
+              {c.lessons?.length ? (
+                <div>
+                  {c.lessons.map((lesson, idx) => (
+                    <div
+                      key={lesson._id}
+                      onClick={() => setSelectedLesson(selectedLesson === lesson._id ? null : lesson._id)}
+                      style={{
+                        padding: "16px 20px",
+                        borderBottom: "1px solid #eee",
+                        cursor: "pointer",
+                        background: selectedLesson === lesson._id ? "#f5f5f5" : "#fff",
+                        transition: "all 0.2s ease",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
+                      <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                        <div
+                          style={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: "50%",
+                            background: "#f1b24a",
+                            color: "#fff",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontWeight: 600,
+                            fontSize: 14,
+                          }}
+                        >
+                          {idx + 1}
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 500, color: "#111" }}>{lesson.title}</div>
+                          {lesson.description && (
+                            <div style={{ fontSize: 13, color: "#666", marginTop: 4 }}>{lesson.description}</div>
+                          )}
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                        {lesson.duration && (
+                          <span style={{ fontSize: 13, color: "#666" }}>⏱️ {lesson.duration} phút</span>
+                        )}
+                        <span style={{ fontSize: 18, color: "#999" }}>{selectedLesson === lesson._id ? "▼" : "▶"}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ padding: 24, textAlign: "center", color: "#999" }}>Chưa có bài học nào</div>
+              )}
             </div>
-          </div>
+          )}
 
-          <div className="cd-card">
-            <h3 className="cd-card-title small">Chia sẻ khóa học</h3>
-            <div className="share-row">
-              <a
-                className="btn outline w-full"
-                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Facebook
-              </a>
-              <a
-                className="btn outline w-full"
-                href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(c.title)}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                X
-              </a>
+          {/* Reviews Tab */}
+          {activeTab === "reviews" && (
+            <div style={{ background: "#fff", borderRadius: 12, padding: 24 }}>
+              {c.reviews?.length ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                  {c.reviews.map((review) => (
+                    <div key={review._id} style={{ paddingBottom: 16, borderBottom: "1px solid #eee" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                        <div style={{ fontWeight: 600, color: "#111" }}>{review.user?.name || "Người dùng"}</div>
+                        <div style={{ color: "#f1b24a" }}>{"★".repeat(review.rating)}</div>
+                      </div>
+                      <p style={{ color: "#555", lineHeight: 1.5, margin: 0 }}>{review.comment}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ textAlign: "center", color: "#999" }}>Chưa có đánh giá nào</div>
+              )}
             </div>
-          </div>
+          )}
         </div>
-      </div>
 
-      <div className="cd-section">
-        <h2>Đánh giá</h2>
-        {c.reviews?.length ? (
-          <ul className="review-list">
-            {c.reviews.map((rv) => (
-              <li key={rv._id}>
-                <b>{rv.user?.name || "Người dùng"}</b> – {rv.rating}/5
-                <div className="rv-text">{rv.comment}</div>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="muted">Chưa có đánh giá.</p>
-        )}
-      </div>
-
-      {showPreview && embedUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/60" onClick={() => setShowPreview(false)} />
-          <div className="relative bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4 overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b">
-              <h4 className="font-semibold">Xem trailer: {c.title}</h4>
-              <button className="text-gray-500 hover:text-gray-700" onClick={() => setShowPreview(false)}>✕</button>
-            </div>
-            <div className="p-4">
-              <div className="aspect-video bg-black rounded overflow-hidden">
+        {/* Right Sidebar */}
+        <div>
+          {/* Video Preview */}
+          {embedUrl && (
+            <div style={{ background: "#fff", borderRadius: 12, overflow: "hidden", marginBottom: 24, position: "sticky", top: 20 }}>
+              <div style={{ aspectRatio: "16/9", background: "#000", overflow: "hidden" }}>
                 <iframe
                   src={embedUrl}
-                  title="Course Trailer"
-                  className="w-full h-full"
-                  frameBorder="0"
+                  title="Course Preview"
+                  style={{ width: "100%", height: "100%", border: "none" }}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 />
               </div>
+              <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 8 }}>
+                <button
+                  onClick={onEnroll}
+                  disabled={enrolling}
+                  style={{
+                    width: "100%",
+                    padding: "12px",
+                    background: "#f1b24a",
+                    color: "#111",
+                    border: "none",
+                    borderRadius: 8,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    opacity: enrolling ? 0.7 : 1,
+                  }}
+                >
+                  {enrolling ? "Đang đăng ký..." : (c.price ? `Đăng ký • ${c.price.toLocaleString()}₫` : "Bắt đầu học")}
+                </button>
+                <button
+                  onClick={handleViewLessons}
+                  style={{
+                    width: "100%",
+                    padding: "12px",
+                    background: "transparent",
+                    color: "#f1b24a",
+                    border: "1px solid #f1b24a",
+                    borderRadius: 8,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                >
+                  📚 Xem bài học
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Course Info */}
+          <div style={{ background: "#fff", padding: 20, borderRadius: 12, marginBottom: 20 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 16, color: "#111" }}>Thông tin khóa học</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, fontSize: 13 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: 10, borderBottom: "1px solid #eee" }}>
+                <span style={{ color: "#666" }}>⏱️ Tổng thời lượng</span>
+                <span style={{ fontWeight: 500, color: "#111" }}>{c.duration || "—"}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: 10, borderBottom: "1px solid #eee" }}>
+                <span style={{ color: "#666" }}>📚 Số bài học</span>
+                <span style={{ fontWeight: 500, color: "#111" }}>{c.lessons?.length || 0}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: 10, borderBottom: "1px solid #eee" }}>
+                <span style={{ color: "#666" }}>📊 Mức độ</span>
+                <span style={{ fontWeight: 500, color: "#111" }}>{c.level || "—"}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#666" }}>🗓️ Cập nhật</span>
+                <span style={{ fontWeight: 500, color: "#111" }}>
+                  {c.updatedAt ? new Date(c.updatedAt).toLocaleDateString("vi-VN") : "—"}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Instructor */}
+          <div style={{ background: "#fff", padding: 20, borderRadius: 12, marginBottom: 20 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 16, color: "#111" }}>Giảng viên</h3>
+            <div style={{ display: "flex", gap: 12 }}>
+              <div
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: "50%",
+                  background: `url(${c.instructor?.avatar || "/assets/avatar.png"})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  flexShrink: 0,
+                }}
+              />
+              <div>
+                <div style={{ fontWeight: 600, color: "#111", marginBottom: 4 }}>{c.instructor?.name || "Giảng viên"}</div>
+                {c.instructor?.bio && (
+                  <p style={{ fontSize: 13, color: "#666", margin: 0, lineHeight: 1.4 }}>{c.instructor.bio}</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Share */}
+          <div style={{ background: "#fff", padding: 20, borderRadius: 12 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12, color: "#111" }}>Chia sẻ</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <a
+                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  display: "block",
+                  textAlign: "center",
+                  padding: "8px",
+                  background: "#f0f0f0",
+                  border: "none",
+                  borderRadius: 6,
+                  textDecoration: "none",
+                  color: "#111",
+                  fontSize: 13,
+                  fontWeight: 500,
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => (e.target.style.background = "#e0e0e0")}
+                onMouseLeave={(e) => (e.target.style.background = "#f0f0f0")}
+              >
+                📘 Facebook
+              </a>
+              <a
+                href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(c.title)}`}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  display: "block",
+                  textAlign: "center",
+                  padding: "8px",
+                  background: "#f0f0f0",
+                  border: "none",
+                  borderRadius: 6,
+                  textDecoration: "none",
+                  color: "#111",
+                  fontSize: 13,
+                  fontWeight: 500,
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => (e.target.style.background = "#e0e0e0")}
+                onMouseLeave={(e) => (e.target.style.background = "#f0f0f0")}
+              >
+                𝕏 Twitter
+              </a>
             </div>
           </div>
         </div>
-      )}
+      </div>
+
+
     </div>
   );
 

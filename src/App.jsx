@@ -6,7 +6,9 @@ import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import Courses from "./pages/Courses";
 import CourseDetail from "./pages/CourseDetail";
-
+import Lessons from "./pages/Lessons";
+import Quiz from "./pages/Quiz";
+import AIChat from "./components/AIChat";
 // 🧭 Thành phần giao diện chung
 import NavBar from "./components/NavBar";
 
@@ -32,10 +34,6 @@ import CompanionsList from "./components/CompanionsList";
 import AuthProvider from "./context/AuthContext";
 import { AdminRoute, ProtectedRoute, GuestOnly } from "./context/RouteGuards";
 
-
-import Courses from "./pages/Courses";
-import CourseDetail from "./pages/CourseDetail";
-import AIChat from "./components/AIChat";
 
 
 // 🧱 Trang quản trị
@@ -102,6 +100,22 @@ function AppShell() {
         />
         <Route path="/courses" element={<Courses />} />
         <Route path="/courses/:id" element={<CourseDetail />} />
+        <Route
+          path="/courses/:id/lessons"
+          element={
+            <ProtectedRoute>
+              <Lessons />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/lessons/:id/quiz"
+          element={
+            <ProtectedRoute>
+              <Quiz />
+            </ProtectedRoute>
+          }
+        />
 
         {/* USER ZONE */}
         <Route
