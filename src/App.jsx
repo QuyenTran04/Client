@@ -3,20 +3,44 @@ import Home from "./pages/Home";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import NavBar from "./components/NavBar";
-//import { useAuth } from "./context/AuthContext";
 import AuthProvider from "./context/AuthContext";
 import { AdminRoute, ProtectedRoute, GuestOnly } from "./context/RouteGuards";
- // đã tạo ở bước trước
+
 import Courses from "./pages/Courses";
 import CourseDetail from "./pages/CourseDetail";
+import AIChat from "./components/AIChat";
 
 // Admin pages
 import AdminLayout from "./pages/admin/AdminLayout";
 import Overview from "./pages/admin/Overview";
 import Users from "./pages/admin/Users";
-import AdminCourses from "./pages/admin/Courses"; // <— tránh trùng với trang public
+import AdminCourses from "./pages/admin/Courses"; // dùng tên khác với trang public
 
+/**
+ * Hiện chatbot nổi ở tất cả trang public, trừ:
+ * - /courses/:id (đã có drawer trong CourseDetail)
+ * - /login, /register (tránh che UI form)
+ * - /admin/*
+ */
+function GlobalChatSwitcher() {
+  const { pathname } = useLocation();
 
+  const isAdmin = pathname.startsWith("/admin");
+  const isCourseDetail = /^\/courses\/[^/]+$/.test(pathname);
+  const isAuthPage = pathname === "/login" || pathname === "/register";
+
+  if (isAdmin || isCourseDetail || isAuthPage) return null;
+
+  return (
+    <AIChat
+      layout="floating"
+      title="Hỗ trợ học tập"
+      page="global"
+      language="vi"
+      // Không truyền courseId/lessonId => nhánh tư vấn chung trên n8n
+    />
+  );
+}
 
 function AppShell() {
   const location = useLocation();
@@ -49,11 +73,21 @@ function AppShell() {
         <Route path="/courses" element={<Courses />} />
         <Route path="/courses/:id" element={<CourseDetail />} />
 
-        {/* Admin */}
-        <Route path="/admin" element={<AdminLayout />}>
+        {/* Admin (bọc bằng AdminRoute) */}
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminLayout />
+            </AdminRoute>
+          }
+        >
           <Route index element={<Overview />} />
           <Route path="overview" element={<Overview />} />
-          {/* bạn có thể tạo thêm pages rỗng để Sidebar không lỗi */}
+          <Route path="users" element={<Users />} />
+          <Route path="courses" element={<AdminCourses />} />
+
+          {/* Các placeholder để sidebar không lỗi */}
           <Route path="products" element={<div />} />
           <Route path="favorites" element={<div />} />
           <Route path="inbox" element={<div />} />
@@ -70,12 +104,19 @@ function AppShell() {
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+
+      {/* Chatbot nổi toàn cục (ẩn ở những trang đã loại trừ) */}
+      <GlobalChatSwitcher />
     </>
   );
 }
 
 export default function App() {
-  // Nếu bạn đã bọc BrowserRouter + QueryClientProvider ở main.jsx thì giữ nguyên.
-  // Ở đây chỉ trả về AppShell.
-  return <AppShell />;
+  // Nếu BrowserRouter đã bọc ở main.jsx thì giữ nguyên.
+  // Bọc AuthProvider ở đây để toàn app có context user.
+  return (
+    <AuthProvider>
+      <AppShell />
+    </AuthProvider>
+  );
 }
