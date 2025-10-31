@@ -17,7 +17,13 @@ export default function CourseGrid({ items = [], loading }) {
     );
   }
   if (!items.length)
-    return <p style={{ padding: 16 }}>Không có khóa học phù hợp.</p>;
+    return (
+      <div className="empty-state">
+        <div className="empty-ico">📚</div>
+        <div className="empty-title">Không có khóa học phù hợp</div>
+        <div className="empty-sub">Thử đổi bộ lọc hoặc tìm kiếm khác nhé.</div>
+      </div>
+    );
 
   return (
     <div className="grid">

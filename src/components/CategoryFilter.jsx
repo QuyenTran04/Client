@@ -4,6 +4,8 @@ export default function CategoryFilter({ categories, activeId, onPick }) {
       <button
         className={`pill ${!activeId ? "active" : ""}`}
         onClick={() => onPick("")}
+        aria-pressed={!activeId}
+        role="tab"
       >
         Tất cả
       </button>
@@ -13,6 +15,8 @@ export default function CategoryFilter({ categories, activeId, onPick }) {
           className={`pill ${activeId === c._id ? "active" : ""}`}
           onClick={() => onPick(c._id)}
           title={c.name}
+          aria-pressed={activeId === c._id}
+          role="tab"
         >
           {c.name}
         </button>

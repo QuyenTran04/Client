@@ -10,7 +10,7 @@ export default function NavBar() {
       <div className="container nav-wrap">
         {/* Logo */}
         <Link to="/" className="brand">
-          
+          {/* <img src="/logo.svg" alt="Elearn" className="logo" /> */}
           <span>Elearn</span>
         </Link>
 
@@ -18,40 +18,42 @@ export default function NavBar() {
         <ul className="menu">
           <li>
             <NavLink to="/" end>
-              Trang chủ
+              Home
             </NavLink>
           </li>
           <li>
-            <NavLink to="/about">Giới thiệu</NavLink>
+            <NavLink to="/courses">Courses</NavLink>
           </li>
           <li>
-            <NavLink to="/courses">Khóa học</NavLink>
+            <NavLink to="/instructors">Instructors</NavLink>
           </li>
           <li>
-            <NavLink to="/blog">Blog</NavLink>
+            <NavLink to="/about">About</NavLink>
           </li>
           <li>
-            <NavLink to="/contact">Liên hệ</NavLink>
+            <NavLink to="/contact">Contact</NavLink>
           </li>
         </ul>
 
-        {/* Phần phải */}
-        <div className="auth-actions">
+        {/* Search + Auth */}
+        <div className="right-row">
+          <div className="nav-search">
+            <input className="nav-input" placeholder="Search courses..." />
+          </div>
           {user ? (
             <>
-              <span className="user">Xin chào, {user.name}</span>
-              <button className="btn logout" onClick={logout}>
-                Đăng xuất
-              </button>
+              <div className="userbox">
+                <div className="avatar" title={user.name}>
+                  {user.name?.[0]?.toUpperCase() || "U"}
+                </div>
+                <span className="user hide-sm">{user.name}</span>
+              </div>
+              <button className="btn logout" onClick={logout}>Logout</button>
             </>
           ) : (
             <>
-              <Link to="/login" className="btn login">
-                Đăng nhập
-              </Link>
-              <Link to="/register" className="btn register">
-                Đăng ký
-              </Link>
+              <Link to="/login" className="btn login">Login</Link>
+              <Link to="/register" className="btn register">Register</Link>
             </>
           )}
         </div>

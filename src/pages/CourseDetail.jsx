@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getCourseById, enrollCourse } from "../services/course";
 import { useAuth } from "../context/AuthContext";
+import { getYouTubeEmbedUrl } from "../lib/utils";
 import "../css/courses.css";
 import AIChat from "../components/AIChat";
 
@@ -13,6 +14,7 @@ export default function CourseDetail() {
   const [loading, setLoading] = useState(true);
   const [enrolling, setEnrolling] = useState(false);
   const [error, setError] = useState("");
+  const [showPreview, setShowPreview] = useState(false);
 
   // 👇 Bài học được chọn để làm ngữ cảnh cho AI
   const [selectedLessonId, setSelectedLessonId] = useState(null);
@@ -54,7 +56,12 @@ export default function CourseDetail() {
   if (loading) {
     return (
       <div className="container">
-        <p>Đang tải...</p>
+        <div className="skeleton-page">
+          <div className="skeleton hero" />
+          <div className="skeleton row" />
+          <div className="skeleton row" />
+          <div className="skeleton card" />
+        </div>
       </div>
     );
   }
@@ -62,81 +69,171 @@ export default function CourseDetail() {
   if (!c) {
     return (
       <div className="container">
-        <p className="err">{error || "Không tìm thấy khóa học."}</p>
+        <div className="err card" style={{ padding: 16 }}>
+          {error || "Không tìm thấy khóa học."}
+        </div>
       </div>
     );
   }
 
   const imgSrc = c.imageUrl || "/assets/placeholder-course.jpg";
 
+  const embedUrl = getYouTubeEmbedUrl(c?.introVideoUrl || c?.trailerUrl || c?.videoUrl);
+
   return (
     <div className="container course-detail">
-      <div className="cd-top">
-        <img
-          className="cd-thumb"
-          src={imgSrc}
-          onError={(e) => {
-            e.currentTarget.src = "/assets/placeholder-course.jpg";
+      {/* Hero / Header */}
+      <div className="cd-hero">
+        <div
+          className="cd-hero-bg"
+          style={{
+            backgroundImage: `linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.6)), url(${c.imageUrl || "/assets/placeholder-course.jpg"})`,
           }}
-          alt={c.title}
         />
-        <div className="cd-meta">
-          <h1>{c.title}</h1>
-          <p className="muted">{c.description}</p>
-
-          <div className="cd-row">
-            <span>
-              <b>Danh mục:</b> {c.category?.name || "—"}
-            </span>
-            <span>
-              <b>Giảng viên:</b> {c.instructor?.name || "—"}
-            </span>
-            <span>
-              <b>Giá:</b>{" "}
-              {c.price ? c.price.toLocaleString() + "₫" : "Miễn phí"}
-            </span>
+        <div className="cd-hero-inner">
+          <div className="cd-hero-badges">
+            <span className="badge">{c.category?.name || "Khóa học"}</span>
+            {c.level && <span className="badge outline">{c.level}</span>}
           </div>
+          <h1 className="cd-hero-title">{c.title}</h1>
+          <p className="cd-hero-desc">{c.description}</p>
+          <div className="cd-hero-meta">
+            <span>👨‍🏫 {c.instructor?.name || "Giảng viên"}</span>
+            {c.lessons?.length ? <span>• 📚 {c.lessons.length} bài học</span> : null}
+            {c.duration ? <span>• ⏱️ {c.duration} giờ</span> : null}
+          </div>
+          <div className="cd-hero-cta">
+            <button className="btn primary large" onClick={onEnroll} disabled={enrolling}>
+              {enrolling
+                ? "Đang đăng ký..."
+                : c.price
+                ? `Đăng ký • ${c.price.toLocaleString()}₫`
+                : "Bắt đầu học miễn phí"}
 
-          <div className="cd-actions">
-            <button
-              className="btn primary"
-              onClick={onEnroll}
-              disabled={enrolling}
-            >
-              {enrolling ? "Đang đăng ký..." : "Đăng ký học"}
             </button>
+            {embedUrl && (
+              <button className="btn outline large" onClick={() => setShowPreview(true)}>
+                ▶ Xem trailer
+              </button>
+            )}
           </div>
         </div>
       </div>
 
-      <div className="cd-section">
-        <h2>Nội dung khóa học</h2>
-        {c.lessons?.length ? (
-          <ul className="lesson-list">
-            {c.lessons.map((ls) => {
-              const active = selectedLessonId === ls._id;
-              return (
-                <li key={ls._id} className={active ? "active" : ""}>
-                  <span className="ls-title">{ls.title}</span>
-                  {ls.duration && (
-                    <span className="ls-time">{ls.duration} phút</span>
-                  )}
-                  {/* Nút chọn bài này làm ngữ cảnh hỏi AI */}
-                  <button
-                    className="btn ghost sm"
-                    onClick={() => setSelectedLessonId(ls._id)}
-                    title="Đặt ngữ cảnh cho AI"
-                    style={{ marginLeft: 8 }}
-                  >
-                    {active ? "Đang đặt cho AI" : "Hỏi AI về bài này"}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        ) : (
-          <p className="muted">Chưa có nội dung hiển thị.</p>
-        )}
+      <div className="cd-content">
+        {/* Left column */}
+        <div className="cd-col">
+          <div className="cd-card">
+            <h2 className="cd-card-title">Giới thiệu khóa học</h2>
+            <p className="cd-text">{c.longDescription || c.description}</p>
+            {Array.isArray(c.outcomes) && c.outcomes.length > 0 && (
+              <div className="cd-list">
+                {c.outcomes.map((o, i) => (
+                  <div className="cd-list-item" key={i}>✅ {o}</div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="cd-card">
+            <h2 className="cd-card-title">Nội dung khóa học</h2>
+            {c.lessons?.length ? (
+              <ul className="lesson-list fancy">
+                {c.lessons.map((ls, idx) => (
+                  <li key={ls._id}>
+                    <div className="ls-left">
+                      <span className="ls-index">{idx + 1}</span>
+                      <span className="ls-title">{ls.title}</span>
+                    </div>
+                    {ls.duration && <span className="ls-time">{ls.duration} phút</span>}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="muted">Chưa có nội dung hiển thị.</p>
+            )}
+          </div>
+
+          {Array.isArray(c.requirements) && c.requirements.length > 0 && (
+            <div className="cd-card">
+              <h2 className="cd-card-title">Yêu cầu</h2>
+              <ul className="cd-bullets">
+                {c.requirements.map((r, i) => (
+                  <li key={i}>• {r}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+
+        {/* Right column */}
+        <div className="cd-col side">
+          {embedUrl && (
+            <div className="cd-card sticky">
+              <div className="video">
+                <div className="video-embed">
+                  <iframe
+                    src={embedUrl}
+                    title="Course Preview"
+                    className="w-full h-full"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              </div>
+              <button className="btn primary w-full" onClick={onEnroll} disabled={enrolling}>
+                {enrolling
+                  ? "Đang đăng ký..."
+                  : c.price
+                  ? `Đăng ký • ${c.price.toLocaleString()}₫`
+                  : "Bắt đầu học miễn phí"}
+              </button>
+              <div className="cd-side-meta">
+                <div>⏱️ Tổng thời lượng: {c.duration || "—"}</div>
+                <div>📚 Số bài học: {c.lessons?.length || 0}</div>
+                <div>🗓️ Cập nhật: {c.updatedAt ? new Date(c.updatedAt).toLocaleDateString() : "—"}</div>
+                <div>🌐 Ngôn ngữ: {c.language || "Việt Nam"}</div>
+              </div>
+            </div>
+          )}
+
+          <div className="cd-card">
+            <h3 className="cd-card-title small">Giảng viên</h3>
+            <div className="teacher">
+              <div
+                className="avatar"
+                style={{ backgroundImage: `url(${c.instructor?.avatar || "/assets/avatar.png"})` }}
+              />
+              <div>
+                <div className="name">{c.instructor?.name || "Giảng viên"}</div>
+                {c.instructor?.bio && <div className="muted small">{c.instructor.bio}</div>}
+              </div>
+            </div>
+          </div>
+
+          <div className="cd-card">
+            <h3 className="cd-card-title small">Chia sẻ khóa học</h3>
+            <div className="share-row">
+              <a
+                className="btn outline w-full"
+                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Facebook
+              </a>
+              <a
+                className="btn outline w-full"
+                href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(c.title)}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                X
+              </a>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="cd-section">
@@ -155,15 +252,31 @@ export default function CourseDetail() {
         )}
       </div>
 
-      {/* 🔽 Ngăn kéo chat AI bên phải (mở bằng tay nắm "CHAT") */}
-      <AIChat
-        layout="drawer"
-        title="Gia sư AI"
-        courseId={id} // gắn ngữ cảnh khóa học
-        lessonId={selectedLessonId} // gắn ngữ cảnh bài học (nếu đã chọn)
-        page="course-detail"
-        language="vi"
-      />
+      {showPreview && embedUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/60" onClick={() => setShowPreview(false)} />
+          <div className="relative bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4 overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b">
+              <h4 className="font-semibold">Xem trailer: {c.title}</h4>
+              <button className="text-gray-500 hover:text-gray-700" onClick={() => setShowPreview(false)}>✕</button>
+            </div>
+            <div className="p-4">
+              <div className="aspect-video bg-black rounded overflow-hidden">
+                <iframe
+                  src={embedUrl}
+                  title="Course Trailer"
+                  className="w-full h-full"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
+
+
 }
