@@ -4,27 +4,40 @@ import { getCourseById, enrollCourse } from "../services/course";
 import { useAuth } from "../context/AuthContext";
 import { getYouTubeEmbedUrl } from "../lib/utils";
 import "../css/courses.css";
+import AIChat from "../components/AIChat";
 
 export default function CourseDetail() {
   const { id } = useParams();
   const { user } = useAuth();
+
   const [c, setC] = useState(null);
   const [loading, setLoading] = useState(true);
   const [enrolling, setEnrolling] = useState(false);
   const [error, setError] = useState("");
   const [showPreview, setShowPreview] = useState(false);
 
+  // 👇 Bài học được chọn để làm ngữ cảnh cho AI
+  const [selectedLessonId, setSelectedLessonId] = useState(null);
+
   useEffect(() => {
+    let alive = true;
     (async () => {
       try {
+        setLoading(true);
         const data = await getCourseById(id);
+        if (!alive) return;
         setC(data);
+        setSelectedLessonId(null); // đổi khóa học thì reset lesson context
       } catch (e) {
+        if (!alive) return;
         setError("Không tải được thông tin khóa học.");
       } finally {
-        setLoading(false);
+        if (alive) setLoading(false);
       }
     })();
+    return () => {
+      alive = false;
+    };
   }, [id]);
 
   const onEnroll = async () => {
@@ -40,7 +53,7 @@ export default function CourseDetail() {
     }
   };
 
-  if (loading)
+  if (loading) {
     return (
       <div className="container">
         <div className="skeleton-page">
@@ -51,7 +64,9 @@ export default function CourseDetail() {
         </div>
       </div>
     );
-  if (!c)
+  }
+
+  if (!c) {
     return (
       <div className="container">
         <div className="err card" style={{ padding: 16 }}>
@@ -59,6 +74,9 @@ export default function CourseDetail() {
         </div>
       </div>
     );
+  }
+
+  const imgSrc = c.imageUrl || "/assets/placeholder-course.jpg";
 
   const embedUrl = getYouTubeEmbedUrl(c?.introVideoUrl || c?.trailerUrl || c?.videoUrl);
 
@@ -91,6 +109,7 @@ export default function CourseDetail() {
                 : c.price
                 ? `Đăng ký • ${c.price.toLocaleString()}₫`
                 : "Bắt đầu học miễn phí"}
+
             </button>
             {embedUrl && (
               <button className="btn outline large" onClick={() => setShowPreview(true)}>

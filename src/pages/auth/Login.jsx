@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { loginApi, googleApi } from "../../services/auth";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 export default function Login() {
   const nav = useNavigate();
-  const { setUser, refreshMe } = useAuth(); // nhớ lấy refreshMe từ context
+  const { setUser, refreshMe } = useAuth(); // lấy refreshMe từ context
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -14,12 +14,18 @@ export default function Login() {
   const onChange = (e) =>
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
-  const redirectByRole = (user) => {
-    const role = (user?.role || "").toLowerCase();
-    // console.error(role); // chỉ debug nếu cần
-    if (role === "admin") nav("/admin/overview", { replace: true });
-    else nav("/", { replace: true });
-  };
+  const redirectByRole = useCallback(
+    (user) => {
+      const role = (user?.role || "").toLowerCase();
+      console.log("User role:", role); // Debug log
+      if (role === "admin") {
+        nav("/admin/overview", { replace: true });
+      } else {
+        nav("/", { replace: true });
+      }
+    },
+    [nav]
+  );
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -27,17 +33,22 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-      const { data } = await loginApi(form);
+      const { data } = await loginApi(form); // Ensure API returns user with role
+      if (!data?.user?.role) {
+        throw new Error("User role is missing");
+      }
       setUser(data.user);
-      await refreshMe(); // đồng bộ phiên từ cookie
+      await refreshMe(); // Sync session from cookie
       redirectByRole(data.user);
     } catch (err) {
+      console.error("Login error:", err); // Debug log
       setError(err?.response?.data?.message || "Đăng nhập thất bại");
     } finally {
       setLoading(false);
     }
   };
 
+  // GOOGLE BUTTON
   useEffect(() => {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
     if (!window.google || !clientId || !googleBtnRef.current) return;
@@ -51,13 +62,15 @@ export default function Login() {
           const { data } = await googleApi(resp.credential);
           setUser(data.user);
           await refreshMe();
-          redirectByRole(data.user);
+          redirectByRole(data.user); // Ensure proper redirection
         } catch (err) {
-          setError(err?.response?.data?.message || "Đăng nhập Google thất bại");
+          console.error("Google login error:", err); // Debug log
+          setError(err?.response?.data?.message || "Google login thất bại");
         } finally {
           setLoading(false);
         }
       },
+      auto_select: false,
     });
 
     window.google.accounts.id.renderButton(googleBtnRef.current, {
@@ -66,8 +79,9 @@ export default function Login() {
       shape: "pill",
       text: "signin_with",
       width: 260,
+      logo_alignment: "left",
     });
-  }, [nav, setUser, refreshMe]);
+  }, [nav, setUser, refreshMe, redirectByRole]);
 
   return (
     <div className="auth-canvas">
@@ -122,10 +136,8 @@ export default function Login() {
           </p>
 
           <div className="divider">— OR —</div>
-
           <div className="oauth-row">
             <div ref={googleBtnRef} />
-            {/* Nếu muốn thêm GitHub thật sự, bạn sẽ cần OAuth flow riêng */}
           </div>
         </div>
       </div>

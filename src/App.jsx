@@ -9,6 +9,7 @@ import CourseDetail from "./pages/CourseDetail";
 
 // 🧭 Thành phần giao diện chung
 import NavBar from "./components/NavBar";
+
 import Sidebar from "./components/Sidebar";
 import Topbar from "./components/Topbar";
 
@@ -31,11 +32,44 @@ import CompanionsList from "./components/CompanionsList";
 import AuthProvider from "./context/AuthContext";
 import { AdminRoute, ProtectedRoute, GuestOnly } from "./context/RouteGuards";
 
+
+import Courses from "./pages/Courses";
+import CourseDetail from "./pages/CourseDetail";
+import AIChat from "./components/AIChat";
+
+
 // 🧱 Trang quản trị
 import AdminLayout from "./pages/admin/AdminLayout";
 import Overview from "./pages/admin/Overview";
 import Users from "./pages/admin/Users";
-import AdminCourses from "./pages/admin/Courses";
+
+import AdminCourses from "./pages/admin/Courses"; // dùng tên khác với trang public
+
+/**
+ * Hiện chatbot nổi ở tất cả trang public, trừ:
+ * - /courses/:id (đã có drawer trong CourseDetail)
+ * - /login, /register (tránh che UI form)
+ * - /admin/*
+ */
+function GlobalChatSwitcher() {
+  const { pathname } = useLocation();
+
+  const isAdmin = pathname.startsWith("/admin");
+  const isCourseDetail = /^\/courses\/[^/]+$/.test(pathname);
+  const isAuthPage = pathname === "/login" || pathname === "/register";
+
+  if (isAdmin || isCourseDetail || isAuthPage) return null;
+
+  return (
+    <AIChat
+      layout="floating"
+      title="Hỗ trợ học tập"
+      page="global"
+      language="vi"
+      // Không truyền courseId/lessonId => nhánh tư vấn chung trên n8n
+    />
+  );
+}
 
 // ======================== APP SHELL ========================
 function AppShell() {
@@ -96,6 +130,7 @@ function AppShell() {
         />
 
         {/* ADMIN ZONE */}
+
         <Route
           path="/admin"
           element={
@@ -108,17 +143,35 @@ function AppShell() {
           <Route path="overview" element={<Overview />} />
           <Route path="users" element={<Users />} />
           <Route path="courses" element={<AdminCourses />} />
+
+
+          {/* Các placeholder để sidebar không lỗi */}
+          <Route path="products" element={<div />} />
+          <Route path="favorites" element={<div />} />
+          <Route path="inbox" element={<div />} />
+          <Route path="orders" element={<div />} />
+          <Route path="stock" element={<div />} />
+          <Route path="pricing" element={<div />} />
+          <Route path="calendar" element={<div />} />
+          <Route path="todo" element={<div />} />
+          <Route path="team" element={<div />} />
+          <Route path="table" element={<div />} />
+          <Route path="support" element={<div />} />
         </Route>
 
         {/* 404 fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+
+      {/* Chatbot nổi toàn cục (ẩn ở những trang đã loại trừ) */}
+      <GlobalChatSwitcher />
     </>
   );
 }
 
 // ======================== APP ROOT ========================
 export default function App() {
+
   return (
     <AuthProvider>
       <AppShell />
