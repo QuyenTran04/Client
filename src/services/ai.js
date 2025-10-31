@@ -8,6 +8,6 @@ export async function chatWithAI({
   uiState = {},
 }) {
   const payload = { message, userId, courseId, lessonId, uiState };
-  const { data } = await api.post("/ai/agent-chat", payload); // gọi proxy server
+  const { data } = await api.post("/ai/chat", payload); // gọi proxy server
   return data;
 }

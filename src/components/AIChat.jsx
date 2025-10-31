@@ -1,24 +1,21 @@
+// src/components/AIChat.jsx
 import { useEffect, useMemo, useRef, useState } from "react";
 import "../css/chat.css";
 import { chatWithAI } from "../services/ai";
 import { useAuth } from "../context/AuthContext";
 
-/**
- * layout:
- *  - "floating": nút FAB + popup (dùng ngoài Course)
- *  - "drawer": ngăn kéo bên phải (dùng trong Course)
- */
 export default function AIChat({
   layout = "floating",
   courseId = null,
   lessonId = null,
   language = "vi",
   page = "unknown",
-  title = "Gia sư AI",
+  title = "Hỗ trợ học tập",
   defaultOpen = layout === "drawer" ? false : false,
 }) {
   const { user } = useAuth();
   const userId = user?._id || user?.id || "guest";
+
   const [open, setOpen] = useState(defaultOpen);
   const [busy, setBusy] = useState(false);
   const [input, setInput] = useState("");
@@ -30,7 +27,27 @@ export default function AIChat({
       return [];
     }
   });
+
+  const [size, setSize] = useState(() => {
+    const sizeKey = `ai_chat_size_${layout}`;
+    try {
+      const saved = JSON.parse(localStorage.getItem(sizeKey));
+      return saved || (layout === "floating" 
+        ? { width: 400, height: 600 } 
+        : { width: 420 }
+      );
+    } catch {
+      return layout === "floating" 
+        ? { width: 400, height: 600 } 
+        : { width: 420 };
+    }
+  });
+
   const listRef = useRef(null);
+  const inputRef = useRef(null);
+  const chatRef = useRef(null);
+  const resizing = useRef(false);
+
   const storageKey = useMemo(
     () => `ai_chat_${userId}_${courseId || "nocourse"}`,
     [userId, courseId]
@@ -42,13 +59,80 @@ export default function AIChat({
       listRef.current.scrollTop = listRef.current.scrollHeight;
   }, [messages, storageKey]);
 
+  useEffect(() => {
+    if (open && inputRef.current)
+      inputRef.current.focus({ preventScroll: true });
+  }, [open]);
+
+  useEffect(() => {
+    const sizeKey = `ai_chat_size_${layout}`;
+    localStorage.setItem(sizeKey, JSON.stringify(size));
+  }, [size, layout]);
+
+  const handleResizeStart = (e, direction) => {
+    e.preventDefault();
+    e.stopPropagation();
+    resizing.current = { direction, startX: e.clientX, startY: e.clientY, startSize: { ...size } };
+    document.body.style.cursor = direction.includes('e') || direction.includes('w') ? 'ew-resize' : 'ns-resize';
+    if (direction === 'se' || direction === 'sw' || direction === 'ne' || direction === 'nw') {
+      document.body.style.cursor = direction === 'se' || direction === 'nw' ? 'nwse-resize' : 'nesw-resize';
+    }
+    document.addEventListener('mousemove', handleResizeMove);
+    document.addEventListener('mouseup', handleResizeEnd);
+  };
+
+  const handleResizeMove = (e) => {
+    if (!resizing.current || !chatRef.current) return;
+    
+    const { direction, startX, startY, startSize } = resizing.current;
+    const deltaX = e.clientX - startX;
+    const deltaY = e.clientY - startY;
+    
+    const newSize = { ...startSize };
+    const minWidth = 320;
+    const minHeight = 400;
+    const maxWidth = window.innerWidth - 40;
+    const maxHeight = window.innerHeight - 120;
+
+    if (layout === 'floating') {
+      if (direction.includes('e')) {
+        newSize.width = Math.min(Math.max(startSize.width + deltaX, minWidth), maxWidth);
+      }
+      if (direction.includes('w')) {
+        newSize.width = Math.min(Math.max(startSize.width - deltaX, minWidth), maxWidth);
+      }
+      if (direction.includes('s')) {
+        newSize.height = Math.min(Math.max(startSize.height + deltaY, minHeight), maxHeight);
+      }
+      if (direction.includes('n')) {
+        newSize.height = Math.min(Math.max(startSize.height - deltaY, minHeight), maxHeight);
+      }
+    } else {
+      newSize.width = Math.min(Math.max(startSize.width - deltaX, minWidth), maxWidth);
+    }
+
+    setSize(newSize);
+  };
+
+  const handleResizeEnd = () => {
+    resizing.current = false;
+    document.body.style.cursor = '';
+    document.removeEventListener('mousemove', handleResizeMove);
+    document.removeEventListener('mouseup', handleResizeEnd);
+  };
+
   const send = async (text) => {
     const content = (text ?? input).trim();
     if (!content) return;
+
+    // giữ focus trước/sau khi gửi
+    if (inputRef.current) inputRef.current.focus({ preventScroll: true });
+
     const userMsg = { role: "user", content, ts: Date.now() };
     setMessages((m) => [...m, userMsg]);
     setInput("");
     setBusy(true);
+
     try {
       const uiState = { page, language };
       const data = await chatWithAI({
@@ -58,11 +142,31 @@ export default function AIChat({
         lessonId,
         uiState,
       });
-      const reply =
-        data?.reply ||
-        data?.message ||
-        (Array.isArray(data) ? data[0]?.json ?? data[0] : null) ||
-        "Mình đã nhận được yêu cầu của bạn 👍";
+      
+      console.log("API Response:", data);
+      
+      let reply = "Mình đã nhận được yêu cầu của bạn 👍";
+      
+      if (data?.answer) {
+        try {
+          const parsed = JSON.parse(data.answer);
+          if (Array.isArray(parsed) && parsed[0]?.output) {
+            reply = parsed[0].output;
+          }
+        } catch {
+          reply = data.answer;
+        }
+      } else {
+        reply =
+          data?.reply ||
+          data?.message ||
+          data?.response ||
+          data?.content ||
+          (Array.isArray(data) ? data[0]?.output ?? data[0] : null) ||
+          (typeof data === "string" ? data : null) ||
+          reply;
+      }
+
       const botMsg = {
         role: "assistant",
         content: typeof reply === "string" ? reply : JSON.stringify(reply),
@@ -80,6 +184,7 @@ export default function AIChat({
       console.error(err);
     } finally {
       setBusy(false);
+      if (inputRef.current) inputRef.current.focus({ preventScroll: true });
     }
   };
 
@@ -90,30 +195,26 @@ export default function AIChat({
     }
   };
 
-  // ---------- UI ----------
-  const Header = () => (
+  const headerContent = (
     <div className="ai-chat__header">
       <div className="ai-chat__title">{title}</div>
-      <div className="ai-chat__meta">
-        {courseId ? `Course: ${String(courseId).slice(0, 6)}…` : "Tư vấn chung"}
-      </div>
       <button
         className="ai-chat__close"
         onClick={() => setOpen(false)}
         aria-label="Close"
         title="Đóng"
       >
-        ×
+        ✕
       </button>
     </div>
   );
 
-  const Body = () => (
+  const bodyContent = (
     <>
       <div className="ai-chat__body" ref={listRef}>
         {messages.length === 0 && (
           <div className="ai-chat__hint">
-            Hỏi mình về lộ trình, bài học, hoặc gợi ý khóa học phù hợp nhé!
+            💬 Xin chào! Tôi có thể giúp bạn về lộ trình học, bài học, hoặc gợi ý khóa học phù hợp. Hãy hỏi tôi bất cứ điều gì!
           </div>
         )}
         {messages.map((m, i) => (
@@ -124,9 +225,6 @@ export default function AIChat({
             } ${m.error ? "ai-msg--error" : ""}`}
           >
             <div className="ai-msg__bubble">{m.content}</div>
-            <div className="ai-msg__time">
-              {new Date(m.ts).toLocaleTimeString()}
-            </div>
           </div>
         ))}
         {busy && (
@@ -141,20 +239,24 @@ export default function AIChat({
           </div>
         )}
       </div>
+
       <div className="ai-chat__composer">
         <textarea
+          ref={inputRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={onKey}
-          placeholder="Nhập câu hỏi của bạn..."
+          placeholder="Gõ câu hỏi của bạn..."
           rows={1}
         />
         <button
+          type="button"
           className="ai-send"
           disabled={busy || !input.trim()}
           onClick={() => send()}
+          title="Gửi (Ctrl+Enter)"
         >
-          Gửi
+          ⬆
         </button>
       </div>
     </>
@@ -171,9 +273,30 @@ export default function AIChat({
         >
           💬
         </button>
-        <div className={`ai-chat ${open ? "open" : ""}`}>
-          <Header />
-          <Body />
+        <div 
+          ref={chatRef}
+          className={`ai-chat ${open ? "open" : ""}`}
+          style={open ? {
+            width: `${size.width}px`,
+            height: `${size.height}px`,
+            maxHeight: `${size.height}px`
+          } : {}}
+        >
+          {headerContent}
+          {bodyContent}
+          
+          {open && (
+            <>
+              <div className="ai-resize-handle ai-resize-handle--n" onMouseDown={(e) => handleResizeStart(e, 'n')} />
+              <div className="ai-resize-handle ai-resize-handle--s" onMouseDown={(e) => handleResizeStart(e, 's')} />
+              <div className="ai-resize-handle ai-resize-handle--e" onMouseDown={(e) => handleResizeStart(e, 'e')} />
+              <div className="ai-resize-handle ai-resize-handle--w" onMouseDown={(e) => handleResizeStart(e, 'w')} />
+              <div className="ai-resize-handle ai-resize-handle--ne" onMouseDown={(e) => handleResizeStart(e, 'ne')} />
+              <div className="ai-resize-handle ai-resize-handle--nw" onMouseDown={(e) => handleResizeStart(e, 'nw')} />
+              <div className="ai-resize-handle ai-resize-handle--se" onMouseDown={(e) => handleResizeStart(e, 'se')} />
+              <div className="ai-resize-handle ai-resize-handle--sw" onMouseDown={(e) => handleResizeStart(e, 'sw')} />
+            </>
+          )}
         </div>
       </>
     );
@@ -190,10 +313,17 @@ export default function AIChat({
       >
         CHAT
       </button>
-
-      <aside className={`ai-drawer ${open ? "open" : ""}`}>
-        <Header />
-        <Body />
+      <aside 
+        ref={chatRef}
+        className={`ai-drawer ${open ? "open" : ""}`}
+        style={open ? { width: `${size.width}px` } : {}}
+      >
+        {headerContent}
+        {bodyContent}
+        
+        {open && (
+          <div className="ai-resize-handle ai-resize-handle--w" onMouseDown={(e) => handleResizeStart(e, 'w')} />
+        )}
       </aside>
     </>
   );
