@@ -1,0 +1,221 @@
+import { useEffect, useRef, useState } from "react";
+import { cn, configureAssistant, getSubjectColor } from "../lib/utils";
+// The following imports depend on external setup; keep them if available
+// import { vapi } from "@/lib/vapi.sdk";
+// import Lottie from "lottie-react";
+// import soundwaves from "@/constants/soundwaves.json";
+// import { addToSessionHistory } from "@/lib/actions/companion.actions";
+
+// Trạng thái cuộc gọi
+const CallStatus = {
+  INACTIVE: "INACTIVE",
+  CONNECTING: "CONNECTING",
+  ACTIVE: "ACTIVE",
+  FINISHED: "FINISHED",
+};
+
+const CompanionComponent = ({
+  companionId,
+  subject,
+  topic,
+  name,
+  userName,
+  userImage,
+  style,
+  voice,
+}) => {
+  const [callStatus, setCallStatus] = useState(CallStatus.INACTIVE);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [messages, setMessages] = useState([]);
+
+  const lottieRef = useRef(null);
+
+  // Điều khiển hoạt ảnh sóng âm thanh
+  useEffect(() => {
+    if (lottieRef) {
+      if (isSpeaking) {
+        lottieRef.current?.play();
+      } else {
+        lottieRef.current?.stop();
+      }
+    }
+  }, [isSpeaking, lottieRef]);
+
+  // Lắng nghe sự kiện từ VAPI
+  useEffect(() => {
+    const onCallStart = () => setCallStatus(CallStatus.ACTIVE);
+
+    const onCallEnd = () => {
+      setCallStatus(CallStatus.FINISHED);
+      // addToSessionHistory(companionId);
+    };
+
+    const onMessage = (message) => {
+      if (message.type === "transcript" && message.transcriptType === "final") {
+        const newMessage = { role: message.role, content: message.transcript };
+        setMessages((prev) => [newMessage, ...prev]);
+      }
+    };
+
+    const onSpeechStart = () => setIsSpeaking(true);
+    const onSpeechEnd = () => setIsSpeaking(false);
+    const onError = (error) => console.log("Lỗi:", error);
+
+    // vapi.on("call-start", onCallStart);
+    // vapi.on("call-end", onCallEnd);
+    // vapi.on("message", onMessage);
+    // vapi.on("error", onError);
+    // vapi.on("speech-start", onSpeechStart);
+    // vapi.on("speech-end", onSpeechEnd);
+
+    return () => {
+      // vapi.off("call-start", onCallStart);
+      // vapi.off("call-end", onCallEnd);
+      // vapi.off("message", onMessage);
+      // vapi.off("error", onError);
+      // vapi.off("speech-start", onSpeechStart);
+      // vapi.off("speech-end", onSpeechEnd);
+    };
+  }, []);
+
+  // Bật / tắt micro
+  const toggleMicrophone = () => {
+    const muted = false;
+    setIsMuted(!muted);
+  };
+
+  // Bắt đầu cuộc gọi
+  const handleCall = async () => {
+    setCallStatus(CallStatus.CONNECTING);
+
+    const assistantOverrides = {
+      variableValues: { subject, topic, style },
+      clientMessages: ["transcript"],
+      serverMessages: [],
+    };
+
+    // vapi.start(configureAssistant(voice, style), assistantOverrides);
+  };
+
+  // Kết thúc cuộc gọi
+  const handleDisconnect = () => {
+    setCallStatus(CallStatus.FINISHED);
+    // vapi.stop();
+  };
+
+  return (
+    <section className="flex flex-col h-[70vh]">
+      <section className="flex gap-8 max-sm:flex-col">
+        {/* Khu vực bạn đồng hành */}
+        <div className="companion-section">
+          <div className={cn("companion-avatar", getSubjectColor(subject))}>
+            {/* Ảnh chủ đề */}
+            <div
+              className={cn(
+                "absolute transition-opacity duration-1000",
+                callStatus === CallStatus.FINISHED ||
+                  callStatus === CallStatus.INACTIVE
+                  ? "opacity-100"
+                  : "opacity-0",
+                callStatus === CallStatus.CONNECTING && "opacity-100 animate-pulse"
+              )}
+            >
+              <img src={`/icons/${subject}.svg`} alt={subject} width={150} height={150} className="max-sm:w-fit" />
+            </div>
+
+            {/* Hiển thị hiệu ứng khi đang nói */}
+            <div
+              className={cn(
+                "absolute transition-opacity duration-1000",
+                callStatus === CallStatus.ACTIVE ? "opacity-100" : "opacity-0"
+              )}
+            >
+              {/* Lottie animation placeholder */}
+            </div>
+          </div>
+          <p className="font-bold text-2xl">{name}</p>
+        </div>
+
+        {/* Khu vực người dùng */}
+        <div className="user-section">
+          <div className="user-avatar">
+            <img
+              src={userImage}
+              alt={userName}
+              width={130}
+              height={130}
+              className="rounded-lg"
+            />
+            <p className="font-bold text-2xl">{userName}</p>
+          </div>
+
+          {/* Nút bật/tắt micro */}
+          <button
+            className="btn-mic"
+            onClick={toggleMicrophone}
+            disabled={callStatus !== CallStatus.ACTIVE}
+          >
+            <img
+              src={isMuted ? "/icons/mic-off.svg" : "/icons/mic-on.svg"}
+              alt="mic"
+              width={36}
+              height={36}
+            />
+            <p className="max-sm:hidden">
+              {isMuted ? "Bật micro" : "Tắt micro"}
+            </p>
+          </button>
+
+          {/* Nút bắt đầu / kết thúc phiên */}
+          <button
+            className={cn(
+              "rounded-lg py-2 cursor-pointer transition-colors w-full text-white",
+              callStatus === CallStatus.ACTIVE
+                ? "bg-red-700"
+                : "bg-primary",
+              callStatus === CallStatus.CONNECTING && "animate-pulse"
+            )}
+            onClick={
+              callStatus === CallStatus.ACTIVE
+                ? handleDisconnect
+                : handleCall
+            }
+          >
+            {callStatus === CallStatus.ACTIVE
+              ? "Kết thúc phiên"
+              : callStatus === CallStatus.CONNECTING
+              ? "Đang kết nối..."
+              : "Bắt đầu phiên"}
+          </button>
+        </div>
+      </section>
+
+      {/* Khu vực hiển thị hội thoại */}
+      <section className="transcript">
+        <div className="transcript-message no-scrollbar">
+          {messages.map((message, index) => {
+            if (message.role === "assistant") {
+              return (
+                <p key={index} className="max-sm:text-sm">
+                  {name.split(" ")[0].replace(/[.,]/g, "")}:
+                  {" "}{message.content}
+                </p>
+              );
+            } else {
+              return (
+                <p key={index} className="text-primary max-sm:text-sm">
+                  {userName}: {message.content}
+                </p>
+              );
+            }
+          })}
+        </div>
+
+        <div className="transcript-fade" />
+      </section>
+    </section>
+  );
+};
+
+export default CompanionComponent;
