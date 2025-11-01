@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { getCourseById, enrollCourse } from "../services/course";
 import { useAuth } from "../context/AuthContext";
 import { getYouTubeEmbedUrl } from "../lib/utils";
+import AIChat from "../components/AIChat";
 import "../css/courses.css";
 
 export default function CourseDetail() {
@@ -468,7 +469,7 @@ export default function CourseDetail() {
         </div>
       </div>
 
-
+      <AIChat layout="drawer" courseId={id} page="course" title="Gia sư khóa học" />
     </div>
   );
 

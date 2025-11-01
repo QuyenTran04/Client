@@ -1,7 +1,9 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getQuizzesForLesson, submitQuiz } from "../services/quiz";
+import { getLessonById } from "../services/lesson";
 import { useAuth } from "../context/AuthContext";
+import AIChat from "../components/AIChat";
 
 export default function Quiz() {
   const { id: lessonId } = useParams();
@@ -9,6 +11,7 @@ export default function Quiz() {
   const { user } = useAuth();
 
   const [lesson, setLesson] = useState(null);
+  const [courseId, setCourseId] = useState(null);
   const [quizzes, setQuizzes] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -17,6 +20,7 @@ export default function Quiz() {
   const [answers, setAnswers] = useState({});
   const [results, setResults] = useState({});
   const [completed, setCompleted] = useState(false);
+  const [explainMessage, setExplainMessage] = useState(null);
 
   const startTimeRef = useRef({});
   const questionStartTimeRef = useRef(Date.now());
@@ -32,9 +36,10 @@ export default function Quiz() {
     (async () => {
       try {
         setLoading(true);
+        
         const quizzesData = await getQuizzesForLesson(lessonId);
-
         if (!alive) return;
+
         setQuizzes(quizzesData.items || []);
 
         const initialAnswers = {};
@@ -46,6 +51,17 @@ export default function Quiz() {
           }
         });
         setAnswers(initialAnswers);
+
+        try {
+          const lessonData = await getLessonById(lessonId);
+          if (!alive) return;
+          setLesson(lessonData);
+          if (lessonData?.course?._id || lessonData?.courseId) {
+            setCourseId(lessonData.course?._id || lessonData.courseId);
+          }
+        } catch (lessonErr) {
+          console.log("Could not load lesson details:", lessonErr);
+        }
       } catch (err) {
         if (!alive) return;
         setError(err?.response?.data?.message || "Không tải được danh sách câu hỏi!");
@@ -153,6 +169,14 @@ export default function Quiz() {
 
   const handleJumpToQuestion = (idx) => {
     setCurrentIndex(idx);
+  };
+
+  const handleExplain = () => {
+    if (!currentQuiz) return;
+    const question = currentQuiz.question;
+    const options = currentQuiz.options?.map((opt, i) => `${String.fromCharCode(65 + i)}. ${opt.text || opt.label || opt}`).join("\n") || "";
+    const message = `Giải thích câu hỏi này:\n\n${question}\n\nCác đáp án:\n${options}`;
+    setExplainMessage(message);
   };
 
   const answeredCount = Object.values(answers).filter((ans) => ans && ans.length > 0).length;
@@ -440,9 +464,29 @@ export default function Quiz() {
           <div style={{ background: "#fff", borderRadius: 12, padding: 30, boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}>
             {/* Question Title */}
             <div style={{ marginBottom: 30 }}>
-              <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8, color: "#111", lineHeight: 1.4 }}>
-                Câu {currentIndex + 1}: {currentQuiz.question}
-              </h2>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, marginBottom: 12 }}>
+                <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 0, color: "#111", lineHeight: 1.4, flex: 1 }}>
+                  Câu {currentIndex + 1}: {currentQuiz.question}
+                </h2>
+                <button
+                  onClick={handleExplain}
+                  style={{
+                    padding: "8px 16px",
+                    background: "#6c5ce7",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 6,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    fontSize: 13,
+                    flexShrink: 0,
+                    whiteSpace: "nowrap",
+                  }}
+                  title="Gửi câu hỏi tới AI để được giải thích"
+                >
+                  💬 Giải thích
+                </button>
+              </div>
               {currentQuiz.type && (
                 <div style={{ fontSize: 13, color: "#666", background: "#f0f0f0", display: "inline-block", padding: "4px 12px", borderRadius: 4 }}>
                   {currentQuiz.type === "multiple-choice" ? "Có thể chọn nhiều đáp án" : "Chọn một đáp án"}
@@ -630,6 +674,16 @@ export default function Quiz() {
           </div>
         </div>
       </div>
+
+      <AIChat 
+        layout="drawer" 
+        courseId={courseId} 
+        lessonId={lessonId} 
+        quizId={getQuizId(currentQuiz)} 
+        page="quiz" 
+        title="Hỗ trợ Quiz" 
+        autoMessage={explainMessage} 
+      />
     </div>
   );
 }

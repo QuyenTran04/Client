@@ -45,7 +45,6 @@ import AdminCourses from "./pages/admin/Courses"; // dùng tên khác với tran
 
 /**
  * Hiện chatbot nổi ở tất cả trang public, trừ:
- * - /courses/:id (đã có drawer trong CourseDetail)
  * - /login, /register (tránh che UI form)
  * - /admin/*
  */
@@ -53,10 +52,9 @@ function GlobalChatSwitcher() {
   const { pathname } = useLocation();
 
   const isAdmin = pathname.startsWith("/admin");
-  const isCourseDetail = /^\/courses\/[^/]+$/.test(pathname);
   const isAuthPage = pathname === "/login" || pathname === "/register";
 
-  if (isAdmin || isCourseDetail || isAuthPage) return null;
+  if (isAdmin || isAuthPage) return null;
 
   return (
     <AIChat

@@ -4,6 +4,7 @@ import { getCourseById } from "../services/course";
 import { getLessonsByCourse } from "../services/lesson";
 import { useAuth } from "../context/AuthContext";
 import { getYouTubeEmbedUrl } from "../lib/utils";
+import AIChat from "../components/AIChat";
 import "../css/courses.css";
 
 export default function Lessons() {
@@ -392,6 +393,8 @@ export default function Lessons() {
           )}
         </div>
       </div>
+
+      <AIChat layout="drawer" courseId={id} lessonId={selectedLesson} page="lesson" title="Hỗ trợ bài học" />
     </div>
   );
 }
