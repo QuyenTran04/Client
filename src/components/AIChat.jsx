@@ -1,5 +1,5 @@
 // src/components/AIChat.jsx
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "../css/chat.css";
 import { chatWithAI } from "../services/ai";
 import { useAuth } from "../context/AuthContext";
@@ -8,10 +8,12 @@ export default function AIChat({
   layout = "floating",
   courseId = null,
   lessonId = null,
+  quizId = null,
   language = "vi",
   page = "unknown",
   title = "Hỗ trợ học tập",
   defaultOpen = layout === "drawer" ? false : false,
+  autoMessage = null,
 }) {
   const { user } = useAuth();
   const userId = user?._id || user?.id || "guest";
@@ -20,7 +22,8 @@ export default function AIChat({
   const [busy, setBusy] = useState(false);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState(() => {
-    const key = `ai_chat_${userId}_${courseId || "nocourse"}`;
+    const pageNamespace = page || "unknown";
+    const key = `ai_chat_${userId}_${pageNamespace}_${courseId || "nocourse"}_${lessonId || ""}_${quizId || ""}`;
     try {
       return JSON.parse(localStorage.getItem(key)) || [];
     } catch {
@@ -47,10 +50,11 @@ export default function AIChat({
   const inputRef = useRef(null);
   const chatRef = useRef(null);
   const resizing = useRef(false);
+  const autoMessageSentRef = useRef(null);
 
   const storageKey = useMemo(
-    () => `ai_chat_${userId}_${courseId || "nocourse"}`,
-    [userId, courseId]
+    () => `ai_chat_${userId}_${page || "unknown"}_${courseId || "nocourse"}_${lessonId || ""}_${quizId || ""}`,
+    [userId, page, courseId, lessonId, quizId]
   );
 
   useEffect(() => {
@@ -68,6 +72,19 @@ export default function AIChat({
     const sizeKey = `ai_chat_size_${layout}`;
     localStorage.setItem(sizeKey, JSON.stringify(size));
   }, [size, layout]);
+
+  useEffect(() => {
+    if (layout === "drawer") {
+      if (open) {
+        document.documentElement.style.marginRight = `${size.width}px`;
+      } else {
+        document.documentElement.style.marginRight = "0";
+      }
+      return () => {
+        document.documentElement.style.marginRight = "0";
+      };
+    }
+  }, [open, layout, size.width]);
 
   const handleResizeStart = (e, direction) => {
     e.preventDefault();
@@ -121,16 +138,15 @@ export default function AIChat({
     document.removeEventListener('mouseup', handleResizeEnd);
   };
 
-  const send = async (text) => {
+  const send = useCallback(async (text) => {
     const content = (text ?? input).trim();
     if (!content) return;
 
-    // giữ focus trước/sau khi gửi
     if (inputRef.current) inputRef.current.focus({ preventScroll: true });
 
     const userMsg = { role: "user", content, ts: Date.now() };
     setMessages((m) => [...m, userMsg]);
-    setInput("");
+    if (!text) setInput("");
     setBusy(true);
 
     try {
@@ -140,6 +156,7 @@ export default function AIChat({
         userId,
         courseId,
         lessonId,
+        quizId,
         uiState,
       });
       
@@ -186,7 +203,16 @@ export default function AIChat({
       setBusy(false);
       if (inputRef.current) inputRef.current.focus({ preventScroll: true });
     }
-  };
+  }, [input, userId, courseId, lessonId, quizId, page, language]);
+
+  useEffect(() => {
+    if (autoMessage && autoMessage.trim() && autoMessageSentRef.current !== autoMessage) {
+      setOpen(true);
+      autoMessageSentRef.current = autoMessage;
+      const timer = setTimeout(() => send(autoMessage), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [autoMessage, send]);
 
   const onKey = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
