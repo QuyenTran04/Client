@@ -189,13 +189,32 @@ export default function AIChat({
             const parsed = JSON.parse(rawReply);
             console.log("Parsed JSON:", parsed);
             
-            // Check if it's course suggestions
-            if (parsed?.type === "course_suggestions" && parsed?.items) {
+            // Check if it's array with output field (N8N format)
+            if (Array.isArray(parsed) && parsed[0]?.output) {
+              const outputStr = parsed[0].output;
+              
+              // Extract JSON from markdown code block if present
+              const jsonMatch = outputStr.match(/```(?:json)?\s*([\s\S]*?)```/);
+              if (jsonMatch && jsonMatch[1]) {
+                try {
+                  const innerData = JSON.parse(jsonMatch[1].trim());
+                  if (innerData?.type === "course_suggestions" && innerData?.items) {
+                    structuredData = innerData;
+                    reply = `Dưới đây là những khóa học gợi ý cho bạn:`;
+                  } else {
+                    reply = outputStr;
+                  }
+                } catch {
+                  reply = outputStr;
+                }
+              } else {
+                reply = outputStr;
+              }
+            } 
+            // Check if it's course suggestions directly
+            else if (parsed?.type === "course_suggestions" && parsed?.items) {
               structuredData = parsed;
               reply = `Dưới đây là những khóa học gợi ý cho bạn:`;
-            } else if (Array.isArray(parsed) && parsed[0]?.output) {
-              // Check if it's array format with output
-              reply = parsed[0].output;
             } else {
               // If JSON but not recognized format, use as is
               reply = rawReply;
