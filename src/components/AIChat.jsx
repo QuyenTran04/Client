@@ -1,5 +1,7 @@
 // src/components/AIChat.jsx
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import "../css/chat.css";
 import { chatWithAI } from "../services/ai";
 import { useAuth } from "../context/AuthContext";
@@ -250,7 +252,15 @@ export default function AIChat({
               m.role === "user" ? "ai-msg--user" : "ai-msg--bot"
             } ${m.error ? "ai-msg--error" : ""}`}
           >
-            <div className="ai-msg__bubble">{m.content}</div>
+            {m.role === "assistant" ? (
+              <div className="ai-msg__bubble ai-markdown">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {m.content}
+                </ReactMarkdown>
+              </div>
+            ) : (
+              <div className="ai-msg__bubble">{m.content}</div>
+            )}
           </div>
         ))}
         {busy && (
