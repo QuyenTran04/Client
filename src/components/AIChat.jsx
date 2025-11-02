@@ -168,27 +168,46 @@ export default function AIChat({
       let reply = "Mình đã nhận được yêu cầu của bạn 👍";
       let structuredData = null;
       
-      if (data?.answer) {
-        try {
-          const parsed = JSON.parse(data.answer);
-          if (Array.isArray(parsed) && parsed[0]?.output) {
-            reply = parsed[0].output;
-          } else if (parsed?.type === "course_suggestions" && parsed?.items) {
-            structuredData = parsed;
-            reply = `Dưới đây là những khóa học gợi ý cho bạn:`;
-          }
-        } catch {
-          reply = data.answer;
-        }
+      // First try to detect if data itself is a structured object
+      if (data?.type === "course_suggestions" && data?.items) {
+        structuredData = data;
+        reply = `Dưới đây là những khóa học gợi ý cho bạn:`;
       } else {
-        reply =
+        // Try to get the text response from various possible fields
+        let rawReply =
+          data?.answer ||
           data?.reply ||
           data?.message ||
           data?.response ||
           data?.content ||
           (Array.isArray(data) ? data[0]?.output ?? data[0] : null) ||
-          (typeof data === "string" ? data : null) ||
-          reply;
+          (typeof data === "string" ? data : null);
+
+        // Try to parse as JSON
+        if (rawReply && typeof rawReply === "string") {
+          try {
+            const parsed = JSON.parse(rawReply);
+            console.log("Parsed JSON:", parsed);
+            
+            // Check if it's course suggestions
+            if (parsed?.type === "course_suggestions" && parsed?.items) {
+              structuredData = parsed;
+              reply = `Dưới đây là những khóa học gợi ý cho bạn:`;
+            } else if (Array.isArray(parsed) && parsed[0]?.output) {
+              // Check if it's array format with output
+              reply = parsed[0].output;
+            } else {
+              // If JSON but not recognized format, use as is
+              reply = rawReply;
+            }
+          } catch {
+            // Not JSON, use as plain text
+            console.log("Failed to parse JSON, using as text");
+            reply = rawReply;
+          }
+        } else {
+          reply = rawReply;
+        }
       }
 
       const botMsg = {
