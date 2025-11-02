@@ -522,3 +522,110 @@
     display: none;
   }
 }
+/* === Markdown Styling (trong bong bóng bot) === */
+.ai-msg--bot .ai-msg__bubble.ai-markdown {
+  /* Ghi đè lại để markdown xuống dòng tự nhiên */
+  white-space: normal;
+}
+
+/* Khoảng cách đoạn */
+.ai-markdown p { margin: 0.35rem 0; }
+
+/* Tiêu đề */
+.ai-markdown h1,
+.ai-markdown h2,
+.ai-markdown h3,
+.ai-markdown h4,
+.ai-markdown h5,
+.ai-markdown h6 {
+  margin: 0.4rem 0 0.25rem;
+  line-height: 1.25;
+  font-weight: 700;
+}
+.ai-markdown h1 { font-size: 1.15rem; }
+.ai-markdown h2 { font-size: 1.05rem; }
+.ai-markdown h3 { font-size: 1rem; }
+
+/* Danh sách */
+.ai-markdown ul,
+.ai-markdown ol {
+  margin: 0.25rem 0 0.25rem 1.2rem;
+  padding: 0;
+}
+.ai-markdown li { margin: 0.15rem 0; }
+
+/* Link */
+.ai-markdown a {
+  color: #C7641C;
+  text-decoration: underline;
+  word-break: break-word;
+}
+.ai-markdown a:hover { opacity: 0.85; }
+
+/* Inline code */
+.ai-markdown :not(pre) > code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.95em;
+  background: rgba(0,0,0,0.05);
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+}
+
+/* Code block */
+.ai-markdown pre {
+  background: #0f172a;            /* nền tối dễ đọc */
+  color: #e5e7eb;
+  padding: 0.75rem;
+  border-radius: 10px;
+  overflow-x: auto;
+  margin: 0.35rem 0;
+  border: 1px solid rgba(15,23,42,0.4);
+}
+.ai-markdown pre code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9em;
+}
+
+/* Blockquote */
+.ai-markdown blockquote {
+  margin: 0.35rem 0;
+  padding: 0.5rem 0.75rem;
+  background: linear-gradient(135deg, rgba(255,164,77,0.06), rgba(199,100,28,0.06));
+  border-left: 4px solid rgba(199,100,28,0.6);
+  border-radius: 6px;
+  color: #374151;
+}
+
+/* Bảng */
+.ai-markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.4rem 0;
+  font-size: 0.95em;
+}
+.ai-markdown th,
+.ai-markdown td {
+  border: 1px solid #e5e7eb;
+  padding: 6px 8px;
+  text-align: left;
+}
+.ai-markdown thead th {
+  background: rgba(255, 164, 77, 0.1);
+  font-weight: 700;
+}
+
+/* Gạch ngang */
+.ai-markdown hr {
+  border: 0;
+  border-top: 1px solid #e5e7eb;
+  margin: 0.5rem 0;
+}
+
+/* Ảnh trong nội dung */
+.ai-markdown img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  display: block;
+  margin: 0.25rem 0;
+}
