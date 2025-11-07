@@ -21,14 +21,14 @@ const Cta = () => {
       </p>
 
       {/* Hình ảnh minh họa */}
-      <img src="/assets/react.svg" alt="cta" width={362} height={232} />
+      <img src="/assets/react.svg" alt="cta" width={362} height={232} loading="lazy" />
 
       {/* Nút hành động */}
       <Link
         to="/companions/new"
         className="btn primary flex items-center gap-2"
       >
-        <img src="/vite.svg" alt="Thêm" width={12} height={12} />
+        <img src="/vite.svg" alt="Thêm" width={12} height={12} loading="lazy" />
         <p>Tạo bạn học mới</p>
       </Link>
     </section>

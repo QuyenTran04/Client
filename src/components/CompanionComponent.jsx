@@ -121,7 +121,7 @@ const CompanionComponent = ({
                 callStatus === CallStatus.CONNECTING && "opacity-100 animate-pulse"
               )}
             >
-              <img src={`/icons/${subject}.svg`} alt={subject} width={150} height={150} className="max-sm:w-fit" />
+              <img src={`/icons/${subject}.svg`} alt={subject} width={150} height={150} className="max-sm:w-fit" loading="lazy" />
             </div>
 
             {/* Hiển thị hiệu ứng khi đang nói */}
@@ -146,6 +146,7 @@ const CompanionComponent = ({
               width={130}
               height={130}
               className="rounded-lg"
+              loading="lazy"
             />
             <p className="font-bold text-2xl">{userName}</p>
           </div>
@@ -161,6 +162,7 @@ const CompanionComponent = ({
               alt="mic"
               width={36}
               height={36}
+              loading="lazy"
             />
             <p className="max-sm:hidden">
               {isMuted ? "Bật micro" : "Tắt micro"}

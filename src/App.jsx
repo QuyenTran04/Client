@@ -6,6 +6,7 @@ import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import Courses from "./pages/Courses";
 import CourseDetail from "./pages/CourseDetail";
+import Payment from "./pages/Payment";
 
 // 🧭 Thành phần giao diện chung
 import NavBar from "./components/NavBar";
@@ -32,9 +33,6 @@ import CompanionsList from "./components/CompanionsList";
 import AuthProvider from "./context/AuthContext";
 import { AdminRoute, ProtectedRoute, GuestOnly } from "./context/RouteGuards";
 
-
-import Courses from "./pages/Courses";
-import CourseDetail from "./pages/CourseDetail";
 import AIChat from "./components/AIChat";
 
 
@@ -102,6 +100,14 @@ function AppShell() {
         />
         <Route path="/courses" element={<Courses />} />
         <Route path="/courses/:id" element={<CourseDetail />} />
+        <Route
+          path="/payment"
+          element={
+            <ProtectedRoute>
+              <Payment />
+            </ProtectedRoute>
+          }
+        />
 
         {/* USER ZONE */}
         <Route

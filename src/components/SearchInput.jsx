@@ -31,7 +31,7 @@ const SearchInput = () => {
 
   return (
     <div className="relative border border-gray-400 rounded-lg flex items-center gap-2 px-3 py-2 h-fit">
-      <img src="/vite.svg" alt="Tìm kiếm" width={15} height={15} />
+      <img src="/vite.svg" alt="Tìm kiếm" width={15} height={15} loading="lazy" />
       <input
         placeholder="Tìm kiếm khóa học hoặc chủ đề..."
         className="outline-none w-full bg-transparent text-sm"

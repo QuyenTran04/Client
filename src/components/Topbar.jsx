@@ -22,12 +22,12 @@ export default function Topbar() {
         </button>
 
         <div className="lang">
-          <img src="https://flagcdn.com/w20/gb.png" alt="flag" />
+          <img src="https://flagcdn.com/w20/gb.png" alt="flag" loading="lazy" />
           <span>English</span>
         </div>
 
         <div className="avatar">
-          <img src="https://i.pravatar.cc/40?img=5" alt="avatar" />
+          <img src="https://i.pravatar.cc/40?img=5" alt="avatar" loading="lazy" />
           <div className="meta">
             <div className="name">Moni Roy</div>
             <div className="role">Admin</div>

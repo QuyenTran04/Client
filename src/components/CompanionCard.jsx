@@ -32,6 +32,7 @@ const TheCompanionCard = ({
             alt="danh dấu"
             width={12.5}
             height={15}
+            loading="lazy"
           />
         </button>
       </div>
@@ -42,7 +43,7 @@ const TheCompanionCard = ({
 
       {/* Thời lượng bài học */}
       <div className="flex items-center gap-2">
-        <img src="/icons/clock.svg" alt="thời lượng" width={13.5} height={13.5} />
+        <img src="/icons/clock.svg" alt="thời lượng" width={13.5} height={13.5} loading="lazy" />
         <p className="text-sm">{duration} phút</p>
       </div>
 

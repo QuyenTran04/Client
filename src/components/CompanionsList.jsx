@@ -43,6 +43,7 @@ const CompanionsList = ({ title, companions = [], classNames = "" }) => {
                           alt={subject}
                           width={35}
                           height={35}
+                          loading="lazy"
                           onError={(e) => (e.target.src = "/vite.svg")}
                         />
                       </div>
@@ -71,6 +72,7 @@ const CompanionsList = ({ title, companions = [], classNames = "" }) => {
                       alt={subject}
                       width={18}
                       height={18}
+                      loading="lazy"
                       onError={(e) => (e.target.src = "/vite.svg")}
                     />
                   </div>
@@ -88,6 +90,7 @@ const CompanionsList = ({ title, companions = [], classNames = "" }) => {
                       width={14}
                       height={14}
                       className="md:hidden"
+                      loading="lazy"
                     />
                   </div>
                 </TableCell>

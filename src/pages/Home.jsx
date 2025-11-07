@@ -36,7 +36,7 @@ export default function Home() {
             </div>
           </div>
           <div className="hero-ill">
-            <img src="../assets/hero-1.png" alt="Học trực tuyến" />
+            <img src="/assets/hero-1.png" alt="Học trực tuyến" loading="lazy" />
           </div>
         </div>
       </header>
@@ -125,7 +125,7 @@ export default function Home() {
       <section className="section">
         <div className="container two-col">
           <div className="media">
-            <img src="/assets/section-1.jpg" alt="Nền tảng học trực tuyến" />
+            <img src="/assets/section-1.jpg" alt="Nền tảng học trực tuyến" loading="lazy" />
           </div>
           <div className="content">
             <h2>
@@ -268,7 +268,7 @@ export default function Home() {
             </div>
           </div>
           <div className="media">
-            <img src="/assets/section-2.jpg" alt="Đăng ký tài khoản" />
+            <img src="/assets/section-2.jpg" alt="Đăng ký tài khoản" loading="lazy" />
           </div>
         </div>
       </section>
@@ -291,14 +291,15 @@ export default function Home() {
           </div>
           <div className="media stack">
             <img
-              src="/assets/community-main.jpg"
+              src="/assets/section-2.jpg"
               alt="Cộng đồng học tập"
               className="main"
+              loading="lazy"
             />
-            <img src="/assets/ava-1.jpg" alt="" className="ava a1" />
-            <img src="/assets/ava-2.jpg" alt="" className="ava a2" />
-            <img src="/assets/ava-3.jpg" alt="" className="ava a3" />
-            <img src="/assets/ava-4.jpg" alt="" className="ava a4" />
+            <img src="/assets/ava-1.jpg" alt="Học viên 1" className="ava a1" loading="lazy" />
+            <img src="/assets/ava-2.jpg" alt="Học viên 2" className="ava a2" loading="lazy" />
+            <img src="/assets/ava-3.jpg" alt="Học viên 3" className="ava a3" loading="lazy" />
+            <img src="/assets/ava-4.jpg" alt="Học viên 4" className="ava a4" loading="lazy" />
           </div>
         </div>
       </section>
@@ -369,7 +370,7 @@ export default function Home() {
       <footer className="footer">
         <div className="container fwrap">
           <div className="brand">
-            <img src="/logo.svg" alt="Elearn" />
+            <img src="/assets/logo.jpg" alt="Elearn" loading="lazy" />
             <span>Elearn</span>
           </div>
           <div className="fcols">

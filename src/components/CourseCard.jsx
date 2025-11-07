@@ -10,7 +10,7 @@ export default function CourseCard({ c }) {
       <div
         className="thumb"
         style={{
-          backgroundImage: `url(${c.imageUrl || "/placeholder-course.jpg"})`,
+          backgroundImage: `url(${c.imageUrl || "/assets/cover-1.jpg"})`,
         }}
       />
       <div className="card-body">

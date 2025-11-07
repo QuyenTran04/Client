@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { getCourseById, enrollCourse } from "../services/course";
 import { useAuth } from "../context/AuthContext";
 import { getYouTubeEmbedUrl } from "../lib/utils";
@@ -9,6 +9,8 @@ import AIChat from "../components/AIChat";
 export default function CourseDetail() {
   const { id } = useParams();
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [c, setC] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -28,6 +30,13 @@ export default function CourseDetail() {
         if (!alive) return;
         setC(data);
         setSelectedLessonId(null); // đổi khóa học thì reset lesson context
+        
+        // Check if payment was successful
+        if (searchParams.get("payment") === "success") {
+          alert("Thanh toán thành công! Bạn đã được đăng ký khóa học.");
+          // Remove query param from URL
+          navigate(`/courses/${id}`, { replace: true });
+        }
       } catch (e) {
         if (!alive) return;
         setError("Không tải được thông tin khóa học.");
@@ -38,10 +47,21 @@ export default function CourseDetail() {
     return () => {
       alive = false;
     };
-  }, [id]);
+  }, [id, searchParams, navigate]);
 
   const onEnroll = async () => {
-    if (!user) return (window.location.href = "/login");
+    if (!user) {
+      navigate("/login?redirect=/courses/" + id);
+      return;
+    }
+
+    // Nếu khóa học có giá, chuyển đến trang thanh toán
+    if (c?.price && c.price > 0) {
+      navigate(`/payment?courseId=${id}`);
+      return;
+    }
+
+    // Nếu khóa học miễn phí, đăng ký trực tiếp
     try {
       setEnrolling(true);
       await enrollCourse(id);
@@ -76,7 +96,7 @@ export default function CourseDetail() {
     );
   }
 
-  const imgSrc = c.imageUrl || "/assets/placeholder-course.jpg";
+  const imgSrc = c.imageUrl || "/assets/cover-1.jpg";
 
   const embedUrl = getYouTubeEmbedUrl(c?.introVideoUrl || c?.trailerUrl || c?.videoUrl);
 
@@ -87,7 +107,7 @@ export default function CourseDetail() {
         <div
           className="cd-hero-bg"
           style={{
-            backgroundImage: `linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.6)), url(${c.imageUrl || "/assets/placeholder-course.jpg"})`,
+            backgroundImage: `linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.6)), url(${c.imageUrl || "/assets/cover-1.jpg"})`,
           }}
         />
         <div className="cd-hero-inner">
@@ -203,7 +223,7 @@ export default function CourseDetail() {
             <div className="teacher">
               <div
                 className="avatar"
-                style={{ backgroundImage: `url(${c.instructor?.avatar || "/assets/avatar.png"})` }}
+                style={{ backgroundImage: `url(${c.instructor?.avatar || "/assets/ava-1.jpg"})` }}
               />
               <div>
                 <div className="name">{c.instructor?.name || "Giảng viên"}</div>
