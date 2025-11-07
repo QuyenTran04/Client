@@ -4,13 +4,15 @@ import { getQuizzesForLesson, submitQuiz } from "../services/quiz";
 import { getLessonById } from "../services/lesson";
 import { useAuth } from "../context/AuthContext";
 import AIChat from "../components/AIChat";
+import ExplanationCard from "../components/ExplanationCard";
+import { explainQuiz } from "../services/ai";
 
 export default function Quiz() {
   const { id: lessonId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const [lesson, setLesson] = useState(null);
+  const [_lesson, setLesson] = useState(null);
   const [courseId, setCourseId] = useState(null);
   const [quizzes, setQuizzes] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -20,7 +22,8 @@ export default function Quiz() {
   const [answers, setAnswers] = useState({});
   const [results, setResults] = useState({});
   const [completed, setCompleted] = useState(false);
-  const [explainMessage, setExplainMessage] = useState(null);
+  const [explanations, setExplanations] = useState({}); // { quizId: { data, error, loading } }
+  const [explanationLoading, setExplanationLoading] = useState(false);
 
   const startTimeRef = useRef({});
   const questionStartTimeRef = useRef(Date.now());
@@ -171,12 +174,39 @@ export default function Quiz() {
     setCurrentIndex(idx);
   };
 
-  const handleExplain = () => {
+  const handleExplain = async () => {
     if (!currentQuiz) return;
-    const question = currentQuiz.question;
-    const options = currentQuiz.options?.map((opt, i) => `${String.fromCharCode(65 + i)}. ${opt.text || opt.label || opt}`).join("\n") || "";
-    const message = `Giải thích câu hỏi này:\n\n${question}\n\nCác đáp án:\n${options}`;
-    setExplainMessage(message);
+    
+    const quizId = getQuizId(currentQuiz);
+    if (!quizId) return;
+
+    // Nếu đã có giải thích, không cần fetch lại
+    if (explanations[quizId]) {
+      return;
+    }
+
+    setExplanationLoading(true);
+
+    try {
+      const result = await explainQuiz({
+        quizId,
+        selected: answers[quizId] || [],
+        submissionId: results[quizId]?.submission?._id,
+      });
+      setExplanations(prev => ({
+        ...prev,
+        [quizId]: { data: result, error: null }
+      }));
+    } catch (err) {
+      console.error("Explanation error:", err);
+      const errorMsg = err?.response?.data?.error || err.message || "Có lỗi khi lấy giải thích";
+      setExplanations(prev => ({
+        ...prev,
+        [quizId]: { data: null, error: errorMsg }
+      }));
+    } finally {
+      setExplanationLoading(false);
+    }
   };
 
   const answeredCount = Object.values(answers).filter((ans) => ans && ans.length > 0).length;
@@ -316,8 +346,9 @@ export default function Quiz() {
                       </div>
                     </div>
                     <div style={{ marginLeft: 44, display: "flex", flexDirection: "column", gap: 8 }}>
-                      {quiz.options?.map((opt) => {
-                        const optId = opt?._id || opt?.id;
+                      {quiz.options?.map((opt, optIdx) => {
+                        const qId = getQuizId(quiz);
+                        const optId = opt?._id || opt?.id || `${qId}-${optIdx}`;
                         const isSelected = userAnswers.includes(optId);
                         const isCorrect = result?.submission?.correctAnswers?.includes(optId);
 
@@ -470,21 +501,23 @@ export default function Quiz() {
                 </h2>
                 <button
                   onClick={handleExplain}
+                  disabled={explanationLoading}
                   style={{
                     padding: "8px 16px",
-                    background: "#6c5ce7",
+                    background: explanationLoading ? "#ccc" : "#6c5ce7",
                     color: "#fff",
                     border: "none",
                     borderRadius: 6,
                     fontWeight: 600,
-                    cursor: "pointer",
+                    cursor: explanationLoading ? "default" : "pointer",
                     fontSize: 13,
                     flexShrink: 0,
                     whiteSpace: "nowrap",
+                    opacity: explanationLoading ? 0.7 : 1,
                   }}
                   title="Gửi câu hỏi tới AI để được giải thích"
                 >
-                  💬 Giải thích
+                  {explanationLoading ? "⏳ Đang tạo..." : "💬 Giải thích"}
                 </button>
               </div>
               {currentQuiz.type && (
@@ -499,13 +532,14 @@ export default function Quiz() {
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 {currentQuiz.options?.map((option, idx) => {
                   const quizId = getQuizId(currentQuiz);
-                  // Try to get proper ID, fallback to index
-                  const optionId = option?._id || option?.id || idx;
+                  // Generate consistent option ID: use _id, id, or format as quizId-index
+                  const optionId = option?._id || option?.id || `${quizId}-${idx}`;
                   const optionText = option?.text || option?.label || option;
                   const isSelected = (answers[quizId] || []).includes(optionId);
-                  const isCorrect = results[quizId]?.submission?.correctAnswers?.includes(optionId);
-                  const isWrong = isSelected && !isCorrect && results[quizId];
+                  const isCorrectAnswer = results[quizId]?.submission?.correctAnswers?.includes(optionId);
+                  const isWrong = isSelected && !isCorrectAnswer && results[quizId];
                   const isDisabled = !!results[quizId];
+                  const isCorrect = isSelected && isCorrectAnswer;
 
                   return (
                     <button
@@ -552,6 +586,13 @@ export default function Quiz() {
                 })}
               </div>
             </div>
+
+            {/* Explanation Card */}
+            <ExplanationCard 
+              explanation={explanations[getQuizId(currentQuiz)]?.data} 
+              loading={explanationLoading && !explanations[getQuizId(currentQuiz)]} 
+              error={explanations[getQuizId(currentQuiz)]?.error} 
+            />
 
             {/* Action Buttons */}
             <div style={{ display: "flex", gap: 12, paddingTop: 20, borderTop: "1px solid #eee" }}>
@@ -682,7 +723,6 @@ export default function Quiz() {
         quizId={getQuizId(currentQuiz)} 
         page="quiz" 
         title="Hỗ trợ Quiz" 
-        autoMessage={explainMessage} 
       />
     </div>
   );

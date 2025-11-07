@@ -114,7 +114,7 @@ export default function CourseDetail() {
           </div>
           <div style={{ display: "flex", gap: 12 }}>
             <button
-              onClick={onEnroll}
+              onClick={c.price ? onEnroll : handleViewLessons}
               disabled={enrolling}
               style={{
                 padding: "12px 28px",
@@ -330,7 +330,7 @@ export default function CourseDetail() {
               </div>
               <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 8 }}>
                 <button
-                  onClick={onEnroll}
+                  onClick={c.price ? onEnroll : handleViewLessons}
                   disabled={enrolling}
                   style={{
                     width: "100%",
