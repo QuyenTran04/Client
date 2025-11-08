@@ -341,12 +341,26 @@ export default function ExplanationCard({ explanation, loading = false, error = 
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 {explanation.examples.map((ex, idx) => {
-                  // Detect nếu content là code - phải có keywords lập trình rõ ràng
+                  // Detect code: check for markdown fence or code keywords + multiple lines
+                  // Extract language from markdown fence if present
+                  const fenceMatch = ex.content && ex.content.match(/^```(\w+)?/);
+                  const hasCodeFence = !!fenceMatch;
+                  let cleanContent = ex.content;
+                  let language = ex.language || "text";
+                  
+                  if (hasCodeFence) {
+                    language = fenceMatch[1] || "text";
+                    // Extract code between fences
+                    const codeMatch = ex.content.match(/^```\w*\n([\s\S]*?)\n```$/);
+                    if (codeMatch) {
+                      cleanContent = codeMatch[1];
+                    }
+                  }
+                  
                   const codeKeywords =
-                    /(#include|#define|\btemplate\b|\bclass\b|\bdef\b|\bfunction\b|\bconst\b|\blet\b|\bvar\b|\bimport\b|\breturn\b|\bfor\b|\bwhile\b|\bif\b|\belse\b|=>|\bfrom\b|\bimport\b|\brequire|\bconsole\.log|\.map|\.\w+\(|\{\s*\w+\s*:|function\s*\()/i;
-                  const hasMultipleLines = (ex.content.match(/\n/g) || []).length >= 1;
-                  const isCode = hasMultipleLines && codeKeywords.test(ex.content);
-                  const language = ex.language || "text";
+                    /(#include|#define|\btemplate\b|\bclass\b|\bdef\b|\bfunction\b|\bconst\b|\blet\b|\bvar\b|\bimport\b|\breturn\b|\bfor\b|\bwhile\b|\bif\b|\belse\b|=>|\bfrom\b|\bimport\b|\brequire|\bconsole\.log|\.map|\.\w+\(|\{\s*\w+\s*:|function\s*\(|<\w+>|async\s+|await\s+|\.then|catch\s*\()/i;
+                  const hasMultipleLines = (cleanContent.match(/\n/g) || []).length >= 1;
+                  const isCode = hasCodeFence || (hasMultipleLines && codeKeywords.test(cleanContent));
                   
                   return (
                     <div
@@ -407,7 +421,7 @@ export default function ExplanationCard({ explanation, loading = false, error = 
                               background: "#1e1e1e"
                             }}
                           >
-                            {ex.content}
+                            {cleanContent}
                           </SyntaxHighlighter>
                         </div>
                       ) : (
