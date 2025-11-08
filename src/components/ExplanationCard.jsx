@@ -1,5 +1,123 @@
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+
+const CodeBlock = ({ inline, className, children }) => {
+  const [copied, setCopied] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  
+  const match = /language-(\w+)/.exec(className || "");
+  const lang = match ? match[1] : "text";
+  const code = String(children).replace(/\n$/, "");
+  const isLongCode = code.split('\n').length > 10;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  if (inline) {
+    return (
+      <code style={{
+        background: "#f5f5f5",
+        padding: "2px 6px",
+        borderRadius: 3,
+        fontFamily: "'Monaco', 'Menlo', monospace",
+        fontSize: 12,
+        color: "#c7254e"
+      }}>
+        {children}
+      </code>
+    );
+  }
+
+  const displayCode = expanded ? code : code.split('\n').slice(0, 10).join('\n');
+  const hasMore = isLongCode && !expanded;
+
+  return (
+    <div style={{ margin: "12px 0", borderRadius: 8, overflow: "hidden", border: "1px solid #e0e0e0" }}>
+      <div style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        background: "#1e1e1e",
+        padding: "8px 12px",
+        fontSize: 12,
+        color: "#999"
+      }}>
+        <span style={{ fontWeight: 600, color: "#FFB366" }}>{lang || "code"}</span>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            onClick={handleCopy}
+            style={{
+              background: "transparent",
+              border: "1px solid #666",
+              color: copied ? "#4caf50" : "#999",
+              padding: "4px 8px",
+              borderRadius: 4,
+              cursor: "pointer",
+              fontSize: 11,
+              fontWeight: 600,
+              transition: "all 0.2s"
+            }}
+            onMouseEnter={(e) => e.target.style.borderColor = "#FFB366"}
+            onMouseLeave={(e) => e.target.style.borderColor = "#666"}
+          >
+            {copied ? "✓ Copied" : "Copy"}
+          </button>
+          {isLongCode && (
+            <button
+              onClick={() => setExpanded(!expanded)}
+              style={{
+                background: "transparent",
+                border: "1px solid #666",
+                color: "#999",
+                padding: "4px 8px",
+                borderRadius: 4,
+                cursor: "pointer",
+                fontSize: 11,
+                fontWeight: 600,
+                transition: "all 0.2s"
+              }}
+              onMouseEnter={(e) => e.target.style.borderColor = "#FFB366"}
+              onMouseLeave={(e) => e.target.style.borderColor = "#666"}
+            >
+              {expanded ? "▲ Thu gọn" : "▼ Mở rộng"}
+            </button>
+          )}
+        </div>
+      </div>
+      <SyntaxHighlighter
+        language={lang || "text"}
+        style={atomDark}
+        customStyle={{
+          margin: 0,
+          padding: 12,
+          fontSize: 13,
+          lineHeight: 1.5,
+          background: "#1e1e1e"
+        }}
+      >
+        {displayCode}
+      </SyntaxHighlighter>
+      {hasMore && (
+        <div style={{
+          padding: "8px 12px",
+          background: "#252525",
+          color: "#999",
+          fontSize: 12,
+          textAlign: "center",
+          borderTop: "1px solid #444"
+        }}>
+          ... {code.split('\n').length - 10} dòng nữa ({expanded ? "Thu gọn" : "Mở rộng"}) ...
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function ExplanationCard({ explanation, loading = false, error = null }) {
   if (!explanation && !loading && !error) return null;
@@ -194,7 +312,7 @@ export default function ExplanationCard({ explanation, loading = false, error = 
                 💡 Gợi ý:
               </div>
               <div className="explanation-markdown" style={{ fontSize: 14, color: "#555" }}>
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock }}>
                   {explanation.short_hint}
                 </ReactMarkdown>
               </div>
@@ -208,7 +326,7 @@ export default function ExplanationCard({ explanation, loading = false, error = 
                 📖 Giải thích:
               </div>
               <div className="explanation-markdown" style={{ fontSize: 14, color: "#333" }}>
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock }}>
                   {explanation.explanation}
                 </ReactMarkdown>
               </div>
@@ -218,33 +336,92 @@ export default function ExplanationCard({ explanation, loading = false, error = 
           {/* Examples */}
           {explanation.examples && explanation.examples.length > 0 && (
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: "#1890ff", marginBottom: 12 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "#FF9800", marginBottom: 12 }}>
                 🎯 Ví dụ:
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                {explanation.examples.map((ex, idx) => (
-                  <div
-                    key={idx}
-                    style={{
-                      padding: 12,
-                      background: "#fff",
-                      border: "1px solid #e6f7ff",
-                      borderRadius: 6,
-                      fontSize: 13,
-                    }}
-                  >
-                    {ex.title && (
-                      <div style={{ fontWeight: 600, color: "#0050b3", marginBottom: 6 }}>
-                        {ex.title}
-                      </div>
-                    )}
-                    <div className="explanation-markdown" style={{ color: "#555" }}>
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {ex.content}
-                      </ReactMarkdown>
+                {explanation.examples.map((ex, idx) => {
+                  // Detect nếu content là code - phải có keywords lập trình rõ ràng
+                  const codeKeywords =
+                    /(#include|#define|\btemplate\b|\bclass\b|\bdef\b|\bfunction\b|\bconst\b|\blet\b|\bvar\b|\bimport\b|\breturn\b|\bfor\b|\bwhile\b|\bif\b|\belse\b|=>|\bfrom\b|\bimport\b|\brequire|\bconsole\.log|\.map|\.\w+\(|\{\s*\w+\s*:|function\s*\()/i;
+                  const hasMultipleLines = (ex.content.match(/\n/g) || []).length >= 1;
+                  const isCode = hasMultipleLines && codeKeywords.test(ex.content);
+                  const language = ex.language || "text";
+                  
+                  return (
+                    <div
+                      key={idx}
+                      style={{
+                        background: "#fff",
+                        border: "1px solid #e6f7ff",
+                        borderRadius: 8,
+                        overflow: "hidden",
+                      }}
+                    >
+                      {ex.title && (
+                        <div style={{ fontWeight: 600, color: "#FF9800", padding: "10px 12px", background: "#fafafa", borderBottom: "1px solid #e6f7ff" }}>
+                          {ex.title}
+                        </div>
+                      )}
+                      {isCode ? (
+                        <div style={{ padding: 0 }}>
+                          <div style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            background: "#1e1e1e",
+                            padding: "8px 12px",
+                            fontSize: 12,
+                            color: "#999"
+                          }}>
+                            <span style={{ fontWeight: 600, color: "#FFB366" }}>{language}</span>
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(ex.content);
+                              }}
+                              style={{
+                                background: "transparent",
+                                border: "1px solid #666",
+                                color: "#999",
+                                padding: "4px 8px",
+                                borderRadius: 4,
+                                cursor: "pointer",
+                                fontSize: 11,
+                                fontWeight: 600,
+                                transition: "all 0.2s"
+                              }}
+                              onMouseEnter={(e) => e.target.style.borderColor = "#FFB366"}
+                              onMouseLeave={(e) => e.target.style.borderColor = "#666"}
+                            >
+                              Copy
+                            </button>
+                          </div>
+                          <SyntaxHighlighter
+                            language={language}
+                            style={atomDark}
+                            customStyle={{
+                              margin: 0,
+                              padding: 12,
+                              fontSize: 13,
+                              lineHeight: 1.5,
+                              background: "#1e1e1e"
+                            }}
+                          >
+                            {ex.content}
+                          </SyntaxHighlighter>
+                        </div>
+                      ) : (
+                        <div style={{ padding: 12 }}>
+                          <div className="explanation-markdown" style={{ fontSize: 13, color: "#555" }}>
+                            <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock }}>
+                              {ex.content}
+                            </ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
