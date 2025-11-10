@@ -16,9 +16,6 @@ export default function CreateCourseWithAI() {
     targetAudience: "",
     level: "Beginner",
     language: "vi",
-    numLessons: 8,
-    includeQuizzes: true,
-    numQuizzesPerLesson: 3,
   });
 
   const [draft, setDraft] = useState(null);
@@ -201,52 +198,18 @@ export default function CreateCourseWithAI() {
               {/* Số bài học */}
               <div>
                 <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "#111" }}>
-                  📖 Số Bài Học ({formData.numLessons})
+                  📖 Lộ Trình Bài Học
                 </label>
-                <input
-                  type="range"
-                  name="numLessons"
-                  value={formData.numLessons}
-                  onChange={handleInputChange}
-                  min="4"
-                  max="20"
-                  style={{ width: "100%" }}
-                />
-                <div style={{ fontSize: 12, color: "#666", marginTop: 4 }}>Tối thiểu 4, tối đa 20</div>
+                <div style={{ fontSize: 13, color: "#555", lineHeight: 1.5 }}>
+                  AI sẽ tự quyết định số lượng bài cần thiết để bao phủ kiến thức (khoảng 6-15 bài). Bạn chỉ cần mô tả mục tiêu và đối tượng học viên.
+                </div>
               </div>
 
               {/* Câu hỏi */}
-              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-                <input
-                  type="checkbox"
-                  name="includeQuizzes"
-                  checked={formData.includeQuizzes}
-                  onChange={handleInputChange}
-                  style={{ width: 18, height: 18, cursor: "pointer" }}
-                />
-                <label style={{ fontSize: 14, color: "#333", cursor: "pointer" }}>
-                  ✓ Bao gồm câu hỏi trắc nghiệm
-                </label>
+              {/* Quiz + Docs Info */}
+              <div style={{ fontSize: 13, color: "#555", lineHeight: 1.5, background: "#f9fafc", padding: 16, borderRadius: 12 }}>
+                ✅ AI sẽ tự động sinh tài liệu chi tiết và bộ câu hỏi cho từng bài (số câu hỏi phù hợp (không cố định)) để bao phủ đầy đủ kiến thức. Bạn chỉ cần mô tả mục tiêu và nội dung khóa học thật rõ.
               </div>
-
-              {/* Số câu quiz */}
-              {formData.includeQuizzes && (
-                <div>
-                  <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "#111" }}>
-                    ❓ Số Câu Hỏi Mỗi Bài ({formData.numQuizzesPerLesson})
-                  </label>
-                  <input
-                    type="range"
-                    name="numQuizzesPerLesson"
-                    value={formData.numQuizzesPerLesson}
-                    onChange={handleInputChange}
-                    min="1"
-                    max="50"
-                    style={{ width: "100%" }}
-                  />
-                  <div style={{ fontSize: 12, color: "#666", marginTop: 4 }}>Tối thiểu 1, tối đa 50 câu mỗi bài</div>
-                </div>
-              )}
 
               {/* Error */}
               {error && (
@@ -485,7 +448,7 @@ export default function CreateCourseWithAI() {
               Đang tạo khóa học...
             </h2>
             <p style={{ fontSize: 14, color: "#666", marginBottom: 30 }}>
-              Vui lòng chờ trong khi AI tạo bài học và câu hỏi cho bạn
+              Vui lòng chờ trong khi AI tạo bài học, tài liệu và câu hỏi cho bạn
             </p>
 
             {/* Progress Bar */}
@@ -500,7 +463,7 @@ export default function CreateCourseWithAI() {
 
             {/* Loading Steps */}
             <div style={{ marginBottom: 30, display: "flex", flexDirection: "column", gap: 12 }}>
-              {["🤖 Phân tích chủ đề", "📚 Tạo bài học", "❓ Tạo câu hỏi", "💾 Lưu khóa học"].map((step, idx) => (
+              {["🤖 Phân tích chủ đề", "📚 Tạo bài học", "📄 Sinh tài liệu", "❓ Tạo câu hỏi", "💾 Lưu khóa học"].map((step, idx) => (
                 <div key={idx} style={{
                   display: "flex",
                   alignItems: "center",
