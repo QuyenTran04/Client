@@ -53,6 +53,9 @@ import Orders from "./pages/admin/Orders";
 import Reviews from "./pages/admin/Reviews";
 import Lessons from "./pages/admin/Lessons";
 import Quiz from "./pages/admin/Quiz";
+import Documents from "./pages/admin/Documents";
+import Settings from "./pages/admin/Settings";
+import ActivityLogs from "./pages/admin/ActivityLogs";
 
 /**
  * Hiện chatbot nổi ở tất cả trang public, trừ:
@@ -197,6 +200,9 @@ function AppShell() {
           <Route path="reviews" element={<Reviews />} />
           <Route path="lessons" element={<Lessons />} />
           <Route path="quiz" element={<Quiz />} />
+          <Route path="documents" element={<Documents />} />
+          <Route path="settings" element={<Settings />} />
+          <Route path="activity-logs" element={<ActivityLogs />} />
         </Route>
 
         {/* 404 fallback */}

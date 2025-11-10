@@ -10,6 +10,9 @@ import {
   Folder,
   BarChart3,
   Tag,
+  FileText,
+  Settings as SettingsIcon,
+  Clock,
 } from "lucide-react";
 
 const Item = ({ to, icon, label }) => (
@@ -93,6 +96,25 @@ export default function Sidebar() {
           to="/admin/reviews"
           icon={<Star size={18} />}
           label="Đánh giá"
+        />
+      </div>
+
+      <div className="sb-section">
+        <div className="sb-cap">CÀI ĐẶT VÀ TÀI LIỆU</div>
+        <Item
+          to="/admin/documents"
+          icon={<FileText size={18} />}
+          label="Tài liệu"
+        />
+        <Item
+          to="/admin/activity-logs"
+          icon={<Clock size={18} />}
+          label="Nhật ký hoạt động"
+        />
+        <Item
+          to="/admin/settings"
+          icon={<SettingsIcon size={18} />}
+          label="Cài đặt"
         />
       </div>
     </aside>
