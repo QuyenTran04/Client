@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { getCourseById, enrollCourse } from "../services/course";
 import { useAuth } from "../context/AuthContext";
 import { getYouTubeEmbedUrl } from "../lib/utils";
@@ -10,6 +10,8 @@ export default function CourseDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [c, setC] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -26,7 +28,15 @@ export default function CourseDetail() {
         const data = await getCourseById(id);
         if (!alive) return;
         setC(data);
-      } catch {
+        setSelectedLessonId(null); // đổi khóa học thì reset lesson context
+        
+        // Check if payment was successful
+        if (searchParams.get("payment") === "success") {
+          alert("Thanh toán thành công! Bạn đã được đăng ký khóa học.");
+          // Remove query param from URL
+          navigate(`/courses/${id}`, { replace: true });
+        }
+      } catch (e) {
         if (!alive) return;
         setError("Không tải được thông tin khóa học.");
       } finally {
@@ -36,7 +46,7 @@ export default function CourseDetail() {
     return () => {
       alive = false;
     };
-  }, [id]);
+  }, [id, searchParams, navigate]);
 
   const handleViewLessons = () => {
     if (!user) return navigate("/login");
@@ -44,7 +54,18 @@ export default function CourseDetail() {
   };
 
   const onEnroll = async () => {
-    if (!user) return navigate("/login");
+    if (!user) {
+      navigate("/login?redirect=/courses/" + id);
+      return;
+    }
+
+    // Nếu khóa học có giá, chuyển đến trang thanh toán
+    if (c?.price && c.price > 0) {
+      navigate(`/payment?courseId=${id}`);
+      return;
+    }
+
+    // Nếu khóa học miễn phí, đăng ký trực tiếp
     try {
       setEnrolling(true);
       await enrollCourse(id);
@@ -78,31 +99,24 @@ export default function CourseDetail() {
     );
   }
 
+  const imgSrc = c.imageUrl || "/assets/cover-1.jpg";
+
   const embedUrl = getYouTubeEmbedUrl(c?.introVideoUrl || c?.trailerUrl || c?.videoUrl);
 
   return (
-    <div style={{ background: "#f8f9fa", minHeight: "100vh" }}>
-      {/* Hero Section */}
-      <div
-        style={{
-          backgroundImage: `linear-gradient(135deg, rgba(0,0,0,.5), rgba(0,0,0,.65)), url(${c.imageUrl || "/assets/placeholder-course.jpg"})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          color: "#fff",
-          padding: "60px 20px",
-          marginBottom: 40,
-        }}
-      >
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <div style={{ marginBottom: 12 }}>
-            <span style={{ display: "inline-block", background: "rgba(241, 178, 74, 0.9)", padding: "6px 12px", borderRadius: 6, fontSize: 13, fontWeight: 500, marginRight: 8 }}>
-              {c.category?.name || "Khóa học"}
-            </span>
-            {c.level && (
-              <span style={{ display: "inline-block", background: "rgba(255,255,255,0.2)", padding: "6px 12px", borderRadius: 6, fontSize: 13, border: "1px solid rgba(255,255,255,0.3)" }}>
-                {c.level}
-              </span>
-            )}
+    <div className="container course-detail">
+      {/* Hero / Header */}
+      <div className="cd-hero">
+        <div
+          className="cd-hero-bg"
+          style={{
+            backgroundImage: `linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.6)), url(${c.imageUrl || "/assets/cover-1.jpg"})`,
+          }}
+        />
+        <div className="cd-hero-inner">
+          <div className="cd-hero-badges">
+            <span className="badge">{c.category?.name || "Khóa học"}</span>
+            {c.level && <span className="badge outline">{c.level}</span>}
           </div>
           <h1 style={{ margin: "16px 0", fontSize: "2.5rem", fontWeight: 700, lineHeight: 1.2 }}>{c.title}</h1>
           <p style={{ fontSize: 16, marginBottom: 20, opacity: 0.95, lineHeight: 1.5 }}>{c.description}</p>
@@ -395,15 +409,8 @@ export default function CourseDetail() {
             <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 16, color: "#111" }}>Giảng viên</h3>
             <div style={{ display: "flex", gap: 12 }}>
               <div
-                style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: "50%",
-                  background: `url(${c.instructor?.avatar || "/assets/avatar.png"})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                  flexShrink: 0,
-                }}
+                className="avatar"
+                style={{ backgroundImage: `url(${c.instructor?.avatar || "/assets/ava-1.jpg"})` }}
               />
               <div>
                 <div style={{ fontWeight: 600, color: "#111", marginBottom: 4 }}>{c.instructor?.name || "Giảng viên"}</div>

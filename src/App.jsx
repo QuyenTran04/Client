@@ -6,6 +6,9 @@ import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import Courses from "./pages/Courses";
 import CourseDetail from "./pages/CourseDetail";
+
+import Payment from "./pages/Payment";
+
 import Lessons from "./pages/Lessons";
 import Quiz from "./pages/Quiz";
 import AIChat from "./components/AIChat";
@@ -98,6 +101,14 @@ function AppShell() {
         />
         <Route path="/courses" element={<Courses />} />
         <Route path="/courses/:id" element={<CourseDetail />} />
+          <Route
+          path="/payment"
+          element={
+            <ProtectedRoute>
+              <Payment />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/courses/:id/lessons"
           element={

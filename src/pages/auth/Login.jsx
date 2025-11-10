@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { loginApi, googleApi } from "../../services/auth";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 export default function Login() {
   const nav = useNavigate();
+  const [searchParams] = useSearchParams();
   const { setUser, refreshMe } = useAuth(); // lấy refreshMe từ context
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
@@ -17,6 +18,14 @@ export default function Login() {
   const redirectByRole = useCallback(
     (user) => {
       const role = (user?.role || "").toLowerCase();
+      const redirect = searchParams.get("redirect");
+      
+      // Nếu có redirect parameter, chuyển đến đó
+      if (redirect) {
+        nav(redirect, { replace: true });
+        return;
+      }
+      
       console.log("User role:", role); // Debug log
       if (role === "admin") {
         nav("/admin/overview", { replace: true });
@@ -24,7 +33,7 @@ export default function Login() {
         nav("/", { replace: true });
       }
     },
-    [nav]
+    [nav, searchParams]
   );
 
   const onSubmit = async (e) => {

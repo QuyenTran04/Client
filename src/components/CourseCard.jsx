@@ -10,14 +10,7 @@ export default function CourseCard({ c }) {
     <>
       <div
         style={{
-          background: "#fff",
-          borderRadius: 12,
-          overflow: "hidden",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-          transition: "all 0.3s ease",
-          display: "flex",
-          flexDirection: "column",
-          height: "100%",
+          backgroundImage: `url(${c.imageUrl || "/assets/cover-1.jpg"})`,
         }}
         onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.15)")}
         onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)")}

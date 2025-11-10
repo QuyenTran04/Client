@@ -23,3 +23,16 @@
 .gap-4 { gap:1rem; } .gap-2 { gap:.5rem; }
 .md\:grid-cols-3 { }
 .lg\:grid-cols-6 { }
+
+/* Global Image Optimization */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Smooth image loading - hiển thị ngay, fade in khi load xong */
+img[loading="lazy"] {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
