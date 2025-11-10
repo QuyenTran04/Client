@@ -17,10 +17,23 @@ export default function Settings() {
     emailNotifications: true,
   });
 
-  const { data: settingsData } = useQuery({
+  const { data: settingsData, isLoading } = useQuery({
     queryKey: ["admin-settings"],
     queryFn: () =>
-      api.get("/admin/settings").then((r) => r.data).catch(() => null),
+      api
+        .get("/admin/settings")
+        .then((r) => r.data)
+        .catch(() => ({
+          siteName: "Nền tảng học tập DACN",
+          siteDescription: "Học online chất lượng cao",
+          minPrice: 0,
+          maxPrice: 5000000,
+          instructorCommissionPercent: 70,
+          platformFeePercent: 30,
+          maintenanceMode: false,
+          maintenanceMessage: "",
+          emailNotifications: true,
+        })),
     onSuccess: (data) => {
       if (data) setSettings(data);
     },

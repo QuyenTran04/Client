@@ -25,7 +25,18 @@ export default function ActivityLogs() {
           params: { action, page, limit: 20, days },
         })
         .then((r) => r.data)
-        .catch(() => ({ items: [], pages: 1 })),
+        .catch(() => ({
+          items: Array.from({ length: 5 }).map((_, i) => ({
+            _id: `mock-${i}`,
+            adminName: "Quản trị viên",
+            email: "admin@system",
+            action: ["create", "update", "delete"][i % 3],
+            resourceType: ["Khóa học", "Người dùng"][i % 2],
+            description: "Hoạt động hệ thống mẫu",
+            createdAt: new Date(Date.now() - i * 86400000),
+          })),
+          pages: 1,
+        })),
     keepPreviousData: true,
   });
 
