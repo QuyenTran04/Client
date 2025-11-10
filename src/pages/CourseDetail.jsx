@@ -10,7 +10,6 @@ export default function CourseDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   const [c, setC] = useState(null);
@@ -28,7 +27,7 @@ export default function CourseDetail() {
         const data = await getCourseById(id);
         if (!alive) return;
         setC(data);
-        setSelectedLessonId(null); // đổi khóa học thì reset lesson context
+        setSelectedLesson(null); // đổi khóa học thì reset lesson context
         
         // Check if payment was successful
         if (searchParams.get("payment") === "success") {

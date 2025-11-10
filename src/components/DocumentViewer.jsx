@@ -1,4 +1,8 @@
 import { useState, useRef, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import {
   getDocumentByLesson,
   askAboutDocument,
@@ -18,6 +22,45 @@ export default function DocumentViewer({ lessonId, lessonTitle }) {
   const [highlightedRanges, setHighlightedRanges] = useState([]);
   const contentRef = useRef(null);
   const chatEndRef = useRef(null);
+
+  const CodeBlock = ({ inline, className, children }) => {
+    const match = /language-(\w+)/.exec(className || "");
+    const lang = match ? match[1] : "";
+    const code = String(children).replace(/\n$/, "");
+
+    if (inline) {
+      return (
+        <code
+          style={{
+            background: "#f6f8fa",
+            padding: "2px 6px",
+            borderRadius: 4,
+            fontFamily: "'Monaco','Menlo',monospace",
+            fontSize: 13,
+            color: "#c7254e",
+          }}
+        >
+          {children}
+        </code>
+      );
+    }
+
+    return (
+      <SyntaxHighlighter
+        language={lang || "text"}
+        style={atomDark}
+        customStyle={{
+          margin: "12px 0",
+          padding: 14,
+          fontSize: 13,
+          lineHeight: 1.6,
+          borderRadius: 8,
+        }}
+      >
+        {code}
+      </SyntaxHighlighter>
+    );
+  };
 
   useEffect(() => {
     if (!lessonId) return;
@@ -202,21 +245,31 @@ export default function DocumentViewer({ lessonId, lessonTitle }) {
         {/* Content */}
         <div
           ref={contentRef}
-          className="document-body"
+          className="document-body doc-markdown"
           onMouseUp={handleTextSelect}
           style={{
             padding: "30px",
             background: "#fff",
             borderRadius: 8,
-            lineHeight: 1.8,
-            color: "#333",
-            fontSize: 15,
-            whiteSpace: "pre-wrap",
-            wordWrap: "break-word",
-            overflowWrap: "break-word",
           }}
         >
-          {document.content}
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              code: CodeBlock,
+              a: ({ href, children }) => (
+                <a href={href} target="_blank" rel="noreferrer">
+                  {children}
+                </a>
+              ),
+              img: ({ src, alt }) => (
+                // Ensure responsive images
+                <img src={src} alt={alt} style={{ maxWidth: "100%", height: "auto" }} />
+              ),
+            }}
+          >
+            {document.content || ""}
+          </ReactMarkdown>
         </div>
 
         {/* Toolbar when text is selected */}
