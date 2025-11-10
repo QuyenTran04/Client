@@ -56,6 +56,7 @@ import Quiz from "./pages/admin/Quiz";
 import Documents from "./pages/admin/Documents";
 import Settings from "./pages/admin/Settings";
 import ActivityLogs from "./pages/admin/ActivityLogs";
+import Reports from "./pages/admin/Reports";
 
 /**
  * Hiện chatbot nổi ở tất cả trang public, trừ:
@@ -203,6 +204,7 @@ function AppShell() {
           <Route path="documents" element={<Documents />} />
           <Route path="settings" element={<Settings />} />
           <Route path="activity-logs" element={<ActivityLogs />} />
+          <Route path="reports" element={<Reports />} />
         </Route>
 
         {/* 404 fallback */}

@@ -13,6 +13,7 @@ import {
   FileText,
   Settings as SettingsIcon,
   Clock,
+  TrendingUp,
 } from "lucide-react";
 
 const Item = ({ to, icon, label }) => (
@@ -96,6 +97,11 @@ export default function Sidebar() {
           to="/admin/reviews"
           icon={<Star size={18} />}
           label="Đánh giá"
+        />
+        <Item
+          to="/admin/reports"
+          icon={<TrendingUp size={18} />}
+          label="Báo cáo"
         />
       </div>
 

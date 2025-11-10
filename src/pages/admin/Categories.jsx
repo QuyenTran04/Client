@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi } from "../../services/admin";
-import { Plus, Trash2, Edit2, Loader2, Save, X } from "lucide-react";
+import { Plus, Trash2, Edit2, Loader2, Save, X, Download } from "lucide-react";
 
 export default function Categories() {
   const qc = useQueryClient();
@@ -9,6 +9,7 @@ export default function Categories() {
   const [page, setPage] = useState(1);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [selected, setSelected] = useState(new Set());
   const [formData, setFormData] = useState({ name: "", description: "" });
 
   const { data, isFetching } = useQuery({
@@ -37,6 +38,57 @@ export default function Categories() {
     mutationFn: (id) => adminApi.deleteCategory(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-categories"] }),
   });
+
+  const bulkDeleteMut = useMutation({
+    mutationFn: async () => {
+      const results = await Promise.allSettled(
+        Array.from(selected).map((id) => adminApi.deleteCategory(id))
+      );
+      return results;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-categories"] });
+      setSelected(new Set());
+    },
+  });
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelected(new Set(items.map((c) => c._id)));
+    } else {
+      setSelected(new Set());
+    }
+  };
+
+  const handleSelectItem = (id) => {
+    const newSelected = new Set(selected);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelected(newSelected);
+  };
+
+  const exportToCSV = () => {
+    if (items.length === 0) {
+      alert("Không có dữ liệu để xuất");
+      return;
+    }
+    const headers = ["Tên danh mục", "Mô tả"];
+    const rows = items.map((c) => [c.name, c.description || ""]);
+
+    let csv = headers.join(",") + "\n";
+    rows.forEach((row) => {
+      csv += row.map((cell) => `"${cell}"`).join(",") + "\n";
+    });
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `categories_${new Date().toISOString().split("T")[0]}.csv`;
+    link.click();
+  };
 
   const resetForm = () => {
     setFormData({ name: "", description: "" });
@@ -152,12 +204,47 @@ export default function Categories() {
           className="border border-gray-300 px-3 py-2 rounded-lg flex-1 focus:ring-2 focus:ring-indigo-500 outline-none"
         />
         {isFetching && <Loader2 className="animate-spin text-gray-400" size={18} />}
+        <button
+          onClick={exportToCSV}
+          className="text-indigo-600 hover:bg-indigo-50 p-2 rounded-lg inline-flex items-center gap-1 text-sm"
+        >
+          <Download size={16} />
+          Xuất CSV
+        </button>
       </div>
+
+      {selected.size > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-center justify-between">
+          <span className="text-sm font-medium text-blue-800">
+            Đã chọn {selected.size} danh mục
+          </span>
+          <button
+            onClick={() => {
+              if (confirm("Bạn chắc chắn muốn xóa những danh mục này?")) {
+                bulkDeleteMut.mutate();
+              }
+            }}
+            disabled={bulkDeleteMut.isLoading}
+            className="text-sm px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-500 disabled:opacity-50 inline-flex items-center gap-1"
+          >
+            <Trash2 size={14} />
+            Xóa hàng loạt
+          </button>
+        </div>
+      )}
 
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
         <table className="min-w-full text-sm">
           <thead className="bg-gray-50 text-gray-700 border-b">
             <tr>
+              <th className="p-3 text-left font-semibold w-10">
+                <input
+                  type="checkbox"
+                  checked={selected.size === items.length && items.length > 0}
+                  onChange={handleSelectAll}
+                  className="w-4 h-4"
+                />
+              </th>
               <th className="p-3 text-left font-semibold">Tên danh mục</th>
               <th className="p-3 text-left font-semibold">Mô tả</th>
               <th className="p-3 text-right font-semibold">Thao tác</th>
@@ -166,13 +253,21 @@ export default function Categories() {
           <tbody className="divide-y">
             {items.length === 0 ? (
               <tr>
-                <td colSpan={3} className="p-4 text-center text-gray-500">
+                <td colSpan={4} className="p-4 text-center text-gray-500">
                   Không có danh mục nào
                 </td>
               </tr>
             ) : (
               items.map((cat) => (
-                <tr key={cat._id} className="hover:bg-gray-50">
+                <tr key={cat._id} className={`hover:bg-gray-50 ${selected.has(cat._id) ? "bg-blue-100" : ""}`}>
+                  <td className="p-3 w-10">
+                    <input
+                      type="checkbox"
+                      checked={selected.has(cat._id)}
+                      onChange={() => handleSelectItem(cat._id)}
+                      className="w-4 h-4"
+                    />
+                  </td>
                   <td className="p-3 font-medium text-gray-800">{cat.name}</td>
                   <td className="p-3 text-gray-600 truncate">
                     {cat.description || "—"}
