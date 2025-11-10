@@ -17,21 +17,20 @@ export default function AuthProvider({ children }) {
   const refreshMe = useCallback(async () => {
     try {
       // ⚙️ DEV MODE AUTO LOGIN (bỏ đi nếu deploy production)
-      // DISABLED: Uncomment below to enable auto dev login
-      // if (import.meta.env.DEV) {
-      //   console.log("🧪 Dev auto login enabled");
-      //   const devUser = {
-      //     id: "dev-1",
-      //     name: "Dev Tester",
-      //     email: "dev@example.com",
-      //     role: "admin", // đổi "user" nếu muốn
-      //   };
-      //   setUser(devUser);
-      //   setLoading(false);
-      //   return;
-      // }
+      if (import.meta.env.DEV) {
+        console.log("🧪 Dev auto login enabled");
+        const devUser = {
+          id: "dev-1",
+          name: "Dev Tester",
+          email: "dev@example.com",
+          role: "admin",
+        };
+        setUser(devUser);
+        setLoading(false);
+        return;
+      }
 
-      // ✅ Gọi API thật
+      // ✅ Gọi API thật (production)
       const { data } = await meApi();
       setUser(data?.user || null);
     } catch {
