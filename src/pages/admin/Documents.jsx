@@ -10,10 +10,13 @@ export default function Documents() {
   const [page, setPage] = useState(1);
   const [uploading, setUploading] = useState(false);
 
-  const { data, isFetching } = useQuery({
+  const { data, isFetching, isError } = useQuery({
     queryKey: ["admin-documents", { q, page }],
     queryFn: () => 
-      api.get("/admin/documents", { params: { q, page, limit: 10 } }).then(r => r.data),
+      api
+        .get("/admin/documents", { params: { q, page, limit: 10 } })
+        .then(r => r.data)
+        .catch(() => ({ items: [], pages: 1 })),
     keepPreviousData: true,
   });
 
@@ -48,6 +51,18 @@ export default function Documents() {
 
   const items = data?.items || [];
   const totalPages = data?.pages || 1;
+
+  // Show loading UI on first load
+  if (!data && isFetching) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <Loader2 className="animate-spin mx-auto text-indigo-600 mb-2" size={32} />
+          <p className="text-gray-600">Đang tải tài liệu...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

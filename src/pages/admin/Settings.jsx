@@ -60,6 +60,18 @@ export default function Settings() {
     updateMut.mutate();
   };
 
+  // Show loading UI on first load
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <Loader2 className="animate-spin mx-auto text-indigo-600 mb-2" size={32} />
+          <p className="text-gray-600">Đang tải cài đặt...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>

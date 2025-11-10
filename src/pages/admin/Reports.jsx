@@ -82,6 +82,18 @@ export default function Reports() {
   const totalOrders = revenueData.reduce((sum, item) => sum + (item.orders || 0), 0);
   const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
+  // Show loading UI on first load
+  if (isFetching && !data) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <Loader2 className="animate-spin mx-auto text-indigo-600 mb-2" size={32} />
+          <p className="text-gray-600">Đang tải báo cáo...</p>
+        </div>
+      </div>
+    );
+  }
+
   const courseChartData = (Array.isArray(courseRevenueData) ? courseRevenueData : [])
     .slice(0, 10)
     .map((item) => ({
