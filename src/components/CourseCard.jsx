@@ -2,268 +2,107 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { getYouTubeEmbedUrl } from "../lib/utils";
 
-export default function CourseCard({ c }) {
+const DEFAULT_COVER = "/assets/cover-1.jpg";
+
+export default function CourseCard({ c = {} }) {
   const [showPreview, setShowPreview] = useState(false);
   const embedUrl = getYouTubeEmbedUrl(c?.introVideoUrl);
 
+  const cover = c.imageUrl || DEFAULT_COVER;
+  const title = c.title || "Khóa học chưa đặt tên";
+  const description = c.description || "Khóa học này chưa có mô tả";
+  const isFree = !c.price || Number(c.price) === 0;
+  const priceLabel = isFree
+    ? "Miễn phí"
+    : `${Number(c.price).toLocaleString("vi-VN")}đ`;
+  const lessonCount =
+    c.lessons?.length ?? c.totalLessons ?? c.lessonCount ?? 0;
+  const updatedAt = c.updatedAt || c.createdAt;
+  const formattedDate = updatedAt
+    ? new Date(updatedAt).toLocaleDateString("vi-VN")
+    : null;
+  const instructorName = c.instructor?.name;
+
   return (
     <>
-      <div
-        style={{
-          backgroundImage: `url(${c.imageUrl || "/assets/cover-1.jpg"})`,
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.15)")}
-        onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)")}
-      >
-        {/* Image */}
-        <div
-          style={{
-            width: "100%",
-            height: 160,
-            backgroundImage: `url(${c.imageUrl || "/placeholder-course.jpg"})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            position: "relative",
-          }}
-        >
-          {c.category?.name && (
-            <div
-              style={{
-                position: "absolute",
-                top: 12,
-                left: 12,
-                background: "rgba(234, 88, 12, 0.95)",
-                color: "#fff",
-                padding: "4px 10px",
-                borderRadius: 6,
-                fontSize: 12,
-                fontWeight: 600,
-              }}
-            >
-              {c.category.name}
-            </div>
-          )}
-          {c.price ? (
-            <div
-              style={{
-                position: "absolute",
-                top: 12,
-                right: 12,
-                background: "rgba(0, 0, 0, 0.7)",
-                color: "#fff",
-                padding: "6px 12px",
-                borderRadius: 6,
-                fontSize: 13,
-                fontWeight: 600,
-              }}
-            >
-              {c.price.toLocaleString()}₫
-            </div>
-          ) : (
-            <div
-              style={{
-                position: "absolute",
-                top: 12,
-                right: 12,
-                background: "rgba(76, 175, 80, 0.9)",
-                color: "#fff",
-                padding: "6px 12px",
-                borderRadius: 6,
-                fontSize: 12,
-                fontWeight: 600,
-              }}
-            >
-              Miễn phí
-            </div>
-          )}
+      <article className="course-card-v2">
+        <div className="course-card-media">
+          <img src={cover} alt={title} loading="lazy" />
+          <div className="course-card-badges">
+            {c.category?.name && (
+              <span className="course-card-badge">{c.category.name}</span>
+            )}
+            <span className={`course-card-price${isFree ? " is-free" : ""}`}>
+              {priceLabel}
+            </span>
+          </div>
         </div>
 
-        {/* Body */}
-        <div style={{ padding: 16, flex: 1, display: "flex", flexDirection: "column" }}>
-          {/* Title */}
-          <h3
-            style={{
-              margin: "0 0 8px",
-              fontSize: 15,
-              fontWeight: 600,
-              color: "#111",
-              lineHeight: 1.4,
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-            }}
-            title={c.title}
-          >
-            {c.title}
-          </h3>
-
-          {/* Description */}
-          <p
-            style={{
-              margin: "0 0 12px",
-              fontSize: 13,
-              color: "#666",
-              lineHeight: 1.4,
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-            }}
-          >
-            {c.description}
-          </p>
-
-          {/* Meta */}
-          <div
-            style={{
-              fontSize: 12,
-              color: "#999",
-              marginBottom: 12,
-              paddingTop: 12,
-              borderTop: "1px solid #eee",
-            }}
-          >
-            <div style={{ marginBottom: 6 }}>👨‍🏫 {c.instructor?.name || "Giảng viên"}</div>
-            {c.lessons?.length && (
-              <div style={{ marginBottom: 6 }}>📚 {c.lessons.length} bài học</div>
-            )}
-            {c.duration && <div>⏱️ {c.duration} giờ</div>}
+        <div className="course-card-body">
+          <div className="course-card-chip-row">
+            <span
+              className={`course-card-chip${
+                c.published === false ? " is-warning" : ""
+              }`}
+            >
+              {c.published === false ? "Bản nháp" : "Sẵn sàng"}
+            </span>
+            <span className="course-card-chip is-muted">
+              {isFree ? "Không thu phí" : "Có học phí"}
+            </span>
           </div>
 
-          {/* Progress */}
-          {typeof c.progressPercent === "number" && (
-            <div style={{ marginBottom: 12 }}>
-              <div style={{ height: 6, background: "#eee", borderRadius: 3, overflow: "hidden" }}>
-                <div
-                  style={{
-                    height: "100%",
-                    background: "#4caf50",
-                    width: `${Math.min(Math.max(c.progressPercent, 0), 100)}%`,
-                    transition: "width 0.3s ease",
-                  }}
-                />
-              </div>
-              <div style={{ fontSize: 11, color: "#999", marginTop: 4 }}>
-                ✓ Hoàn thành {Math.round(c.progressPercent)}%
-              </div>
-            </div>
-          )}
+          <h3 className="course-card-title" title={title}>
+            {title}
+          </h3>
+          <p className="course-card-desc">{description}</p>
 
-          {/* Actions */}
-          <div style={{ display: "flex", gap: 8, marginTop: "auto" }}>
-            <Link
-              to={`/courses/${c._id}`}
-              style={{
-                flex: 1,
-                textAlign: "center",
-                padding: "8px 12px",
-                background: "#ea580c",
-                color: "#fff",
-                textDecoration: "none",
-                borderRadius: 8,
-                fontSize: 13,
-                fontWeight: 600,
-                border: "none",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-              }}
-              onMouseEnter={(e) => (e.target.style.background = "#c2410c")}
-              onMouseLeave={(e) => (e.target.style.background = "#ea580c")}
-            >
-              Chi tiết
+          <div className="course-card-meta">
+            <span>{lessonCount || 0} bài học</span>
+            {formattedDate && <span>Cập nhật {formattedDate}</span>}
+            {instructorName && <span>GV {instructorName}</span>}
+          </div>
+
+          <div className="course-card-actions">
+            <Link to={`/courses/${c._id}`} className="course-card-btn primary">
+              Xem chi tiết
             </Link>
             {embedUrl && (
               <button
+                type="button"
+                className="course-card-btn ghost"
                 onClick={() => setShowPreview(true)}
-                style={{
-                  flex: 1,
-                  padding: "8px 12px",
-                  background: "#f0f0f0",
-                  color: "#111",
-                  border: "none",
-                  borderRadius: 8,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                }}
-                onMouseEnter={(e) => (e.target.style.background = "#e0e0e0")}
-                onMouseLeave={(e) => (e.target.style.background = "#f0f0f0")}
               >
                 Xem trước
               </button>
             )}
           </div>
         </div>
-      </div>
+      </article>
 
-      {/* Preview Modal */}
       {showPreview && embedUrl && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 50,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
+        <div className="course-preview-modal" role="dialog" aria-modal="true">
           <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              background: "rgba(0,0,0,0.6)",
-              cursor: "pointer",
-            }}
+            className="course-preview-backdrop"
             onClick={() => setShowPreview(false)}
           />
-          <div
-            style={{
-              position: "relative",
-              background: "#fff",
-              borderRadius: 12,
-              boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
-              maxWidth: "90vw",
-              width: "100%",
-              maxHeight: "90vh",
-              overflow: "hidden",
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "16px 20px",
-                borderBottom: "1px solid #eee",
-              }}
-            >
-              <h4 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: "#111" }}>
-                Xem trước: {c.title}
-              </h4>
+          <div className="course-preview-dialog">
+            <div className="course-preview-head">
+              <h4>Xem trước: {title}</h4>
               <button
+                type="button"
+                className="course-preview-close"
                 onClick={() => setShowPreview(false)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  fontSize: 24,
-                  cursor: "pointer",
-                  color: "#999",
-                }}
+                aria-label="Đóng"
               >
-                ✕
+                ×
               </button>
             </div>
-            <div style={{ flex: 1, padding: 16, background: "#000" }}>
-              <div style={{ aspectRatio: "16/9", overflow: "hidden", borderRadius: 8 }}>
+            <div className="course-preview-body">
+              <div className="course-preview-frame">
                 <iframe
                   src={embedUrl}
                   title="Course Preview"
-                  style={{ width: "100%", height: "100%", border: "none" }}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 />
@@ -275,3 +114,4 @@ export default function CourseCard({ c }) {
     </>
   );
 }
+

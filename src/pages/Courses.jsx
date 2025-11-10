@@ -2,317 +2,289 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { getCourses } from "../services/course.js";
 import { getCategories } from "../services/category";
 import CourseGrid from "../components/CourseGrid";
+import "../css/courses.css";
+
+const FILTER_TEMPLATE = Object.freeze({
+  q: "",
+  category: "",
+  sort: "-createdAt",
+  page: 1,
+  limit: 12,
+  price: "all",
+});
+
+const priceOptions = [
+  { value: "all", label: "Tất cả" },
+  { value: "free", label: "Miễn phí" },
+  { value: "paid", label: "Trả phí" },
+];
+
+const sortOptions = [
+  { value: "-createdAt", label: "Mới cập nhật" },
+  { value: "title", label: "Tên A → Z" },
+  { value: "price", label: "Học phí tăng dần" },
+  { value: "-price", label: "Học phí giảm dần" },
+];
+
+const createDefaultFilters = () => ({ ...FILTER_TEMPLATE });
 
 export default function Courses() {
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [cats, setCats] = useState([]);
-  const [filters, setFilters] = useState({
-    q: "",
-    category: "",
-    sort: "-createdAt",
-    page: 1,
-    limit: 12,
-    price: "all",
-  });
+  const [filters, setFilters] = useState(() => createDefaultFilters());
 
-  const fetchData = useCallback(async () => {
+  const fetchCourses = useCallback(async () => {
     try {
       setLoading(true);
-      const [catList] = await Promise.all([getCategories()]);
-      setCats(catList);
       const data = await getCourses(filters);
       setItems(data.items ?? []);
       setTotal(data.total ?? 0);
     } catch (err) {
-      console.error("Không tải được dữ liệu:", err);
+      console.error("Không tải được danh sách khóa học:", err);
     } finally {
       setLoading(false);
     }
   }, [filters]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchCourses();
+  }, [fetchCourses]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const list = await getCategories();
+        setCats(list);
+      } catch (err) {
+        console.error("Không tải được danh mục:", err);
+      }
+    })();
+  }, []);
 
   const visible = useMemo(() => {
     if (filters.price === "all") return items;
-    if (filters.price === "free")
+    if (filters.price === "free") {
       return items.filter((c) => !c.price || Number(c.price) === 0);
+    }
     return items.filter((c) => Number(c.price) > 0);
   }, [items, filters.price]);
 
+  const heroStats = useMemo(
+    () => [
+      { label: "Khóa học", value: total },
+      { label: "Danh mục", value: cats.length },
+      { label: "Đang hiển thị", value: visible.length },
+    ],
+    [total, cats.length, visible.length]
+  );
+
+  const activeCategory = cats.find((cat) => cat._id === filters.category);
+  const activePriceLabel =
+    priceOptions.find((opt) => opt.value === filters.price)?.label ||
+    priceOptions[0].label;
+
+  const showingStart = visible.length
+    ? (filters.page - 1) * filters.limit + 1
+    : 0;
+  const showingEnd = visible.length ? showingStart + visible.length - 1 : 0;
+
   const nextPage = () =>
-    setFilters((f) => ({ ...f, page: f.page + 1 }));
+    setFilters((prev) => ({ ...prev, page: prev.page + 1 }));
   const prevPage = () =>
-    setFilters((f) => ({ ...f, page: Math.max(1, f.page - 1) }));
+    setFilters((prev) => ({ ...prev, page: Math.max(1, prev.page - 1) }));
+  const resetFilters = () => setFilters(createDefaultFilters());
 
   return (
-    <div style={{ background: "#fff7ed", minHeight: "100vh" }}>
-      {/* Hero Banner */}
-      <div style={{ background: "linear-gradient(135deg, #ea580c 0%, #f97316 100%)", color: "#fff", padding: "60px 20px", marginBottom: 40 }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", textAlign: "center" }}>
-          <h1 style={{ fontSize: "2.5rem", fontWeight: 700, margin: "0 0 12px", lineHeight: 1.2 }}>🎓 Danh sách khóa học</h1>
-          <p style={{ fontSize: 16, opacity: 0.95, margin: 0, lineHeight: 1.5 }}>
-            Khám phá hàng trăm khóa học chất lượng từ các giảng viên hàng đầu
+    <div className="course-collection">
+      <section className="courses-hero">
+        <div className="courses-hero__content">
+          <p className="courses-eyebrow">Không ngừng học hỏi</p>
+          <h1>Khám phá thư viện khóa học nổi bật</h1>
+          <p className="courses-subtitle">
+            Bộ sưu tập được tuyển chọn dựa trên nhu cầu của giảng viên và học
+            viên hiện đại. Lọc linh hoạt để tìm lớp học phù hợp trong vài giây.
           </p>
-          {!loading && (
-            <div style={{ marginTop: 12, fontSize: 14, opacity: 0.85 }}>
-              Tổng cộng <strong>{total}</strong> khóa học | Hiển thị <strong>{visible.length}</strong>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 20px 40px" }}>
-        {/* Filter Section */}
-        <div style={{
-          background: "#fff",
-          padding: 24,
-          borderRadius: 12,
-          marginBottom: 30,
-          boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-        }}>
-          <div style={{ marginBottom: 20 }}>
-            <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12, color: "#111" }}>Tìm kiếm</h3>
-            <input
-              type="text"
-              placeholder="🔎 Nhập tên khóa học..."
-              value={filters.q}
-              onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value, page: 1 }))}
-              style={{
-                width: "100%",
-                padding: "10px 14px",
-                border: "1px solid #ddd",
-                borderRadius: 8,
-                fontSize: 14,
-                fontFamily: "inherit",
-                transition: "all 0.2s ease",
-              }}
-              onFocus={(e) => (e.target.style.borderColor = "#ea580c")}
-              onBlur={(e) => (e.target.style.borderColor = "#ddd")}
-            />
-          </div>
-
-          {/* Filters Grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
-            <div>
-              <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8, color: "#555" }}>Danh mục</label>
-              <select
-                value={filters.category}
-                onChange={(e) => setFilters((f) => ({ ...f, category: e.target.value, page: 1 }))}
-                style={{
-                  width: "100%",
-                  padding: "10px 12px",
-                  border: "1px solid #ddd",
-                  borderRadius: 8,
-                  fontSize: 14,
-                  background: "#fff",
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                }}
-              >
-                <option value="">Tất cả danh mục</option>
-                {cats.map((c) => (
-                  <option key={c._id} value={c._id}>{c.name}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8, color: "#555" }}>Mức giá</label>
-              <select
-                value={filters.price}
-                onChange={(e) => setFilters((f) => ({ ...f, price: e.target.value, page: 1 }))}
-                style={{
-                  width: "100%",
-                  padding: "10px 12px",
-                  border: "1px solid #ddd",
-                  borderRadius: 8,
-                  fontSize: 14,
-                  background: "#fff",
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                }}
-              >
-                <option value="all">Tất cả</option>
-                <option value="free">💰 Miễn phí</option>
-                <option value="paid">💳 Trả phí</option>
-              </select>
-            </div>
-
-            <div>
-              <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8, color: "#555" }}>Sắp xếp</label>
-              <select
-                value={filters.sort}
-                onChange={(e) => setFilters((f) => ({ ...f, sort: e.target.value, page: 1 }))}
-                style={{
-                  width: "100%",
-                  padding: "10px 12px",
-                  border: "1px solid #ddd",
-                  borderRadius: 8,
-                  fontSize: 14,
-                  background: "#fff",
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                }}
-              >
-                <option value="-createdAt">📅 Mới nhất</option>
-                <option value="title">🔤 Tên (A→Z)</option>
-                <option value="price">💵 Giá (thấp→cao)</option>
-                <option value="-price">💵 Giá (cao→thấp)</option>
-              </select>
-            </div>
-
-            <div style={{ display: "flex", gap: 10, alignItems: "flex-end" }}>
-              <button
-                onClick={() => setFilters({ q: "", category: "", sort: "-createdAt", page: 1, limit: 12, price: "all" })}
-                style={{
-                  flex: 1,
-                  padding: "10px 14px",
-                  border: "1px solid #ddd",
-                  background: "#fff",
-                  borderRadius: 8,
-                  cursor: "pointer",
-                  fontWeight: 500,
-                  fontSize: 14,
-                  transition: "all 0.2s ease",
-                }}
-                onMouseEnter={(e) => (e.target.style.background = "#f5f5f5")}
-                onMouseLeave={(e) => (e.target.style.background = "#fff")}
-              >
-                🔄 Đặt lại
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Loading State */}
-        {loading && (
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-            gap: 20,
-          }}>
-            {[...Array(12)].map((_, i) => (
-              <div
-                key={i}
-                style={{
-                  background: "#fff",
-                  borderRadius: 12,
-                  overflow: "hidden",
-                  animation: "pulse 2s infinite",
-                }}
-              >
-                <div style={{ width: "100%", height: 160, background: "#eee" }} />
-                <div style={{ padding: 16 }}>
-                  <div style={{ height: 20, background: "#eee", marginBottom: 12, borderRadius: 4 }} />
-                  <div style={{ height: 16, background: "#eee", marginBottom: 8, borderRadius: 4, width: "80%" }} />
-                  <div style={{ height: 16, background: "#eee", borderRadius: 4, width: "60%" }} />
-                </div>
+          <div className="courses-hero__stats">
+            {heroStats.map((stat) => (
+              <div key={stat.label} className="hero-stat">
+                <span>{stat.label}</span>
+                <strong>{stat.value}</strong>
               </div>
             ))}
           </div>
-        )}
+        </div>
 
-        {/* Course Grid */}
-        {!loading && visible.length > 0 && <CourseGrid items={visible} loading={false} />}
-
-        {/* Empty State */}
-        {!loading && visible.length === 0 && (
-          <div style={{
-            background: "#fff",
-            borderRadius: 12,
-            padding: "60px 20px",
-            textAlign: "center",
-          }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>📚</div>
-            <h3 style={{ fontSize: 18, fontWeight: 600, color: "#111", marginBottom: 8 }}>Không tìm thấy khóa học</h3>
-            <p style={{ color: "#666", marginBottom: 20 }}>Hãy thử thay đổi bộ lọc hoặc tìm kiếm từ khóa khác</p>
-            <button
-              onClick={() => setFilters({ q: "", category: "", sort: "-createdAt", page: 1, limit: 12, price: "all" })}
-              style={{
-                padding: "10px 20px",
-                background: "#ea580c",
-                color: "#fff",
-                border: "none",
-                borderRadius: 8,
-                cursor: "pointer",
-                fontWeight: 600,
-                fontSize: 14,
-              }}
-            >
-              Xóa tất cả bộ lọc
-            </button>
+        <div className="courses-hero__panel">
+          <label className="courses-search">
+            <span>Tìm kiếm nhanh</span>
+            <input
+              type="text"
+              value={filters.q}
+              placeholder="Nhập tên, chủ đề, giảng viên..."
+              onChange={(e) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  q: e.target.value,
+                  page: 1,
+                }))
+              }
+            />
+          </label>
+          <div className="courses-hero__chips">
+            {priceOptions.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                className={`hero-chip${
+                  opt.value === filters.price ? " is-active" : ""
+                }`}
+                onClick={() =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    price: opt.value,
+                    page: 1,
+                  }))
+                }
+              >
+                {opt.label}
+              </button>
+            ))}
           </div>
-        )}
+          <small className="courses-hint">
+            Đừng quên lưu khóa học yêu thích để quay lại nhanh hơn.
+          </small>
+        </div>
+      </section>
 
-        {/* Pagination */}
-        {!loading && visible.length > 0 && (
-          <div style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            gap: 12,
-            marginTop: 40,
-          }}>
+      <div className="courses-shell">
+        <aside className="filters-panel">
+          <div className="filters-panel__section">
+            <p className="filters-panel__label">Danh mục</p>
+            <div className="chip-scroll">
+              <button
+                type="button"
+                className={`filter-chip${
+                  filters.category === "" ? " is-active" : ""
+                }`}
+                onClick={() =>
+                  setFilters((prev) => ({ ...prev, category: "", page: 1 }))
+                }
+              >
+                Tất cả
+              </button>
+              {cats.map((cat) => (
+                <button
+                  key={cat._id}
+                  type="button"
+                  className={`filter-chip${
+                    filters.category === cat._id ? " is-active" : ""
+                  }`}
+                  onClick={() =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      category: cat._id,
+                      page: 1,
+                    }))
+                  }
+                >
+                  {cat.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="filters-panel__section">
+            <p className="filters-panel__label">Mức giá</p>
+            <div className="pill-row">
+              {priceOptions.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={`pill${opt.value === filters.price ? " on" : ""}`}
+                  onClick={() =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      price: opt.value,
+                      page: 1,
+                    }))
+                  }
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="filters-panel__section">
+            <p className="filters-panel__label">Sắp xếp</p>
+            <select
+              className="select-control"
+              value={filters.sort}
+              onChange={(e) =>
+                setFilters((prev) => ({ ...prev, sort: e.target.value, page: 1 }))
+              }
+            >
+              {sortOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <button type="button" className="reset-btn" onClick={resetFilters}>
+            Đặt lại bộ lọc
+          </button>
+        </aside>
+
+        <section className="courses-results">
+          <header className="courses-results__head">
+            <div>
+              <p>Đang hiển thị {visible.length} khóa học</p>
+              {visible.length > 0 && (
+                <small>
+                  Từ {showingStart} đến {showingEnd} &middot; Trang{" "}
+                  {filters.page}
+                </small>
+              )}
+              {visible.length === 0 && <small>Không có khóa học phù hợp</small>}
+            </div>
+            <div className="active-filters">
+              {activeCategory && (
+                <span className="active-filter-pill">
+                  Danh mục: {activeCategory.name}
+                </span>
+              )}
+              {filters.price !== "all" && (
+                <span className="active-filter-pill">Giá: {activePriceLabel}</span>
+              )}
+            </div>
+          </header>
+
+          <CourseGrid items={visible} loading={loading} />
+
+          <div className="pagination-soft">
             <button
+              type="button"
               onClick={prevPage}
               disabled={filters.page <= 1}
-              style={{
-                padding: "10px 20px",
-                background: filters.page <= 1 ? "#ddd" : "#ea580c",
-                color: "#fff",
-                border: "none",
-                borderRadius: 8,
-                cursor: filters.page <= 1 ? "not-allowed" : "pointer",
-                fontWeight: 500,
-                transition: "all 0.2s ease",
-                opacity: filters.page <= 1 ? 0.5 : 1,
-              }}
             >
-              ← Trang trước
+              Trang trước
             </button>
-
-            <div style={{
-              padding: "8px 16px",
-              background: "#f0f0f0",
-              borderRadius: 8,
-              fontWeight: 600,
-              color: "#ea580c",
-            }}>
-              Trang {filters.page}
-            </div>
-
+            <span>Trang {filters.page}</span>
             <button
+              type="button"
               onClick={nextPage}
               disabled={visible.length < filters.limit}
-              style={{
-                padding: "10px 20px",
-                background: visible.length < filters.limit ? "#ddd" : "#ea580c",
-                color: "#fff",
-                border: "none",
-                borderRadius: 8,
-                cursor: visible.length < filters.limit ? "not-allowed" : "pointer",
-                fontWeight: 500,
-                transition: "all 0.2s ease",
-                opacity: visible.length < filters.limit ? 0.5 : 1,
-              }}
             >
-              Trang sau →
+              Trang sau
             </button>
           </div>
-        )}
+        </section>
       </div>
-
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
-        }
-      `}</style>
     </div>
   );
 }
+

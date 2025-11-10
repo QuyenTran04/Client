@@ -1,35 +1,39 @@
 import CourseCard from "./CourseCard";
 
-export default function CourseGrid({ items = [], loading }) {
+export default function CourseGrid({ items = [], loading = false }) {
   if (loading) {
     return (
-      <div className="grid">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="card skeleton">
-            <div className="thumb" />
-            <div className="card-body">
-              <div className="sk-line" />
-              <div className="sk-line short" />
+      <div className="course-list-grid">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <div key={`skeleton-${index}`} className="course-card-v2 skeleton-card">
+            <div className="skeleton-thumb" />
+            <div className="skeleton-body">
+              <span className="skeleton-line w-80" />
+              <span className="skeleton-line w-60" />
+              <span className="skeleton-line w-40" />
             </div>
           </div>
         ))}
       </div>
     );
   }
-  if (!items.length)
+
+  if (!items.length) {
     return (
-      <div className="empty-state">
-        <div className="empty-ico">📚</div>
-        <div className="empty-title">Không có khóa học phù hợp</div>
-        <div className="empty-sub">Thử đổi bộ lọc hoặc tìm kiếm khác nhé.</div>
+      <div className="course-empty">
+        <div className="course-empty__icon">📚</div>
+        <h3>Không có khóa học phù hợp</h3>
+        <p>Thử đổi bộ lọc hoặc tìm kiếm từ khóa khác để tiếp tục khám phá.</p>
       </div>
     );
+  }
 
   return (
-    <div className="grid">
+    <div className="course-list-grid">
       {items.map((c) => (
         <CourseCard key={c._id} c={c} />
       ))}
     </div>
   );
 }
+
