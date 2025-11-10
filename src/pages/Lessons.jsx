@@ -5,6 +5,7 @@ import { getLessonsByCourse } from "../services/lesson";
 import { useAuth } from "../context/AuthContext";
 import { getYouTubeEmbedUrl } from "../lib/utils";
 import AIChat from "../components/AIChat";
+import DocumentViewer from "../components/DocumentViewer";
 import "../css/courses.css";
 
 export default function Lessons() {
@@ -19,6 +20,7 @@ export default function Lessons() {
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState("");
+  const [selectedTab, setSelectedTab] = useState("content");
 
   useEffect(() => {
     if (!user) {
@@ -259,7 +261,44 @@ export default function Lessons() {
                 </div>
               )}
 
+              {/* Tabs */}
+              <div style={{ display: "flex", borderBottom: "1px solid #eee", background: "#f9f9f9" }}>
+                <button
+                  onClick={() => setSelectedTab("content")}
+                  style={{
+                    flex: 1,
+                    padding: "16px",
+                    background: selectedTab === "content" ? "#fff" : "transparent",
+                    border: "none",
+                    borderBottom: selectedTab === "content" ? "3px solid #f1b24a" : "1px solid #eee",
+                    cursor: "pointer",
+                    fontWeight: selectedTab === "content" ? 600 : 500,
+                    color: selectedTab === "content" ? "#111" : "#666",
+                    fontSize: 14,
+                  }}
+                >
+                  📝 Nội dung bài học
+                </button>
+                <button
+                  onClick={() => setSelectedTab("document")}
+                  style={{
+                    flex: 1,
+                    padding: "16px",
+                    background: selectedTab === "document" ? "#fff" : "transparent",
+                    border: "none",
+                    borderBottom: selectedTab === "document" ? "3px solid #f1b24a" : "1px solid #eee",
+                    cursor: "pointer",
+                    fontWeight: selectedTab === "document" ? 600 : 500,
+                    color: selectedTab === "document" ? "#111" : "#666",
+                    fontSize: 14,
+                  }}
+                >
+                  📄 Tài liệu học tập
+                </button>
+              </div>
+
               {/* Lesson Content */}
+              {selectedTab === "content" ? (
               <div style={{ padding: 30 }}>
                 <h2 style={{ margin: "0 0 12px 0", fontSize: 28, fontWeight: 700, color: "#111" }}>
                   {lessonDetails?.title || "Bài học"}
@@ -389,6 +428,11 @@ export default function Lessons() {
                   </button>
                 </div>
               </div>
+              ) : (
+              <div style={{ padding: 0, height: "calc(100vh - 300px)" }}>
+                <DocumentViewer lessonId={selectedLesson} lessonTitle={lessonDetails?.title} />
+              </div>
+              )}
             </div>
           )}
         </div>

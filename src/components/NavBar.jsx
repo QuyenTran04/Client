@@ -24,6 +24,11 @@ export default function NavBar() {
           <li>
             <NavLink to="/courses">Courses</NavLink>
           </li>
+          {user && (
+            <li>
+              <NavLink to="/my-courses">My Courses</NavLink>
+            </li>
+          )}
           <li>
             <NavLink to="/instructors">Instructors</NavLink>
           </li>
@@ -40,6 +45,11 @@ export default function NavBar() {
           <div className="nav-search">
             <input className="nav-input" placeholder="Search courses..." />
           </div>
+          {user && (
+            <Link to="/courses/create-ai" className="btn ai-course">
+              Create AI Course
+            </Link>
+          )}
           {user ? (
             <>
               <div className="userbox">

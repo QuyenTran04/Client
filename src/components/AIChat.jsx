@@ -1,8 +1,11 @@
 // src/components/AIChat.jsx
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import "../css/chat.css";
 import { chatWithAI } from "../services/ai";
 import { useAuth } from "../context/AuthContext";
+import CourseSuggestionsCard from "./CourseSuggestionsCard";
 
 export default function AIChat({
   layout = "floating",
@@ -163,30 +166,73 @@ export default function AIChat({
       console.log("API Response:", data);
       
       let reply = "Mình đã nhận được yêu cầu của bạn 👍";
+      let structuredData = null;
       
-      if (data?.answer) {
-        try {
-          const parsed = JSON.parse(data.answer);
-          if (Array.isArray(parsed) && parsed[0]?.output) {
-            reply = parsed[0].output;
-          }
-        } catch {
-          reply = data.answer;
-        }
+      // First try to detect if data itself is a structured object
+      if (data?.type === "course_suggestions" && data?.items) {
+        structuredData = data;
+        reply = `Dưới đây là những khóa học gợi ý cho bạn:`;
       } else {
-        reply =
+        // Try to get the text response from various possible fields
+        let rawReply =
+          data?.answer ||
           data?.reply ||
           data?.message ||
           data?.response ||
           data?.content ||
           (Array.isArray(data) ? data[0]?.output ?? data[0] : null) ||
-          (typeof data === "string" ? data : null) ||
-          reply;
+          (typeof data === "string" ? data : null);
+
+        // Try to parse as JSON
+        if (rawReply && typeof rawReply === "string") {
+          try {
+            const parsed = JSON.parse(rawReply);
+            console.log("Parsed JSON:", parsed);
+            
+            // Check if it's array with output field (N8N format)
+            if (Array.isArray(parsed) && parsed[0]?.output) {
+              const outputStr = parsed[0].output;
+              
+              // Extract JSON from markdown code block if present
+              const jsonMatch = outputStr.match(/```(?:json)?\s*([\s\S]*?)```/);
+              if (jsonMatch && jsonMatch[1]) {
+                try {
+                  const innerData = JSON.parse(jsonMatch[1].trim());
+                  if (innerData?.type === "course_suggestions" && innerData?.items) {
+                    structuredData = innerData;
+                    reply = `Dưới đây là những khóa học gợi ý cho bạn:`;
+                  } else {
+                    reply = outputStr;
+                  }
+                } catch {
+                  reply = outputStr;
+                }
+              } else {
+                reply = outputStr;
+              }
+            } 
+            // Check if it's course suggestions directly
+            else if (parsed?.type === "course_suggestions" && parsed?.items) {
+              structuredData = parsed;
+              reply = `Dưới đây là những khóa học gợi ý cho bạn:`;
+            } else {
+              // If JSON but not recognized format, use as is
+              reply = rawReply;
+            }
+          } catch {
+            // Not JSON, use as plain text
+            console.log("Failed to parse JSON, using as text");
+            reply = rawReply;
+          }
+        } else {
+          reply = rawReply;
+        }
       }
 
       const botMsg = {
         role: "assistant",
-        content: typeof reply === "string" ? reply : JSON.stringify(reply),
+        content: reply,
+        data: structuredData,
         ts: Date.now(),
       };
       setMessages((m) => [...m, botMsg]);
@@ -244,13 +290,29 @@ export default function AIChat({
           </div>
         )}
         {messages.map((m, i) => (
-          <div
-            key={i}
-            className={`ai-msg ${
-              m.role === "user" ? "ai-msg--user" : "ai-msg--bot"
-            } ${m.error ? "ai-msg--error" : ""}`}
-          >
-            <div className="ai-msg__bubble">{m.content}</div>
+          <div key={i}>
+            <div
+              className={`ai-msg ${
+                m.role === "user" ? "ai-msg--user" : "ai-msg--bot"
+              } ${m.error ? "ai-msg--error" : ""}`}
+            >
+              {m.role === "assistant" ? (
+                <div className="ai-msg__bubble ai-markdown">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {m.content}
+                  </ReactMarkdown>
+                </div>
+              ) : (
+                <div className="ai-msg__bubble">{m.content}</div>
+              )}
+            </div>
+            {m.data?.type === "course_suggestions" && m.data?.items && (
+              <div className="ai-msg ai-msg--bot">
+                <div className="ai-msg__bubble" style={{ padding: 0, background: "transparent", border: "none" }}>
+                  <CourseSuggestionsCard items={m.data.items} />
+                </div>
+              </div>
+            )}
           </div>
         ))}
         {busy && (

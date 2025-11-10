@@ -12,3 +12,14 @@ export async function chatWithAI({
   const { data } = await api.post("/ai/chat", payload);
   return data;
 }
+
+export async function explainQuiz({
+  quizId,
+  submissionId = null,
+  selected = [],
+  lang = "vi",
+}) {
+  const payload = { quizId, submissionId, selected, lang };
+  const { data } = await api.post("/ai/explain-quiz", payload);
+  return data;
+}
