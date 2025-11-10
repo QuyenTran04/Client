@@ -5,9 +5,10 @@ export async function chatWithAI({
   userId,
   courseId = null,
   lessonId = null,
+  quizId = null,
   uiState = {},
 }) {
-  const payload = { message, userId, courseId, lessonId, uiState };
-  const { data } = await api.post("/ai/chat", payload); // gọi proxy server
+  const payload = { message, userId, courseId, lessonId, quizId, uiState };
+  const { data } = await api.post("/ai/chat", payload);
   return data;
 }

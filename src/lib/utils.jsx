@@ -36,7 +36,7 @@ export function getYouTubeEmbedUrl(url) {
       // www.youtube.com/embed/<id>
       if (u.pathname.startsWith("/embed/")) return url;
     }
-  } catch (_) {
+  } catch {
     return null;
   }
   return null;
