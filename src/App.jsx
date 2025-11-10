@@ -10,8 +10,8 @@ import CourseDetail from "./pages/CourseDetail";
 
 import Payment from "./pages/Payment";
 
-import Lessons from "./pages/Lessons";
-import Quiz from "./pages/Quiz";
+import LessonsPage from "./pages/Lessons";
+import QuizPage from "./pages/Quiz";
 import CreateCourseWithAI from "./pages/CreateCourseWithAI";
 import AIChat from "./components/AIChat";
 // 🧭 Thành phần giao diện chung
@@ -45,8 +45,14 @@ import { AdminRoute, ProtectedRoute, GuestOnly } from "./context/RouteGuards";
 import AdminLayout from "./pages/admin/AdminLayout";
 import Overview from "./pages/admin/Overview";
 import Users from "./pages/admin/Users";
-
-import AdminCourses from "./pages/admin/Courses"; // dùng tên khác với trang public
+import AdminCourses from "./pages/admin/Courses";
+import Categories from "./pages/admin/Categories";
+import Instructors from "./pages/admin/Instructors";
+import Students from "./pages/admin/Students";
+import Orders from "./pages/admin/Orders";
+import Reviews from "./pages/admin/Reviews";
+import Lessons from "./pages/admin/Lessons";
+import Quiz from "./pages/admin/Quiz";
 
 /**
  * Hiện chatbot nổi ở tất cả trang public, trừ:
@@ -131,7 +137,7 @@ function AppShell() {
           path="/courses/:id/lessons"
           element={
             <ProtectedRoute>
-              <Lessons />
+              <LessonsPage />
             </ProtectedRoute>
           }
         />
@@ -139,7 +145,7 @@ function AppShell() {
           path="/lessons/:id/quiz"
           element={
             <ProtectedRoute>
-              <Quiz />
+              <QuizPage />
             </ProtectedRoute>
           }
         />
@@ -184,20 +190,13 @@ function AppShell() {
           <Route path="overview" element={<Overview />} />
           <Route path="users" element={<Users />} />
           <Route path="courses" element={<AdminCourses />} />
-
-
-          {/* Các placeholder để sidebar không lỗi */}
-          <Route path="products" element={<div />} />
-          <Route path="favorites" element={<div />} />
-          <Route path="inbox" element={<div />} />
-          <Route path="orders" element={<div />} />
-          <Route path="stock" element={<div />} />
-          <Route path="pricing" element={<div />} />
-          <Route path="calendar" element={<div />} />
-          <Route path="todo" element={<div />} />
-          <Route path="team" element={<div />} />
-          <Route path="table" element={<div />} />
-          <Route path="support" element={<div />} />
+          <Route path="categories" element={<Categories />} />
+          <Route path="instructors" element={<Instructors />} />
+          <Route path="students" element={<Students />} />
+          <Route path="orders" element={<Orders />} />
+          <Route path="reviews" element={<Reviews />} />
+          <Route path="lessons" element={<Lessons />} />
+          <Route path="quiz" element={<Quiz />} />
         </Route>
 
         {/* 404 fallback */}
