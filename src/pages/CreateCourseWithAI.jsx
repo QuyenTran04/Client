@@ -4,57 +4,57 @@ import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
 
 const STEP_FLOW = [
-  { id: 1, title: "Nhap thong tin", caption: "Mo ta chu de & muc tieu" },
-  { id: 2, title: "Xem ban nhap", caption: "AI tao xuong song bai hoc" },
-  { id: 3, title: "Khoi tao khoa hoc", caption: "Tai lieu & quiz duoc sinh" },
+  { id: 1, title: "Nhập thông tin", caption: "Mô tả chủ đề & mục tiêu" },
+  { id: 2, title: "Xem bản nháp", caption: "AI tạo xương sống bài học" },
+  { id: 3, title: "Khởi tạo khóa học", caption: "Tài liệu & quiz được sinh" },
 ];
 
 const SIDE_CARDS = [
   {
     title: "AI Research",
-    description: "He thong doc prompt, trich thong tin va xay dung muc tieu ro rang.",
+    description: "Hệ thống đọc prompt, trích thông tin và xây dựng mục tiêu rõ ràng.",
   },
   {
     title: "Lesson Builder",
-    description: "AI de xuat 6-20 bai, sap xep theo muc do kem goi y tai lieu.",
+    description: "AI đề xuất 6-20 bài, sắp xếp theo mức độ kèm gợi ý tài liệu.",
   },
   {
     title: "Quiz & Docs",
-    description: "Moi bai duoc tao tai lieu markdown va bo cau hoi tu noi dung.",
+    description: "Mỗi bài được tạo tài liệu markdown và bộ câu hỏi từ nội dung.",
   },
 ];
 
 const DELIVERABLES = [
   {
-    title: "Lo trinh day du",
-    detail: "Cau truc khoa hoc 6-20 bai, phu hop doi tuong ban chon.",
+    title: "Lộ trình đầy đủ",
+    detail: "Cấu trúc khóa học 6-20 bài, phù hợp đối tượng bạn chọn.",
   },
   {
-    title: "Tai lieu chi tiet",
-    detail: "Moi bai co muc tieu, tom tat va goi y tai lieu bo sung.",
+    title: "Tài liệu chi tiết",
+    detail: "Mỗi bài có mục tiêu, tóm tắt và gợi ý tài liệu bổ sung.",
   },
   {
-    title: "Quiz kiem tra",
-    detail: "Quiz duoc sinh tu noi dung bai giup hoc vien on tap ngay.",
+    title: "Quiz kiểm tra",
+    detail: "Quiz được sinh từ nội dung bài giúp học viên ôn tập ngay.",
   },
 ];
 
 const CREATION_STEPS = [
-  "Phan tich chu de va doi tuong",
-  "Tao danh sach bai hoc",
-  "Sinh tai lieu tu dong",
-  "Tao quiz phu hop",
-  "Luu khoa hoc vao he thong",
+  "Phân tích chủ đề và đối tượng",
+  "Tạo danh sách bài học",
+  "Sinh tài liệu tự động",
+  "Tạo quiz phù hợp",
+  "Lưu khóa học vào hệ thống",
 ];
 
 const LEVEL_OPTIONS = [
-  { value: "Beginner", label: "Nguoi moi bat dau" },
-  { value: "Intermediate", label: "Trung cap" },
-  { value: "Advanced", label: "Nang cao" },
+  { value: "Beginner", label: "Người mới bắt đầu" },
+  { value: "Intermediate", label: "Trung cấp" },
+  { value: "Advanced", label: "Nâng cao" },
 ];
 
 const LANGUAGE_OPTIONS = [
-  { value: "vi", label: "Tieng Viet" },
+  { value: "vi", label: "Tiếng Việt" },
   { value: "en", label: "English" },
 ];
 
@@ -82,7 +82,7 @@ export default function CreateCourseWithAI() {
   const handleGenerateDraft = async (e) => {
     e.preventDefault();
     if (!formData.prompt.trim()) {
-      setError("Vui long nhap chu de khoa hoc ro rang.");
+      setError("Vui lòng nhập chủ đề khóa học rõ ràng.");
       return;
     }
 
@@ -94,7 +94,7 @@ export default function CreateCourseWithAI() {
       setDraft(response.data);
       setStep(2);
     } catch (err) {
-      setError(err?.response?.data?.message || "Khong the tao ban nhap, vui long thu lai.");
+      setError(err?.response?.data?.message || "Không thể tạo bản nháp, vui lòng thử lại.");
     } finally {
       setLoading(false);
     }
@@ -103,7 +103,7 @@ export default function CreateCourseWithAI() {
   const handleCreateCourse = async () => {
     const instructorId = user?._id || user?.id;
     if (!instructorId) {
-      setError("Vui long dang nhap de tao khoa hoc.");
+      setError("Vui lòng đăng nhập để tạo khóa học.");
       return;
     }
     setLoading(true);
@@ -119,7 +119,7 @@ export default function CreateCourseWithAI() {
         navigate(`/courses/${response.data.courseId}`);
       }, 2000);
     } catch (err) {
-      setError(err?.response?.data?.message || "Khong the tao khoa hoc, vui long thu lai.");
+      setError(err?.response?.data?.message || "Không thể tạo khóa học, vui lòng thử lại.");
       setStep(2);
     } finally {
       setLoading(false);
@@ -133,23 +133,23 @@ export default function CreateCourseWithAI() {
       <div className="ai-builder__hero">
         <div>
           <p className="ai-eyebrow">AI Course Studio</p>
-          <h1>Tao khoa hoc trong vai phut</h1>
+          <h1>Tạo khóa học trong vài phút</h1>
           <p className="ai-hero__subtitle">
-            Dien chu de, phan con lai de AI xu ly: lo trinh bai hoc, tai lieu, quiz va muc do phu hop.
+            Điền chủ đề, phần còn lại để AI xử lý: lộ trình bài học, tài liệu, quiz và mức độ phù hợp.
           </p>
         </div>
         <div className="ai-hero__stats">
           <div>
             <span className="ai-hero__value">6 - 20</span>
-            <span className="ai-hero__label">Bai hoc de xuat</span>
+            <span className="ai-hero__label">Bài học đề xuất</span>
           </div>
           <div>
             <span className="ai-hero__value">100%</span>
-            <span className="ai-hero__label">Tai lieu & quiz tu dong</span>
+            <span className="ai-hero__label">Tài liệu & quiz tự động</span>
           </div>
           <div>
             <span className="ai-hero__value">~5 phut</span>
-            <span className="ai-hero__label">Thoi gian hoan tat</span>
+            <span className="ai-hero__label">Thời gian hoàn tất</span>
           </div>
         </div>
       </div>
@@ -171,15 +171,15 @@ export default function CreateCourseWithAI() {
           <form className="ai-card ai-form" onSubmit={handleGenerateDraft}>
             <div className="ai-form__group">
               <label htmlFor="prompt" className="ai-field__label">
-                Chu de khoa hoc
-                <span>Mo ta chi tiet ket qua ban mong doi</span>
+                Chủ đề khóa học
+                <span>Mô tả chi tiết kết quả bạn mong đợi</span>
               </label>
               <textarea
                 id="prompt"
                 name="prompt"
                 className="ai-input ai-input--textarea"
                 rows={6}
-                placeholder="Vi du: Xay dung khoa hoc Python co bai tap thuc hanh cho nguoi moi"
+                placeholder="Ví dụ: Xây dựng khóa học Python có bài tập thực hành cho người mới"
                 value={formData.prompt}
                 onChange={handleInputChange}
               />
@@ -187,14 +187,14 @@ export default function CreateCourseWithAI() {
 
             <div className="ai-form__group">
               <label htmlFor="targetAudience" className="ai-field__label">
-                Doi tuong hoc vien
-                <span>Neu ro cap do, nganh nghe hoac muc tieu cong viec</span>
+                Đối tượng học viên
+                <span>Nêu rõ cấp độ, ngành nghề hoặc mục tiêu công việc</span>
               </label>
               <input
                 id="targetAudience"
                 name="targetAudience"
                 className="ai-input"
-                placeholder="Vi du: Sinh vien nam 2 CNTT, nguoi chuyen trai nganh"
+                placeholder="Ví dụ: Sinh viên năm 2 CNTT, người chuyển trái ngành"
                 value={formData.targetAudience}
                 onChange={handleInputChange}
               />
@@ -202,7 +202,7 @@ export default function CreateCourseWithAI() {
 
             <div className="ai-form__grid">
               <div className="ai-form__group">
-                <label className="ai-field__label">Cap do</label>
+                <label className="ai-field__label">Cấp độ</label>
                 <select name="level" value={formData.level} onChange={handleInputChange} className="ai-input">
                   {LEVEL_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -212,7 +212,7 @@ export default function CreateCourseWithAI() {
                 </select>
               </div>
               <div className="ai-form__group">
-                <label className="ai-field__label">Ngon ngu dau ra</label>
+                <label className="ai-field__label">Ngôn ngữ đầu ra</label>
                 <select name="language" value={formData.language} onChange={handleInputChange} className="ai-input">
                   {LANGUAGE_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -236,24 +236,24 @@ export default function CreateCourseWithAI() {
 
             <div className="ai-form__actions">
               <button type="button" className="ai-btn ai-btn--ghost" onClick={() => navigate(-1)}>
-                Thoat
+                Thoát
               </button>
               <button type="submit" className="ai-btn ai-btn--primary" disabled={loading}>
-                {loading ? "Dang tao ban nhap..." : "Sinh ban nhap"}
+                {loading ? "Đang tạo bản nháp..." : "Sinh bản nháp"}
               </button>
             </div>
 
             {loading && (
               <div className="ai-loading">
                 <div className="ai-loading__spinner" />
-                <p>AI dang phan tich yeu cau cua ban...</p>
+                <p>AI đang phân tích yêu cầu của bạn...</p>
               </div>
             )}
           </form>
 
           <aside className="ai-card ai-sidebar">
             <p className="ai-eyebrow">AI Toolkit</p>
-            <h3>Ban se nhan du lieu gi?</h3>
+            <h3>Bạn sẽ nhận dữ liệu gì?</h3>
             <p className="ai-sidebar__text">
               AI xu ly prompt cua ban de tao ke hoach hoc tap hoan chinh. Hay mo ta cu the ve muc tieu, rang buoc,
               tai nguyen co san neu co.
@@ -268,8 +268,8 @@ export default function CreateCourseWithAI() {
             </div>
             <div className="ai-sidebar__note">
               <p>
-                Sau khi ban nhan ban nhap, co the dieu chinh noi dung truoc khi tao khoa hoc chinh thuc. Moi lan sinh
-                lai se dua tren prompt hien tai.
+                Sau khi bạn nhận bản nháp, có thể điều chỉnh nội dung trước khi tạo khóa học chính thức. Mỗi lần sinh
+                lại sẽ dựa trên prompt hiện tại.
               </p>
             </div>
           </aside>
@@ -280,27 +280,27 @@ export default function CreateCourseWithAI() {
         <div className="ai-review">
           <div className="ai-review__header">
             <div>
-              <p className="ai-eyebrow">Ban nhap san sang</p>
+              <p className="ai-eyebrow">Bản nháp sẵn sàng</p>
               <h2>{draft.title}</h2>
               <p className="ai-review__desc">{draft.description}</p>
             </div>
             <div className="ai-review__tags">
               <span>{draft.categoryName}</span>
-              <span>{draft.lessons?.length || 0} bai hoc</span>
-              {draft.quizzes?.length ? <span>{draft.quizzes.length} bo quiz</span> : null}
+              <span>{draft.lessons?.length || 0} bài học</span>
+              {draft.quizzes?.length ? <span>{draft.quizzes.length} bộ quiz</span> : null}
             </div>
           </div>
 
           <div className="ai-review__grid">
             <div className="ai-card ai-card--subtle">
-              <h3>Tong quan muc tieu</h3>
-              <p>Cap do: {draft.level || formData.level}</p>
-              <p>Ngon ngu: {draft.language || formData.language}</p>
-              <p>Doi tuong: {draft.targetAudience || formData.targetAudience || "Chua xac dinh"}</p>
+              <h3>Tổng quan mục tiêu</h3>
+              <p>Cấp độ: {draft.level || formData.level}</p>
+              <p>Ngôn ngữ: {draft.language || formData.language}</p>
+              <p>Đối tượng: {draft.targetAudience || formData.targetAudience || "Chưa xác định"}</p>
             </div>
 
             <div className="ai-card ai-card--subtle">
-              <h3>Danh sach bai hoc</h3>
+              <h3>Danh sach bài học</h3>
               <ul className="ai-review__lessons">
                 {lessonPreview.map((lesson, idx) => (
                   <li key={lesson.title + idx}>
@@ -317,13 +317,13 @@ export default function CreateCourseWithAI() {
               </ul>
               {draft.lessons?.length > 5 && (
                 <p className="ai-review__more">
-                  + {draft.lessons.length - 5} bai hoc khac se duoc tao trong he thong
+                  + {draft.lessons.length - 5} bài học khác sẽ được tạo trong hệ thống
                 </p>
               )}
             </div>
 
             <div className="ai-card ai-card--subtle">
-              <h3>AI se lam gi tiep?</h3>
+              <h3>AI sẽ làm gì tiếp?</h3>
               <ol className="ai-review__list">
                 {CREATION_STEPS.map((item) => (
                   <li key={item}>{item}</li>
@@ -336,10 +336,10 @@ export default function CreateCourseWithAI() {
 
           <div className="ai-review__actions">
             <button type="button" className="ai-btn ai-btn--ghost" disabled={loading} onClick={() => setStep(1)}>
-              Chinh sua thong tin
+              Chỉnh sửa thông tin
             </button>
             <button type="button" className="ai-btn ai-btn--success" disabled={loading} onClick={handleCreateCourse}>
-              {loading ? "Dang tao khoa hoc..." : "Tao khoa hoc"}
+              {loading ? "Đang tạo khóa học..." : "Tạo khóa học"}
             </button>
           </div>
         </div>
@@ -348,10 +348,10 @@ export default function CreateCourseWithAI() {
       {step === 3 && (
         <div className="ai-creating">
           <div className="ai-creating__orb" />
-          <h2>AI dang tao khoa hoc cua ban</h2>
+          <h2>AI đang tạo khóa học của bạn</h2>
           <p>
-            He thong dang sinh tai lieu, quiz va gan noi dung vao tung bai hoc. Qua trinh nay mat vai phut, vui long
-            khong tat trinh duyet.
+            Hệ thống đang sinh tài liệu, quiz và gắn nội dung vào từng bài học. Quá trình này mất vài phút, vui lòng
+            không tắt trình duyệt.
           </p>
           <div className="ai-progress">
             <div className="ai-progress__bar" />
