@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { getYouTubeEmbedUrl } from "../lib/utils";
 
-const DEFAULT_COVER = "/assets/cover-1.jpg";
+const DEFAULT_COVER = "/assets/cover-1.png";
 
 export default function CourseCard({ c = {} }) {
   const [showPreview, setShowPreview] = useState(false);

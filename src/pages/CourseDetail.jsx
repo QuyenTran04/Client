@@ -98,7 +98,7 @@ export default function CourseDetail() {
     );
   }
 
-  const imgSrc = c.imageUrl || "/assets/cover-1.jpg";
+  const imgSrc = c.imageUrl || "/assets/cover-1.png";
 
   const embedUrl = getYouTubeEmbedUrl(c?.introVideoUrl || c?.trailerUrl || c?.videoUrl);
 
@@ -109,7 +109,7 @@ export default function CourseDetail() {
         <div
           className="cd-hero-bg"
           style={{
-            backgroundImage: `linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.6)), url(${c.imageUrl || "/assets/cover-1.jpg"})`,
+            backgroundImage: `linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.6)), url(${imgSrc})`,
           }}
         />
         <div className="cd-hero-inner">
