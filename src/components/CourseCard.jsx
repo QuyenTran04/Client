@@ -1,12 +1,30 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import api from "../services/api";
 import { getYouTubeEmbedUrl } from "../lib/utils";
+import "../css/course-card-danger.css";
 
 const DEFAULT_COVER = "/assets/cover-1.png";
 
-export default function CourseCard({ c = {} }) {
+export default function CourseCard({ c = {}, onDeleted = () => {} }) {
   const [showPreview, setShowPreview] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const embedUrl = getYouTubeEmbedUrl(c?.introVideoUrl);
+
+  const handleDelete = async () => {
+    if (!window.confirm(`Bạn có chắc muốn xóa khóa học "${c.title}"? Hành động này không thể hoàn tác.`)) {
+      return;
+    }
+    setDeleting(true);
+    try {
+      await api.delete(`/courses/${c._id}`);
+      onDeleted(c._id);
+    } catch (err) {
+      alert(err?.response?.data?.message || "Xóa khóa học thất bại");
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const cover = c.imageUrl || DEFAULT_COVER;
   const title = c.title || "Khóa học chưa đặt tên";
@@ -76,6 +94,14 @@ export default function CourseCard({ c = {} }) {
                 Xem trước
               </button>
             )}
+            <button
+              type="button"
+              className="course-card-btn danger"
+              onClick={handleDelete}
+              disabled={deleting}
+            >
+              {deleting ? "Đang xóa..." : "Xóa"}
+            </button>
           </div>
         </div>
       </article>

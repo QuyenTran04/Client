@@ -1,6 +1,6 @@
 import CourseCard from "./CourseCard";
 
-export default function CourseGrid({ items = [], loading = false }) {
+export default function CourseGrid({ items = [], loading = false, onDeleted = () => {} }) {
   if (loading) {
     return (
       <div className="course-list-grid">
@@ -31,7 +31,7 @@ export default function CourseGrid({ items = [], loading = false }) {
   return (
     <div className="course-list-grid">
       {items.map((c) => (
-        <CourseCard key={c._id} c={c} />
+        <CourseCard key={c._id} c={c} onDeleted={onDeleted} />
       ))}
     </div>
   );

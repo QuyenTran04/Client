@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -8,10 +8,34 @@ import {
   askAboutDocument,
   generateExample,
 } from "../services/document";
+import { pronounceText } from "../services/ai";
 import "../css/document-viewer.css";
 
-export default function DocumentViewer({ lessonId, lessonTitle }) {
-  const [document, setDocument] = useState(null);
+const TTS_VOICES = {
+  en_US: {
+    label: "🇺🇸 English (US)",
+    voices: [
+      { name: "en-US-Neural2-A", label: "🎤 Sonia" },
+      { name: "en-US-Neural2-C", label: "🎤 Aria" },
+      { name: "en-US-Neural2-E", label: "🎤 Sage" },
+      { name: "en-US-Neural2-D", label: "🎙️ Liam" },
+      { name: "en-US-Neural2-F", label: "🎙️ Oliver" },
+    ],
+  },
+  en_GB: {
+    label: "🇬🇧 English (UK)",
+    voices: [
+      { name: "en-GB-Neural2-A", label: "🎤 Saffron" },
+      { name: "en-GB-Neural2-C", label: "🎤 Amelia" },
+      { name: "en-GB-Neural2-F", label: "🎤 Olivia" },
+      { name: "en-GB-Neural2-B", label: "🎙️ George" },
+      { name: "en-GB-Neural2-D", label: "🎙️ Ryan" },
+    ],
+  },
+};
+
+export default function DocumentViewer({ lessonId }) {
+  const [lessonDocument, setLessonDocument] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedText, setSelectedText] = useState("");
@@ -19,9 +43,41 @@ export default function DocumentViewer({ lessonId, lessonTitle }) {
   const [chatMessages, setChatMessages] = useState([]);
   const [aiLoading, setAiLoading] = useState(false);
   const [question, setQuestion] = useState("");
-  const [highlightedRanges, setHighlightedRanges] = useState([]);
+  const [selectedLanguage, setSelectedLanguage] = useState("en_US");
+  const [selectedVoice, setSelectedVoice] = useState("en-US-Neural2-A");
   const contentRef = useRef(null);
   const chatEndRef = useRef(null);
+  const [pronounceAnchor, setPronounceAnchor] = useState({
+    visible: false,
+    text: "",
+    top: 0,
+    left: 0,
+  });
+  const [pronouncing, setPronouncing] = useState(false);
+  const [audioUrl, setAudioUrl] = useState("");
+  const audioRef = useRef(null);
+
+  const base64ToBlob = (base64, mimeType) => {
+    const decode =
+      (typeof window !== "undefined" && window.atob) ||
+      (typeof globalThis !== "undefined" && globalThis.atob) ||
+      null;
+    let binary;
+    if (decode) {
+      binary = decode(base64);
+    } else if (typeof Buffer !== "undefined") {
+      // eslint-disable-next-line no-undef
+      binary = Buffer.from(base64, "base64").toString("binary");
+    } else {
+      throw new Error("Base64 decoding is not supported in this environment.");
+    }
+    const len = binary.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return new Blob([bytes], { type: mimeType });
+  };
 
   const CodeBlock = ({ inline, className, children }) => {
     const match = /language-(\w+)/.exec(className || "");
@@ -62,6 +118,55 @@ export default function DocumentViewer({ lessonId, lessonTitle }) {
     );
   };
 
+  const updatePronounceAnchor = useCallback(() => {
+    try {
+      if (typeof window === "undefined") return;
+      const selection = window.getSelection();
+      if (!selection) return;
+      const text = selection.toString().trim();
+      const hasRange = selection.rangeCount > 0 && !selection.isCollapsed;
+      const anchorNode = hasRange ? selection.anchorNode : null;
+      const focusNode = hasRange ? selection.focusNode : null;
+      const isNodeDefined = typeof Node !== "undefined";
+      const withinContent =
+        hasRange &&
+        contentRef.current &&
+        (!isNodeDefined || anchorNode instanceof Node) &&
+        (!isNodeDefined || focusNode instanceof Node) &&
+        anchorNode &&
+        focusNode &&
+        contentRef.current.contains(anchorNode) &&
+        contentRef.current.contains(focusNode);
+
+      if (!text || !hasRange || !withinContent) {
+        setSelectedText("");
+        setPronounceAnchor((prev) =>
+          prev.visible ? { ...prev, visible: false, text: "" } : prev
+        );
+        return;
+      }
+
+      setSelectedText(text);
+      const range = selection.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
+      const scrollY = typeof window !== "undefined" ? window.scrollY : 0;
+      const scrollX = typeof window !== "undefined" ? window.scrollX : 0;
+      const top = Math.max(rect.top + scrollY - 16, 60);
+      const left = rect.left + scrollX + rect.width / 2;
+      setPronounceAnchor({
+        visible: true,
+        text,
+        top,
+        left,
+      });
+    } catch (err) {
+      console.error("Selection handling error:", err);
+      setPronounceAnchor((prev) =>
+        prev.visible ? { ...prev, visible: false, text: "" } : prev
+      );
+    }
+  }, []);
+
   useEffect(() => {
     if (!lessonId) return;
 
@@ -69,7 +174,7 @@ export default function DocumentViewer({ lessonId, lessonTitle }) {
       try {
         setLoading(true);
         const doc = await getDocumentByLesson(lessonId);
-        setDocument(doc);
+        setLessonDocument(doc);
         setError("");
       } catch (err) {
         setError(err?.response?.data?.message || "Không tải được tài liệu");
@@ -84,16 +189,39 @@ export default function DocumentViewer({ lessonId, lessonTitle }) {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages]);
 
-  const handleTextSelect = () => {
-    const selection = window.getSelection();
-    const text = selection.toString().trim();
-    if (text) {
-      setSelectedText(text);
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.document === "undefined") {
+      return undefined;
     }
-  };
+    const handleClickOutside = (event) => {
+      if (!contentRef.current?.contains(event.target)) {
+        setPronounceAnchor((prev) =>
+          prev.visible ? { ...prev, visible: false } : prev
+        );
+      }
+    };
+    window.document.addEventListener("mousedown", handleClickOutside);
+    return () =>
+      window.document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.document === "undefined") {
+      return undefined;
+    }
+    const handleSelectionChange = () => {
+      updatePronounceAnchor();
+    };
+    window.document.addEventListener("selectionchange", handleSelectionChange);
+    return () => {
+      window.document.removeEventListener("selectionchange", handleSelectionChange);
+    };
+  }, [updatePronounceAnchor]);
+
+
 
   const handleAsk = async () => {
-    if (!question.trim() || !document) return;
+    if (!question.trim() || !lessonDocument) return;
 
     const userMsg = { role: "user", content: question };
     setChatMessages((prev) => [...prev, userMsg]);
@@ -101,7 +229,7 @@ export default function DocumentViewer({ lessonId, lessonTitle }) {
     setAiLoading(true);
 
     try {
-      const response = await askAboutDocument(document._id, question, "vi");
+      const response = await askAboutDocument(lessonDocument._id, question, "vi");
       const aiMsg = {
         role: "assistant",
         content: response.answer,
@@ -120,11 +248,11 @@ export default function DocumentViewer({ lessonId, lessonTitle }) {
   };
 
   const handleGenerateExample = async () => {
-    if (!selectedText || !document) return;
+    if (!selectedText || !lessonDocument) return;
 
     setAiLoading(true);
     try {
-      const response = await generateExample(document._id, selectedText, "vi");
+      const response = await generateExample(lessonDocument._id, selectedText, "vi");
       const aiMsg = {
         role: "assistant",
         content: `**Ví dụ về "${selectedText}":**\n\n${response.example}`,
@@ -139,6 +267,74 @@ export default function DocumentViewer({ lessonId, lessonTitle }) {
     } finally {
       setAiLoading(false);
       setSelectedText("");
+    }
+  };
+
+  const handlePronounceSelection = async () => {
+    if (!pronounceAnchor.text || pronounceAnchor.text.length > 5000) {
+      setError("Đoạn được chọn quá dài, vui lòng chọn câu ngắn hơn (≤ 5000 ký tự).");
+      return;
+    }
+    setPronouncing(true);
+    try {
+      // Try Google Cloud TTS first
+      try {
+        console.log("[TTS] Trying Google Cloud TTS with voice:", selectedVoice);
+        const response = await pronounceText({
+          text: pronounceAnchor.text,
+          voice: selectedVoice,
+          format: "mp3",
+        });
+        console.log("[TTS] Backend success, playing audio");
+        
+        if (audioUrl) {
+          URL.revokeObjectURL(audioUrl);
+        }
+        const blob = base64ToBlob(response.audio, response.mimeType || "audio/mp3");
+        const url = URL.createObjectURL(blob);
+        setAudioUrl(url);
+        
+        if (audioRef.current) {
+          audioRef.current.pause();
+          audioRef.current.src = url;
+          audioRef.current.play().catch((err) => {
+            console.warn("[TTS] Play error:", err);
+            setPronouncing(false);
+          });
+          audioRef.current.onended = () => {
+            console.log("[TTS] Audio ended");
+            setPronouncing(false);
+          };
+        }
+      } catch (backendErr) {
+        console.warn("[TTS] Backend failed, fallback to Web Speech API:", backendErr.message);
+        // Fallback to Web Speech API
+        if ("speechSynthesis" in window) {
+          const utterance = new SpeechSynthesisUtterance(pronounceAnchor.text);
+          utterance.lang = "vi-VN";
+          utterance.rate = 0.95;
+          utterance.pitch = 1.0;
+          
+          utterance.onend = () => {
+            console.log("[TTS] Web Speech ended");
+            setPronouncing(false);
+          };
+          
+          utterance.onerror = (event) => {
+            console.error("[TTS] Web Speech error:", event.error);
+            setError("Lỗi phát âm: " + event.error);
+            setPronouncing(false);
+          };
+          
+          window.speechSynthesis.cancel();
+          window.speechSynthesis.speak(utterance);
+        } else {
+          throw new Error("Trình duyệt không hỗ trợ phát âm.");
+        }
+      }
+    } catch (err) {
+      setError(err?.message || "Không thể phát âm câu vừa chọn. Vui lòng thử lại.");
+      setPronouncing(false);
     }
   };
 
@@ -157,7 +353,6 @@ export default function DocumentViewer({ lessonId, lessonTitle }) {
 
       try {
         range.surroundContents(spanEl);
-        setHighlightedRanges((prev) => [...prev, selectedText]);
       } catch (e) {
         console.warn("Could not highlight text:", e);
       }
@@ -190,7 +385,7 @@ export default function DocumentViewer({ lessonId, lessonTitle }) {
     );
   }
 
-  if (error || !document) {
+  if (error || !lessonDocument) {
     return (
       <div className="document-viewer error">
         <div style={{ padding: "20px", textAlign: "center", color: "#666" }}>
@@ -206,9 +401,9 @@ export default function DocumentViewer({ lessonId, lessonTitle }) {
         {/* Header */}
         <div className="document-header">
           <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: "#111" }}>
-            📄 {document.title}
+            📄 {lessonDocument.title}
           </h2>
-          {document.summary && (
+          {lessonDocument.summary && (
             <p
               style={{
                 margin: "8px 0 0 0",
@@ -217,12 +412,12 @@ export default function DocumentViewer({ lessonId, lessonTitle }) {
                 lineHeight: 1.5,
               }}
             >
-              {document.summary}
+              {lessonDocument.summary}
             </p>
           )}
-          {document.tags && document.tags.length > 0 && (
+          {lessonDocument.tags && lessonDocument.tags.length > 0 && (
             <div style={{ marginTop: 12, display: "flex", gap: 6, flexWrap: "wrap" }}>
-              {document.tags.map((tag, idx) => (
+              {lessonDocument.tags.map((tag, idx) => (
                 <span
                   key={idx}
                   style={{
@@ -246,7 +441,7 @@ export default function DocumentViewer({ lessonId, lessonTitle }) {
         <div
           ref={contentRef}
           className="document-body doc-markdown"
-          onMouseUp={handleTextSelect}
+          onMouseUp={updatePronounceAnchor}
           style={{
             padding: "30px",
             background: "#fff",
@@ -268,7 +463,7 @@ export default function DocumentViewer({ lessonId, lessonTitle }) {
               ),
             }}
           >
-            {document.content || ""}
+            {lessonDocument.content || ""}
           </ReactMarkdown>
         </div>
 
@@ -344,11 +539,73 @@ export default function DocumentViewer({ lessonId, lessonTitle }) {
             >
               🤖 Hỏi
             </button>
+            <select
+              value={selectedLanguage}
+              onChange={(e) => {
+                const lang = e.target.value;
+                setSelectedLanguage(lang);
+                setSelectedVoice(TTS_VOICES[lang].voices[0].name);
+              }}
+              title="Chọn ngôn ngữ"
+              style={{
+                padding: "4px 8px",
+                background: "#fff",
+                border: "1px solid #0d6efd",
+                borderRadius: 4,
+                cursor: "pointer",
+                fontSize: 11,
+                fontWeight: 500,
+                marginRight: 4,
+              }}
+            >
+              {Object.entries(TTS_VOICES).map(([key, lang]) => (
+                <option key={key} value={key}>
+                  {lang.label}
+                </option>
+              ))}
+            </select>
+            <select
+              value={selectedVoice}
+              onChange={(e) => setSelectedVoice(e.target.value)}
+              title="Chọn giọng"
+              style={{
+                padding: "4px 8px",
+                background: "#fff",
+                border: "1px solid #28a745",
+                borderRadius: 4,
+                cursor: "pointer",
+                fontSize: 11,
+                fontWeight: 500,
+                maxWidth: 140,
+              }}
+            >
+              {TTS_VOICES[selectedLanguage].voices.map((voice) => (
+                <option key={voice.name} value={voice.name}>
+                  {voice.label}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={handlePronounceSelection}
+              disabled={pronouncing}
+              title="Phát âm AI"
+              style={{
+                padding: "4px 8px",
+                background: pronouncing ? "#ccc" : "#d4edda",
+                border: "1px solid #28a745",
+                borderRadius: 4,
+                cursor: pronouncing ? "default" : "pointer",
+                fontSize: 12,
+                fontWeight: 500,
+              }}
+            >
+              {pronouncing ? "⏳ Đang phát..." : "🔊 Phát âm"}
+            </button>
           </div>
         )}
 
         {/* Tags info */}
-        {document.generatedByAI && (
+        {lessonDocument.generatedByAI && (
           <div
             style={{
               marginTop: 20,
@@ -567,6 +824,32 @@ export default function DocumentViewer({ lessonId, lessonTitle }) {
           💬
         </button>
       )}
+      {pronounceAnchor.visible && (
+        <button
+          type="button"
+          onClick={handlePronounceSelection}
+          disabled={pronouncing}
+          style={{
+            position: "fixed",
+            top: pronounceAnchor.top,
+            left: pronounceAnchor.left,
+            transform: "translate(-50%, -120%)",
+            background: pronouncing ? "#bbb" : "#111",
+            color: "#fff",
+            border: "none",
+            borderRadius: 999,
+            padding: "8px 14px",
+            boxShadow: "0 6px 16px rgba(0,0,0,0.2)",
+            cursor: pronouncing ? "default" : "pointer",
+            fontSize: 12,
+            fontWeight: 600,
+            zIndex: 999,
+          }}
+        >
+          {pronouncing ? "Đang phát..." : "🔊 Phát âm"}
+        </button>
+      )}
+      <audio ref={audioRef} style={{ display: "none" }} />
     </div>
   );
 }

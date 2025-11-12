@@ -11,7 +11,7 @@ export default function NavBar() {
         {/* Logo */}
         <Link to="/" className="brand">
           {/* <img src="/logo.svg" alt="Elearn" className="logo" /> */}
-          <span>Elearn</span>
+          <span>AI Course Studio</span>
         </Link>
 
         {/* Menu chính */}
@@ -58,12 +58,18 @@ export default function NavBar() {
                 </div>
                 <span className="user hide-sm">{user.name}</span>
               </div>
-              <button className="btn logout" onClick={logout}>Logout</button>
+              <button className="btn logout" onClick={logout}>
+                Logout
+              </button>
             </>
           ) : (
             <>
-              <Link to="/login" className="btn login">Login</Link>
-              <Link to="/register" className="btn register">Register</Link>
+              <Link to="/login" className="btn login">
+                Login
+              </Link>
+              <Link to="/register" className="btn register">
+                Register
+              </Link>
             </>
           )}
         </div>

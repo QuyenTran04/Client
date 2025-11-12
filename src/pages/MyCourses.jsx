@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 import CourseGrid from "../components/CourseGrid";
 import "../css/courses.css";
+import "../css/mycourse-filter.css";
 
 export default function MyCourses() {
   const navigate = useNavigate();
@@ -11,6 +12,9 @@ export default function MyCourses() {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all"); // all, published, draft
+  const [sortBy, setSortBy] = useState("-updatedAt"); // -updatedAt, -createdAt, title
 
   useEffect(() => {
     if (!user) {
@@ -51,6 +55,46 @@ export default function MyCourses() {
   );
   const draftCount = Math.max(courses.length - publishedCount, 0);
 
+  // Filter and sort courses
+  const filteredCourses = useMemo(() => {
+    let result = [...courses];
+
+    // Filter by status
+    if (filterStatus === "published") {
+      result = result.filter((c) => c.published === true);
+    } else if (filterStatus === "draft") {
+      result = result.filter((c) => c.published !== true);
+    }
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      result = result.filter(
+        (c) =>
+          (c.title || "").toLowerCase().includes(query) ||
+          (c.description || "").toLowerCase().includes(query)
+      );
+    }
+
+    // Sort
+    result.sort((a, b) => {
+      if (sortBy === "-updatedAt") {
+        return new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt);
+      } else if (sortBy === "-createdAt") {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      } else if (sortBy === "title") {
+        return (a.title || "").localeCompare(b.title || "");
+      }
+      return 0;
+    });
+
+    return result;
+  }, [courses, searchQuery, filterStatus, sortBy]);
+
+  const handleCourseDeleted = (courseId) => {
+    setCourses((prev) => prev.filter((c) => c._id !== courseId));
+  };
+
   return (
     <div className="mycourse-wrapper">
       <section className="mycourse-hero">
@@ -79,7 +123,7 @@ export default function MyCourses() {
         <div className="mycourse-hero__actions">
           <button
             type="button"
-            onClick={() => navigate("/create-course")}
+            onClick={() => navigate("/courses/create-ai")}
             className="hero-callout-btn"
           >
             Tạo khóa học mới
@@ -91,7 +135,7 @@ export default function MyCourses() {
         {error && !loading && (
           <div className="state-card error">
             <p>{error}</p>
-            <button type="button" onClick={() => navigate("/create-course")}>
+            <button type="button" onClick={() => navigate("/courses/create-ai")}>
               Tạo khóa học
             </button>
           </div>
@@ -107,7 +151,7 @@ export default function MyCourses() {
             <button
               type="button"
               className="hero-callout-btn"
-              onClick={() => navigate("/create-course")}
+              onClick={() => navigate("/courses/create-ai")}
             >
               Tạo khóa học đầu tiên
             </button>
@@ -116,9 +160,42 @@ export default function MyCourses() {
 
         {!loading && !error && courses.length > 0 && (
           <>
+            <div className="mycourse-filter-bar">
+              <div className="filter-search">
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm khóa học..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="filter-input"
+                />
+              </div>
+              <div className="filter-controls">
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="filter-select"
+                >
+                  <option value="all">Tất cả</option>
+                  <option value="published">Đã phát hành</option>
+                  <option value="draft">Bản nháp</option>
+                </select>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="filter-select"
+                >
+                  <option value="-updatedAt">Cập nhật gần đây</option>
+                  <option value="-createdAt">Tạo gần đây</option>
+                  <option value="title">Tên A-Z</option>
+                </select>
+              </div>
+            </div>
+
             <div className="mycourse-toolbar">
               <div>
-                <strong>{courses.length}</strong> khóa học đang quản lý
+                <strong>{filteredCourses.length}</strong> khóa học
+                {searchQuery && ` (tìm: "${searchQuery}")`}
               </div>
               <div className="active-filters">
                 <span className="active-filter-pill">
@@ -129,7 +206,7 @@ export default function MyCourses() {
                 </span>
               </div>
             </div>
-            <CourseGrid items={courses} />
+            <CourseGrid items={filteredCourses} onDeleted={handleCourseDeleted} />
           </>
         )}
       </section>

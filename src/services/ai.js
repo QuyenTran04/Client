@@ -23,3 +23,14 @@ export async function explainQuiz({
   const { data } = await api.post("/ai/explain-quiz", payload);
   return data;
 }
+
+export async function pronounceText({
+  text,
+  voice,
+  speed,
+  format = "mp3",
+} = {}) {
+  const payload = { text, voice, speed, format };
+  const { data } = await api.post("/ai/tts/pronounce", payload);
+  return data;
+}

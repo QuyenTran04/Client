@@ -53,11 +53,6 @@ const LEVEL_OPTIONS = [
   { value: "Advanced", label: "Nâng cao" },
 ];
 
-const LANGUAGE_OPTIONS = [
-  { value: "vi", label: "Tiếng Việt" },
-  { value: "en", label: "English" },
-];
-
 export default function CreateCourseWithAI() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -69,7 +64,6 @@ export default function CreateCourseWithAI() {
     prompt: "",
     targetAudience: "",
     level: "Beginner",
-    language: "vi",
   });
 
   const [draft, setDraft] = useState(null);
@@ -205,16 +199,6 @@ export default function CreateCourseWithAI() {
                 <label className="ai-field__label">Cấp độ</label>
                 <select name="level" value={formData.level} onChange={handleInputChange} className="ai-input">
                   {LEVEL_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="ai-form__group">
-                <label className="ai-field__label">Ngôn ngữ đầu ra</label>
-                <select name="language" value={formData.language} onChange={handleInputChange} className="ai-input">
-                  {LANGUAGE_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>

@@ -36,7 +36,7 @@ export default function Home() {
             </div>
           </div>
           <div className="hero-ill">
-            <img src="/assets/hero-1.png" alt="Học trực tuyến" loading="lazy" />
+            <img src="/assets/cover-1.png" alt="Học trực tuyến" loading="lazy" />
           </div>
         </div>
       </header>
