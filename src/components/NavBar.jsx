@@ -11,7 +11,7 @@ export default function NavBar() {
         {/* Logo */}
         <Link to="/" className="brand">
           {/* <img src="/logo.svg" alt="Elearn" className="logo" /> */}
-          <span>AI Course Studio</span>
+          <span>AlphaLearn</span>
         </Link>
 
         {/* Menu chính */}

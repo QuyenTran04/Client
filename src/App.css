@@ -11,8 +11,8 @@ html, body, #root {
 /* Navbar */
 .navbar {
   width: 100%;
-  background-color: #f3c98b;
-  border-bottom: 1px solid #e2b871;
+  background-color: #5de0ff;
+  border-bottom: 1px solid #2ec8f0;
   position: sticky;
   top: 0;
   z-index: 50;
@@ -33,7 +33,7 @@ html, body, #root {
   align-items: center;
   gap: 10px;
   font-weight: 700;
-  color: #2a200f;
+  color: #0d4a5c;
   text-decoration: none;
   font-size: 22px;
 }
@@ -53,7 +53,7 @@ html, body, #root {
 
 .menu a {
   text-decoration: none;
-  color: #2a200f;
+  color: #0d4a5c;
   font-weight: 500;
   padding: 8px 0;
   border-bottom: 2px solid transparent;
@@ -90,20 +90,20 @@ html, body, #root {
   font-weight: 500;
   text-decoration: none;
   cursor: pointer;
-  border: 1px solid #111;
+  border: 1px solid #0d4a5c;
   transition: all 0.2s ease;
   font-size: 14px;
 }
 
 .btn.login,
 .btn.logout {
-  background-color: #111;
+  background-color: #0d4a5c;
   color: #fff;
 }
 
 .btn.register {
   background-color: #fff;
-  color: #111;
+  color: #0d4a5c;
 }
 
 .btn:hover {
