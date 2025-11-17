@@ -1,47 +1,72 @@
 import api from "./api";
 
-export const getDocumentByLesson = async (lessonId) => {
-  const { data } = await api.get(`/documents/lesson/${lessonId}`);
-  return data;
+export const getLessonDocument = async (lessonId) => {
+  try {
+    const response = await api.get(`/documents/lesson/${lessonId}`);
+    return response.data;
+  } catch (err) {
+    return null;
+  }
 };
 
-export const getDocumentsByCourse = async (courseId) => {
-  const { data } = await api.get(`/documents/course/${courseId}`);
-  return data;
+// Alias for DocumentViewer compatibility
+export const getDocumentByLesson = getLessonDocument;
+
+export const getLessonDocuments = async (lessonId) => {
+  try {
+    const response = await api.get(`/documents`, {
+      params: { lessonId },
+    });
+    return response.data?.items || [];
+  } catch (err) {
+    return [];
+  }
 };
 
-export const getDocument = async (id) => {
-  const { data } = await api.get(`/documents/${id}`);
-  return data;
+export const pollDocumentStatus = async (lessonId, onReady, maxAttempts = 60, interval = 2000) => {
+  let attempts = 0;
+  
+  const check = async () => {
+    try {
+      const doc = await getLessonDocument(lessonId);
+      if (doc) {
+        console.log("[pollDocumentStatus] ✅ Document ready for lesson:", lessonId);
+        onReady(doc);
+        return true;
+      }
+    } catch (err) {
+      console.error("[pollDocumentStatus] Error checking document:", err.message);
+    }
+    
+    attempts++;
+    if (attempts >= maxAttempts) {
+      console.warn("[pollDocumentStatus] Max attempts reached for lesson:", lessonId);
+      return false;
+    }
+    
+    setTimeout(check, interval);
+    return null;
+  };
+  
+  return check();
 };
 
-export const createDocument = async (payload) => {
-  const { data } = await api.post(`/documents`, payload);
-  return data;
+export const askAboutDocument = async (documentId, question) => {
+  try {
+    const response = await api.post(`/documents/${documentId}/ask`, { question });
+    return response.data;
+  } catch (err) {
+    console.error("[askAboutDocument] Error:", err.message);
+    throw err;
+  }
 };
 
-export const updateDocument = async (id, payload) => {
-  const { data } = await api.put(`/documents/${id}`, payload);
-  return data;
-};
-
-export const deleteDocument = async (id) => {
-  const { data } = await api.delete(`/documents/${id}`);
-  return data;
-};
-
-export const askAboutDocument = async (id, question, language = "vi") => {
-  const { data } = await api.post(`/documents/${id}/ask`, {
-    question,
-    language,
-  });
-  return data;
-};
-
-export const generateExample = async (id, topic, language = "vi") => {
-  const { data } = await api.post(`/documents/${id}/generate-example`, {
-    topic,
-    language,
-  });
-  return data;
+export const generateExample = async (documentId, topic) => {
+  try {
+    const response = await api.post(`/documents/${documentId}/generate-example`, { topic });
+    return response.data;
+  } catch (err) {
+    console.error("[generateExample] Error:", err.message);
+    throw err;
+  }
 };

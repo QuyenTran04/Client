@@ -67,6 +67,8 @@ export default function CreateCourseWithAI() {
   });
 
   const [draft, setDraft] = useState(null);
+  const [lessonProgress, setLessonProgress] = useState({});
+  const [creationStatus, setCreationStatus] = useState("preparing");
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -103,24 +105,183 @@ export default function CreateCourseWithAI() {
     setLoading(true);
     setError("");
     setStep(3);
+    setCreationStatus("preparing");
+    setLessonProgress({});
 
     try {
-      const response = await api.post("/ai/courses", {
+      const token = localStorage.getItem("token");
+      setStep(3);
+      setCreationStatus("preparing");
+      
+      // 🚀 Step 1: Tạo course + bài 1
+      console.log("[CreateCourse] 🚀 POST /courses/start...");
+      const startResponse = await api.post("/ai/courses/start", {
         draft,
         instructorId,
       });
-      setTimeout(() => {
-        navigate(`/courses/${response.data.courseId}`);
-      }, 2000);
+
+      const courseId = startResponse.data.courseId;
+      const firstLessonReady = startResponse.data.firstLessonReady;
+      const totalLessons = startResponse.data.totalLessons;
+
+      console.log("[CreateCourse] ✅ Course tạo xong:", { 
+        courseId, 
+        firstLessonReady, 
+        totalLessons,
+        message: startResponse.data.message 
+      });
+
+      // 🎯 Bài 1 đã ready
+      setLessonProgress((prev) => ({
+        ...prev,
+        0: { ready: firstLessonReady, title: draft.lessons[0]?.title || "Bài 1" },
+      }));
+
+      // 🎯 Nếu bài 1 sẵn sàng, redirect ngay (stream sẽ chạy background)
+      if (firstLessonReady) {
+        console.log("[CreateCourse] ✅✅✅ Bài 1 READY! Redirecting to course...");
+        setCreationStatus("completed");
+        setLoading(false);
+        
+        // Redirect immediately
+        navigate(`/courses/${courseId}`, { replace: true });
+        
+        // Stream vẫn chạy background để tạo bài 2, 3...
+        // Nếu không có > 1 bài thì return ở đây
+        if (totalLessons <= 1) {
+          console.log("[CreateCourse] Only 1 lesson, no stream needed");
+          return;
+        }
+      } else {
+        console.warn("[CreateCourse] ⚠️ firstLessonReady = false, waiting for stream...");
+        setCreationStatus("creating_lessons");
+      }
+
+      // 🔄 Step 2: Stream bài 2 trở đi (nếu có) - chạy background
+      if (totalLessons > 1) {
+        const streamUrl = `/api/ai/courses/${courseId}/stream?token=${token ? token.substring(0, 20) + "..." : "none"}&_t=${Date.now()}`;
+        console.log("[CreateCourse] 🔄 GET EventSource:", streamUrl);
+        
+        let streamConnected = false;
+        let connectionTimeout;
+
+        const eventSource = new EventSource(
+          `/api/ai/courses/${courseId}/stream?token=${token}&_t=${Date.now()}`
+        );
+
+        console.log("[CreateCourse] EventSource created:", eventSource.readyState === 0 ? "CONNECTING" : "?");
+
+        // Timeout nếu không nhận được stream_connected sau 30s
+        connectionTimeout = setTimeout(() => {
+          if (!streamConnected) {
+            console.error("[CreateCourse] ⏱️ Stream connection timeout");
+            setError("Kết nối stream timeout (30s). Vui lòng thử lại.");
+            setCreationStatus("error");
+            eventSource.close();
+            setLoading(false);
+          }
+        }, 30000);
+
+        eventSource.addEventListener("open", () => {
+          console.log("[CreateCourse] EventSource connected (open event)");
+        });
+
+        eventSource.addEventListener("stream_connected", (event) => {
+          try {
+            streamConnected = true;
+            clearTimeout(connectionTimeout);
+            const data = JSON.parse(event.data);
+            console.log("[Stream] ✅ Connected (background):", data);
+          } catch (err) {
+            console.error("[Stream] Error parsing stream_connected:", err);
+          }
+        });
+
+        eventSource.addEventListener("lesson_ready", (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            setLessonProgress((prev) => ({
+              ...prev,
+              [data.lessonIndex]: { ready: true, title: data.title },
+            }));
+            console.log(`[Stream] ✅ Bài ${data.lessonIndex + 1} ready:`, data.title);
+          } catch (err) {
+            console.error("[Stream] Error parsing lesson_ready:", err);
+          }
+        });
+
+        eventSource.addEventListener("lesson_error", (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            setLessonProgress((prev) => ({
+              ...prev,
+              [data.lessonIndex]: { ready: false, error: true, title: data.message },
+            }));
+            console.error(`[Stream] ⚠️ Bài ${data.lessonIndex} error:`, data.message);
+          } catch (err) {
+            console.error("[Stream] Error parsing lesson_error:", err);
+          }
+        });
+
+        eventSource.addEventListener("all_lessons_completed", (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            console.log("[Stream] ✅ Tất cả bài hoàn tất (background):", data);
+            clearTimeout(connectionTimeout);
+            eventSource.close();
+          } catch (err) {
+            console.error("[Stream] Error parsing all_lessons_completed:", err);
+          }
+        });
+
+        eventSource.addEventListener("error", (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            setError(data.message || "Lỗi từ server");
+            console.error("[Stream] Event error:", data);
+          } catch {
+            setError("Có lỗi xảy ra khi xử lý stream");
+            console.error("[Stream] Event error (raw):", event);
+          }
+          clearTimeout(connectionTimeout);
+          eventSource.close();
+          setCreationStatus("error");
+          setLoading(false);
+        });
+
+        eventSource.onerror = (err) => {
+          console.error("[Stream] ⚠️ Connection error:", err);
+          if (!streamConnected) {
+            setError("Không thể kết nối stream. Vui lòng kiểm tra server.");
+          } else {
+            setError("Kết nối stream bị ngắt");
+          }
+          clearTimeout(connectionTimeout);
+          eventSource.close();
+          setCreationStatus("error");
+          setLoading(false);
+        };
+      } else {
+        // Chỉ có 1 bài duy nhất
+        setCreationStatus("completed");
+        setLoading(false);
+
+        setTimeout(() => {
+          navigate(`/courses/${courseId}`);
+        }, 2000);
+      }
     } catch (err) {
+      console.error("[CreateCourse] Error:", err);
       setError(err?.response?.data?.message || "Không thể tạo khóa học, vui lòng thử lại.");
+      setCreationStatus("error");
       setStep(2);
-    } finally {
       setLoading(false);
     }
   };
 
   const lessonPreview = draft?.lessons?.slice(0, 5) || [];
+  const totalLessons = draft?.lessons?.length || 0;
+  const readyLessons = Object.values(lessonProgress).filter((p) => p.ready).length;
 
   return (
     <div className="ai-builder">
@@ -334,21 +495,168 @@ export default function CreateCourseWithAI() {
           <div className="ai-creating__orb" />
           <h2>AI đang tạo khóa học của bạn</h2>
           <p>
-            Hệ thống đang sinh tài liệu, quiz và gắn nội dung vào từng bài học. Quá trình này mất vài phút, vui lòng
-            không tắt trình duyệt.
+            Hệ thống đang sinh tài liệu, quiz và gắn nội dung vào từng bài học. Bài 1 sẽ được hiển thị trước, các bài còn lại sẽ được tạo tự động.
           </p>
-          <div className="ai-progress">
-            <div className="ai-progress__bar" />
-          </div>
-          <div className="ai-timeline">
-            {CREATION_STEPS.map((item, idx) => (
-              <div key={item} className="ai-timeline__item">
-                <span>{idx + 1}</span>
-                <p>{item}</p>
+
+          {creationStatus === "preparing" && (
+            <>
+              <p style={{ marginTop: "20px", fontSize: "14px", color: "#94a3b8" }}>Đang chuẩn bị...</p>
+              <div className="ai-loading__spinner ai-loading__spinner--large" />
+            </>
+          )}
+
+          {(creationStatus === "creating_lessons" || creationStatus === "completed") && (
+            <div className="ai-lessons-progress">
+              <div style={{ marginTop: "24px", marginBottom: "24px" }}>
+                <p style={{ fontSize: "14px", fontWeight: "600", marginBottom: "16px" }}>
+                  Tiến độ tạo bài học: {readyLessons} / {totalLessons}
+                </p>
+                <div className="ai-progress">
+                  <div
+                    className="ai-progress__bar"
+                    style={{
+                      width: `${totalLessons > 0 ? (readyLessons / totalLessons) * 100 : 0}%`,
+                      transition: "width 0.3s ease",
+                    }}
+                  />
+                </div>
               </div>
-            ))}
-          </div>
-          <div className="ai-loading__spinner ai-loading__spinner--large" />
+
+              <div style={{ maxHeight: "350px", overflowY: "auto", marginBottom: "24px", paddingRight: "8px" }}>
+                {draft?.lessons?.map((lesson, idx) => {
+                  const progress = lessonProgress[idx];
+                  const isReady = progress?.ready;
+                  const isError = progress?.error;
+                  const isPending = !isReady && !isError;
+
+                  return (
+                    <div
+                      key={`lesson-${idx}`}
+                      style={{
+                        padding: "12px 16px",
+                        marginBottom: "8px",
+                        borderRadius: "8px",
+                        background: isReady
+                          ? "rgba(16, 185, 129, 0.1)"
+                          : isError
+                          ? "rgba(239, 68, 68, 0.1)"
+                          : "rgba(148, 163, 184, 0.1)",
+                        border: `1px solid ${
+                          isReady
+                            ? "#10b981"
+                            : isError
+                            ? "#ef4444"
+                            : "#cbd5e1"
+                        }`,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "12px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: "24px",
+                          height: "24px",
+                          borderRadius: "50%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "12px",
+                          fontWeight: "600",
+                          color: "#fff",
+                          background: isReady
+                            ? "#10b981"
+                            : isError
+                            ? "#ef4444"
+                            : "#cbd5e1",
+                          flexShrink: 0,
+                        }}
+                      >
+                        {isReady ? "✓" : isError ? "✕" : idx + 1}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p
+                          style={{
+                            margin: "0",
+                            fontSize: "14px",
+                            fontWeight: "500",
+                            color: "#0f172a",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          Bài {idx + 1}: {lesson.title}
+                        </p>
+                        {isReady && (
+                          <p style={{ margin: "4px 0 0", fontSize: "12px", color: "#10b981" }}>
+                            Sẵn sàng
+                          </p>
+                        )}
+                        {isPending && (
+                          <p style={{ margin: "4px 0 0", fontSize: "12px", color: "#94a3b8" }}>
+                            Đang tạo...
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {lessonProgress[0]?.ready && creationStatus !== "completed" && (
+                <div
+                  style={{
+                    padding: "16px",
+                    borderRadius: "12px",
+                    background: "rgba(16, 185, 129, 0.1)",
+                    border: "1px solid #10b981",
+                    marginBottom: "24px",
+                  }}
+                >
+                  <p style={{ margin: "0", fontSize: "14px", color: "#10b981", fontWeight: "500" }}>
+                    ✓ Bài 1 đã sẵn sàng! Bạn có thể vào khóa học ngay bây giờ.
+                  </p>
+                </div>
+              )}
+
+              {creationStatus !== "completed" && <div className="ai-loading__spinner ai-loading__spinner--large" />}
+            </div>
+          )}
+
+          {creationStatus === "completed" && (
+            <div
+              style={{
+                padding: "24px",
+                borderRadius: "16px",
+                background: "rgba(16, 185, 129, 0.1)",
+                border: "2px solid #10b981",
+                marginTop: "24px",
+                textAlign: "center",
+              }}
+            >
+              <p style={{ fontSize: "18px", fontWeight: "600", color: "#10b981", margin: "0 0 8px" }}>
+                ✓ Hoàn tất!
+              </p>
+              <p style={{ fontSize: "14px", color: "#059669", margin: "0" }}>
+                Khóa học đã được tạo thành công. Đang chuyển hướng...
+              </p>
+            </div>
+          )}
+
+          {creationStatus === "error" && error && (
+            <div
+              style={{
+                padding: "16px",
+                borderRadius: "12px",
+                background: "rgba(239, 68, 68, 0.1)",
+                border: "1px solid #ef4444",
+                marginTop: "24px",
+              }}
+            >
+              <p style={{ margin: "0", fontSize: "14px", color: "#ef4444" }}>{error}</p>
+            </div>
+          )}
         </div>
       )}
 

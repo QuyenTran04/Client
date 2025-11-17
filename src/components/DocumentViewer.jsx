@@ -34,9 +34,9 @@ const TTS_VOICES = {
   },
 };
 
-export default function DocumentViewer({ lessonId }) {
-  const [lessonDocument, setLessonDocument] = useState(null);
-  const [loading, setLoading] = useState(true);
+export default function DocumentViewer({ lessonId, document: initialDocument = null }) {
+  const [lessonDocument, setLessonDocument] = useState(initialDocument);
+  const [loading, setLoading] = useState(!initialDocument);
   const [error, setError] = useState("");
   const [selectedText, setSelectedText] = useState("");
   const [showAIChat, setShowAIChat] = useState(false);

@@ -5,8 +5,11 @@ import { getLessonsByCourse } from "../services/lesson";
 import { useAuth } from "../context/AuthContext";
 import { getYouTubeEmbedUrl } from "../lib/utils";
 import AIChat from "../components/AIChat";
-import DocumentViewer from "../components/DocumentViewer";
+import DocumentLoader from "../components/DocumentLoader";
 import "../css/courses.css";
+import { getQuizzesByLesson } from "../services/quiz";
+import api from "../services/api";
+import GenerateQuizModal from "../components/GenerateQuizModal";
 
 export default function Lessons() {
   const { id } = useParams();
@@ -21,6 +24,9 @@ export default function Lessons() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState("");
   const [selectedTab, setSelectedTab] = useState("content");
+  const [quizzes, setQuizzes] = useState([]);
+  const [showGenerateQuizModal, setShowGenerateQuizModal] = useState(false);
+  const [generatingQuiz, setGeneratingQuiz] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -69,6 +75,24 @@ export default function Lessons() {
     setDetailLoading(false);
   }, [selectedLesson, lessons]);
 
+  
+  // Fetch quizzes when selected lesson changes
+  useEffect(() => {
+    if (!selectedLesson) return;
+
+    const checkQuizzes = async () => {
+      try {
+        const data = await getQuizzesByLesson(selectedLesson);
+        setQuizzes(data || []);
+      } catch (err) {
+        console.error("[Lessons] Error fetching quizzes:", err);
+        setQuizzes([]);
+      }
+    };
+
+    checkQuizzes();
+  }, [selectedLesson]);
+
   if (loading) {
     return (
       <div className="lessons-loading">
@@ -87,8 +111,7 @@ export default function Lessons() {
         </button>
         <div className="lesson-card lesson-card--empty">
           {error || "Khong tim thay khoa hoc."}
-        </div>
-      </div>
+        </div></div>
     );
   }
 
@@ -316,9 +339,15 @@ export default function Lessons() {
                     <button
                       type="button"
                       className="lesson-action primary"
-                      onClick={() => navigate(`/lessons/${selectedLesson}/quiz`)}
+                      onClick={() => {
+                        if (quizzes.length === 0) {
+                          setShowGenerateQuizModal(true);
+                        } else {
+                          navigate(`/lessons/${selectedLesson}/quiz`);
+                        }
+                      }}
                     >
-                      Lam bai quiz
+                      {quizzes.length === 0 ? "Tao quiz" : "Lam bai quiz"}
                     </button>
                     <button
                       type="button"
@@ -336,13 +365,27 @@ export default function Lessons() {
                 </div>
               ) : (
                 <div className="lesson-document">
-                  <DocumentViewer lessonId={selectedLesson} lessonTitle={lessonDetails?.title} />
+                  <DocumentLoader lessonId={selectedLesson} lessonTitle={lessonDetails?.title} />
                 </div>
               )}
             </div>
           )}
         </section>
       </div>
+
+      
+      {showGenerateQuizModal && (
+        <GenerateQuizModal
+          lessonId={selectedLesson}
+          onClose={() => setShowGenerateQuizModal(false)}
+          onSuccess={(result) => {
+            setQuizzes(result.quizzes || []);
+            setTimeout(() => {
+              navigate(`/lessons/${selectedLesson}/quiz`);
+            }, 500);
+          }}
+        />
+      )}
 
       <AIChat layout="drawer" courseId={id} lessonId={selectedLesson} page="lesson" title="Ho tro bai hoc" />
     </div>
