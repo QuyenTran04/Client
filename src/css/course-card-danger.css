@@ -1,0 +1,13 @@
+.course-card-btn.danger {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.course-card-btn.danger:hover {
+  background: #fecaca;
+}
+
+.course-card-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
