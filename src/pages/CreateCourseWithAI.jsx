@@ -400,7 +400,7 @@ export default function CreateCourseWithAI() {
             <p className="ai-eyebrow">AI Toolkit</p>
             <h3>Bạn sẽ nhận dữ liệu gì?</h3>
             <p className="ai-sidebar__text">
-              AI xu ly prompt cua ban de tao ke hoach hoc tap hoan chinh. Hay mo ta cu the ve muc tieu, rang buoc,
+              AI xu ly yeu cau cua ban de tao ke hoach hoc tap hoan chinh. Hay mo ta cu the ve muc tieu, rang buoc,
               tai nguyen co san neu co.
             </p>
             <div className="ai-sidebar__cards">
