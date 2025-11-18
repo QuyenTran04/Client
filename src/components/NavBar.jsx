@@ -1,53 +1,55 @@
 // src/components/NavBar.jsx
 import { Link, NavLink } from "react-router-dom";
+import React from "react";
 import { useAuth } from "../context/AuthContext";
 import "../css/navbar.css";
 export default function NavBar() {
   const { user, logout } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
 
   return (
     <nav className="navbar">
-      <div className="container nav-wrap">
+      <div className="nav-wrap">
         {/* Logo */}
         <Link to="/" className="brand">
           {/* <img src="/logo.svg" alt="Elearn" className="logo" /> */}
           <span>AlphaLearn</span>
         </Link>
 
+        {/* Mobile menu toggle */}
+        <button className="menu-toggle" onClick={toggleMobileMenu}>
+          {isMobileMenuOpen ? '✕' : '☰'}
+        </button>
+
         {/* Menu chính */}
-        <ul className="menu">
+        <ul className={`menu ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
           <li>
             <NavLink to="/" end>
-              Home
+              Trang chủ
             </NavLink>
-          </li>
-          <li>
-            <NavLink to="/courses">Courses</NavLink>
           </li>
           {user && (
             <li>
-              <NavLink to="/my-courses">My Courses</NavLink>
+              <NavLink to="/my-courses">Khóa học của tôi</NavLink>
             </li>
           )}
           <li>
-            <NavLink to="/instructors">Instructors</NavLink>
+            <NavLink to="/instructors">Giảng viên</NavLink>
           </li>
           <li>
-            <NavLink to="/about">About</NavLink>
-          </li>
-          <li>
-            <NavLink to="/contact">Contact</NavLink>
+            <NavLink to="/about">Về chúng tôi</NavLink>
           </li>
         </ul>
 
-        {/* Search + Auth */}
+        {/* Tìm kiếm + Xác thực */}
         <div className="right-row">
-          <div className="nav-search">
-            <input className="nav-input" placeholder="Search courses..." />
-          </div>
           {user && (
-            <Link to="/courses/create-ai" className="btn ai-course">
-              Create AI Course
+            <Link to="/courses/create-ai" className="btn ai-course desktop-only">
+              Tạo khóa học AI
             </Link>
           )}
           {user ? (
@@ -59,16 +61,16 @@ export default function NavBar() {
                 <span className="user hide-sm">{user.name}</span>
               </div>
               <button className="btn logout" onClick={logout}>
-                Logout
+                Đăng xuất
               </button>
             </>
           ) : (
             <>
               <Link to="/login" className="btn login">
-                Login
+                Đăng nhập
               </Link>
-              <Link to="/register" className="btn register">
-                Register
+              <Link to="/register" className="btn register desktop-only">
+                Đăng ký
               </Link>
             </>
           )}
