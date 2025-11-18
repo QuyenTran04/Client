@@ -7,6 +7,15 @@
   background: #fecaca;
 }
 
+.course-card-btn.secondary {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.course-card-btn.secondary:hover {
+  background: #bae6fd;
+}
+
 .course-card-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;

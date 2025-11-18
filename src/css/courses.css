@@ -1386,7 +1386,7 @@
 
 .course-list-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 24px;
 }
 
@@ -1728,7 +1728,7 @@
 .mycourse-hero {
   max-width: 1100px;
   margin: 0 auto 32px;
-  background: #0f172a;
+  background: linear-gradient(120deg, #101935, #1f3160 60%, #354e9f);
   color: #fff;
   padding: 40px;
   border-radius: 32px;

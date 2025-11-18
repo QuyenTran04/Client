@@ -13,6 +13,7 @@ import Payment from "./pages/Payment";
 import LessonsPage from "./pages/Lessons";
 import QuizPage from "./pages/Quiz";
 import CreateCourseWithAI from "./pages/CreateCourseWithAI";
+import CreateQuiz from "./pages/CreateQuiz";
 import AIChat from "./components/AIChat";
 // 🧭 Thành phần giao diện chung
 import NavBar from "./components/NavBar";
@@ -86,11 +87,12 @@ function GlobalChatSwitcher() {
 function AppShell() {
   const location = useLocation();
   const isAdmin = location.pathname.startsWith("/admin");
+  const isAuthPage = location.pathname === "/login" || location.pathname === "/register";
 
   return (
     <>
-      {/* Navbar chỉ hiện với trang người dùng */}
-      {!isAdmin && <NavBar />}
+      {/* Navbar chỉ hiện với trang người dùng, không hiện ở trang login/register */}
+      {!isAdmin && !isAuthPage && <NavBar />}
 
       <Routes>
         {/* PUBLIC */}
@@ -176,6 +178,14 @@ function AppShell() {
           element={
             <ProtectedRoute>
               <CompanionComponent />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/create-quiz"
+          element={
+            <ProtectedRoute>
+              <CreateQuiz />
             </ProtectedRoute>
           }
         />

@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../services/api";
 import { getYouTubeEmbedUrl } from "../lib/utils";
+import CreateQuizModal from "./CreateQuizModal";
+import { AiOutlineFileAdd } from "react-icons/ai";
 import "../css/course-card-danger.css";
 
 const DEFAULT_COVER = "/assets/cover-1.png";
@@ -9,6 +11,8 @@ const DEFAULT_COVER = "/assets/cover-1.png";
 export default function CourseCard({ c = {}, onDeleted = () => {} }) {
   const [showPreview, setShowPreview] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showQuizModal, setShowQuizModal] = useState(false);
+  const [lessons, setLessons] = useState([]);
   const embedUrl = getYouTubeEmbedUrl(c?.introVideoUrl);
 
   const handleDelete = async () => {
@@ -24,6 +28,33 @@ export default function CourseCard({ c = {}, onDeleted = () => {} }) {
     } finally {
       setDeleting(false);
     }
+  };
+
+  const handleOpenQuizModal = async () => {
+    try {
+      const response = await api.get(`/courses/${c._id}`);
+      const courseLessons = response.data.lessons || [];
+
+      // Tìm lesson đầu tiên có sẵn để làm mặc định
+      const firstLesson = courseLessons.length > 0 ? courseLessons[0] : null;
+
+      if (!firstLesson) {
+        alert("Khóa học này chưa có bài học nào. Vui lòng thêm bài học trước khi tạo trắc nghiệm.");
+        return;
+      }
+
+      setLessons(courseLessons);
+      setShowQuizModal(true);
+    } catch (err) {
+      alert(err?.response?.data?.message || "Không thể tải danh sách bài học");
+    }
+  };
+
+  const handleQuizCreated = (result) => {
+    console.log("Quiz created successfully:", result);
+    setShowQuizModal(false);
+    // Bạn có thể thêm logic để refresh course data hoặc hiển thị thông báo
+    alert(`Đã tạo thành công ${result.data.processedQuestions} câu hỏi cho bài trắc nghiệm!`);
   };
 
   const cover = c.imageUrl || DEFAULT_COVER;
@@ -96,6 +127,15 @@ export default function CourseCard({ c = {}, onDeleted = () => {} }) {
             )}
             <button
               type="button"
+              className="course-card-btn secondary"
+              onClick={handleOpenQuizModal}
+              title="Tạo bài trắc nghiệm từ file"
+            >
+              <AiOutlineFileAdd className="inline mr-1" />
+              Tạo trắc nghiệm
+            </button>
+            <button
+              type="button"
               className="course-card-btn danger"
               onClick={handleDelete}
               disabled={deleting}
@@ -136,6 +176,16 @@ export default function CourseCard({ c = {}, onDeleted = () => {} }) {
             </div>
           </div>
         </div>
+      )}
+
+      {showQuizModal && (
+        <CreateQuizModal
+          isOpen={showQuizModal}
+          onClose={() => setShowQuizModal(false)}
+          courseId={c._id}
+          lessonId={lessons.length > 0 ? lessons[0]._id : null}
+          onQuizCreated={handleQuizCreated}
+        />
       )}
     </>
   );

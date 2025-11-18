@@ -30,3 +30,13 @@ export const submitQuiz = async (quizId, selected, durationSeconds) => {
   });
   return res.data; // { isCorrect, submission }
 };
+
+// Tạo quiz từ file upload
+export const createQuizFromUpload = async (formData) => {
+  const res = await api.post("/quizzes/upload-manual", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return res.data;
+};

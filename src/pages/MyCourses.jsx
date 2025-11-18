@@ -13,8 +13,8 @@ export default function MyCourses() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all"); // all, published, draft
-  const [sortBy, setSortBy] = useState("-updatedAt"); // -updatedAt, -createdAt, title
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [sortBy, setSortBy] = useState("-updatedAt");
 
   useEffect(() => {
     if (!user) {

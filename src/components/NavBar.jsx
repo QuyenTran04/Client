@@ -32,11 +32,13 @@ export default function NavBar() {
               Trang chủ
             </NavLink>
           </li>
-          {user && (
-            <li>
-              <NavLink to="/my-courses">Khóa học của tôi</NavLink>
-            </li>
-          )}
+          <li>
+            {user ? (
+              <NavLink to="/my-courses">Khóa học</NavLink>
+            ) : (
+              <Link to="/login">Khóa học</Link>
+            )}
+          </li>
           <li>
             <NavLink to="/instructors">Giảng viên</NavLink>
           </li>
@@ -48,9 +50,14 @@ export default function NavBar() {
         {/* Tìm kiếm + Xác thực */}
         <div className="right-row">
           {user && (
-            <Link to="/courses/create-ai" className="btn ai-course desktop-only">
-              Tạo khóa học AI
-            </Link>
+            <>
+              <Link to="/courses/create-ai" className="btn ai-course desktop-only">
+                Tạo khóa học AI
+              </Link>
+              <Link to="/create-quiz" className="btn ai-course desktop-only">
+                Tạo trắc nghiệm
+              </Link>
+            </>
           )}
           {user ? (
             <>
