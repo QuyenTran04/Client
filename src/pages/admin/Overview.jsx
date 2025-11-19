@@ -1,26 +1,27 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../services/api";
 import {
+  ResponsiveContainer,
   AreaChart,
   Area,
   XAxis,
   YAxis,
   Tooltip,
   CartesianGrid,
-  ResponsiveContainer,
   LineChart,
   Line,
 } from "recharts";
 import {
-  Users,
-  ShoppingBag,
   DollarSign,
-  Clock,
-  GraduationCap,
+  UserPlus,
   BookOpen,
-  BarChart3,
+  Clock,
   ArrowUpRight,
+  TrendingUp,
+  ShieldCheck,
+  AlertCircle,
+  GraduationCap,
 } from "lucide-react";
 
 const currencyFormatter = new Intl.NumberFormat("vi-VN", {
@@ -29,43 +30,69 @@ const currencyFormatter = new Intl.NumberFormat("vi-VN", {
   maximumFractionDigits: 0,
 });
 
-const statusBadge = {
-  paid: "bg-emerald-50 text-emerald-700 border border-emerald-100",
-  pending: "bg-amber-50 text-amber-700 border border-amber-100",
-  failed: "bg-rose-50 text-rose-700 border border-rose-100",
+const numberFormatter = new Intl.NumberFormat("vi-VN");
+
+const statusClassMap = {
+  paid: "status status--success",
+  pending: "status status--warning",
+  failed: "status status--danger",
 };
 
-function StatCard({
-  title,
-  value,
-  icon,
-  helper,
-  trendValue = 0,
-  trendLabel,
-}) {
-  const isNegative = Number(trendValue) < 0;
+function formatDate(value) {
+  if (!value) return "--";
+  try {
+    return new Date(value).toLocaleDateString("vi-VN", {
+      day: "2-digit",
+      month: "short",
+    });
+  } catch {
+    return "--";
+  }
+}
+
+function MetricCard({ icon, label, value, helper, delta }) {
+  const trend = delta?.value ?? 0;
+  const deltaClass =
+    trend === 0 ? "is-neutral" : trend > 0 ? "is-up" : "is-down";
+
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-5 border border-gray-100 hover:shadow-md transition">
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-gray-500">{title}</span>
-        <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600">{icon}</div>
+    <article className="metric-card">
+      <div className="metric-card__head">
+        <div className="metric-card__icon">{icon}</div>
+        {delta && (
+          <span className={`metric-card__delta ${deltaClass}`}>
+            <ArrowUpRight size={14} />
+            {delta.label}
+          </span>
+        )}
       </div>
-      <div className="mt-3 text-2xl font-bold text-gray-900">{value}</div>
-      <p className="text-xs text-gray-500 mt-1">{helper}</p>
-      {trendLabel && (
-        <div
-          className={`mt-2 inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium ${
-            isNegative ? "text-rose-700 bg-rose-50" : "text-emerald-700 bg-emerald-50"
-          }`}
-        >
-          <ArrowUpRight
-            size={12}
-            className={isNegative ? "transform rotate-90" : ""}
-          />
-          {trendLabel}
-        </div>
-      )}
-    </div>
+      <p className="metric-card__label">{label}</p>
+      <p className="metric-card__value">{value}</p>
+      {helper && <p className="metric-card__helper">{helper}</p>}
+    </article>
+  );
+}
+
+function EmptyState({ message }) {
+  return <p className="empty-state">{message}</p>;
+}
+
+function Avatar({ src, name = "", size = "md" }) {
+  const className = `avatar-thumb ${size === "sm" ? "avatar-thumb--sm" : ""}`;
+  if (src) {
+    return (
+      <img
+        src={src}
+        alt={name || "Avatar"}
+        className={className}
+        loading="lazy"
+      />
+    );
+  }
+  return (
+    <span className={`${className} avatar-thumb--fallback`}>
+      {(name || "?").charAt(0).toUpperCase()}
+    </span>
   );
 }
 
@@ -75,453 +102,530 @@ export default function Overview() {
   const [revenueSeries, setRevenueSeries] = useState([]);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const [overviewRes, revenueRes] = await Promise.all([
-          api.get("/admin/overview"),
-          api.get("/admin/reports/revenue/monthly"),
-        ]);
-        setOverview(overviewRes.data);
+  const loadDashboard = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [overviewRes, revenueRes] = await Promise.all([
+        api.get("/admin/overview"),
+        api.get("/admin/reports/revenue/monthly"),
+      ]);
 
-        const rows = (revenueRes.data?.data || []).map((d) => ({
-          name: `T${d.month}`,
-          revenue: d.revenue,
-        }));
-        setRevenueSeries(rows);
-        setError("");
-      } catch (err) {
-        console.error("Overview fetch error", err);
-        setError("Không thể tải dữ liệu từ máy chủ.");
-      } finally {
-        setLoading(false);
-      }
-    })();
+      setOverview(overviewRes.data);
+      const rows = (revenueRes.data?.data || []).map((row) => ({
+        name: `T${row.month}`,
+        revenue: row.revenue,
+      }));
+      setRevenueSeries(rows);
+      setError("");
+    } catch (err) {
+      console.error("Overview fetch error", err);
+      setError("Không thể tải dữ liệu tổng quan. Vui lòng thử lại.");
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const enrollmentTrend = useMemo(() => {
-    if (!overview?.enrollmentTrend) return [];
-    return overview.enrollmentTrend.map((item) => ({
-      name: item.label,
+  useEffect(() => {
+    loadDashboard();
+  }, [loadDashboard]);
+
+  const weeklyEnrollment = useMemo(() => {
+    if (!overview?.enrollmentTrend?.length) {
+      return { total: 0, delta: 0, series: [] };
+    }
+    const series = overview.enrollmentTrend.map((item) => ({
+      label: item.label,
       count: item.count,
     }));
+    const total = series.reduce((sum, item) => sum + item.count, 0);
+    const first = series[0].count;
+    const last = series[series.length - 1].count;
+    return {
+      total,
+      delta: last - first,
+      series,
+    };
   }, [overview]);
 
-  const enrollmentDelta = useMemo(() => {
-    if (!overview?.enrollmentTrend?.length) return 0;
-    const first = overview.enrollmentTrend[0]?.count || 0;
-    const last =
-      overview.enrollmentTrend[overview.enrollmentTrend.length - 1]?.count || 0;
-    return last - first;
-  }, [overview]);
+  const pendingCount = overview?.pendingCourses?.length || 0;
 
-  const summaryCards = useMemo(() => {
-    if (!overview) return [];
+  const heroBadges = useMemo(
+    () => [
+      {
+        id: "courses",
+        label: "Khoá học đã xuất bản",
+        value: overview?.courses?.published || 0,
+      },
+      {
+        id: "instructors",
+        label: "Giảng viên",
+        value: overview?.users?.instructors || 0,
+      },
+      {
+        id: "students",
+        label: "Học viên",
+        value: overview?.users?.students || 0,
+      },
+    ],
+    [overview]
+  );
+
+  const heroPulse = useMemo(
+    () => [
+      {
+        label: "Đơn thanh toán",
+        value: overview?.revenueThisMonth?.orders || 0,
+      },
+      {
+        label: "Khoá chờ duyệt",
+        value: pendingCount,
+      },
+      {
+        label: "Học viên mới",
+        value: overview?.newStudents?.length || 0,
+      },
+    ],
+    [overview, pendingCount]
+  );
+
+  const quickStats = useMemo(() => {
+    const publishedCourses = overview?.courses?.published || 0;
+    const totalUsers = overview?.users?.total || 0;
+
     return [
       {
-        title: "Tổng khóa học",
-        value: overview.courses?.total?.toLocaleString("vi-VN") || "0",
-        helper: `${overview.courses?.published || 0} khóa được xuất bản`,
-        icon: <BookOpen size={22} />,
-        trendValue: 0,
+        id: "revenue",
+        label: "Doanh thu tháng này",
+        value: currencyFormatter.format(overview?.revenueThisMonth?.revenue || 0),
+        helper: `${overview?.revenueThisMonth?.orders || 0} đơn thanh toán`,
+        icon: <DollarSign size={20} />,
       },
       {
-        title: "Doanh thu tháng này",
-        value: currencyFormatter.format(overview.revenueThisMonth?.revenue || 0),
-        helper: `${overview.revenueThisMonth?.orders || 0} đơn hàng`,
-        icon: <DollarSign size={22} />,
-        trendValue: 0,
+        id: "students",
+        label: "Người học trên nền tảng",
+        value: numberFormatter.format(overview?.users?.students || 0),
+        helper: `${numberFormatter.format(totalUsers)} tài khoản`,
+        icon: <UserPlus size={20} />,
       },
       {
-        title: "Người dùng",
-        value: overview.users?.total?.toLocaleString("vi-VN") || "0",
-        helper: `${overview.users?.instructors || 0} GV · ${
-          overview.users?.students || 0
-        } HV`,
-        icon: <Users size={22} />,
-        trendValue: 0,
+        id: "enrollments",
+        label: "Đăng ký mới (7 ngày)",
+        value: numberFormatter.format(weeklyEnrollment.total),
+        helper: "So với đầu tuần",
+        icon: <GraduationCap size={20} />,
+        delta: {
+          value: weeklyEnrollment.delta,
+          label:
+            weeklyEnrollment.delta === 0
+              ? "Không đổi"
+              : `${weeklyEnrollment.delta > 0 ? "+" : ""}${
+                  weeklyEnrollment.delta
+                } lượt`,
+        },
       },
       {
-        title: "Ghi danh hoạt động",
-        value: overview.enrollments?.active?.toLocaleString("vi-VN") || "0",
-        helper: "Học viên đang theo học",
-        icon: <GraduationCap size={22} />,
-        trendValue: enrollmentDelta,
-        trendLabel: `${enrollmentDelta >= 0 ? "+" : ""}${enrollmentDelta} học viên 7 ngày`,
+        id: "courses",
+        label: "Khoá học đã xuất bản",
+        value: numberFormatter.format(publishedCourses),
+        helper:
+          pendingCount > 0
+            ? `${pendingCount} khoá đang chờ phê duyệt`
+            : "Không có khoá học chờ",
+        icon: <BookOpen size={20} />,
       },
     ];
-  }, [overview, enrollmentDelta]);
+  }, [overview, pendingCount, weeklyEnrollment]);
 
-  if (loading)
+  const recentOrders = overview?.recentOrders || [];
+  const pendingCourses = overview?.pendingCourses || [];
+  const topCourses = overview?.topCourses || [];
+  const topInstructors = overview?.topInstructors || [];
+  const newStudents = overview?.newStudents || [];
+  const hasRevenueChart = revenueSeries.length > 0;
+  const hasEnrollmentChart = weeklyEnrollment.series.length > 0;
+
+  if (loading && !overview) {
     return (
-      <div className="flex items-center justify-center h-64 text-gray-500 animate-pulse">
-        Đang tải dashboard...
+      <div className="dashboard-loading">
+        <span className="dashboard-loading__spinner" />
+        <p>�?ang tải dữ liệu tổng quan...</p>
       </div>
     );
+  }
 
-  if (error)
+  if (!loading && error && !overview) {
     return (
-      <div className="text-center p-10 text-red-600 bg-red-50 rounded-xl border border-red-100">
-        {error}
+      <div className="dashboard-error">
+        <AlertCircle size={20} />
+        <p>{error}</p>
+        <button type="button" onClick={loadDashboard}>
+          Thử lại
+        </button>
       </div>
     );
+  }
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <p className="text-sm font-semibold text-indigo-600 uppercase tracking-wider">
-            Bảng điều khiển quản trị
+    <div className="dashboard-shell">
+      {error && overview && (
+        <div className="dashboard-alert">
+          <AlertCircle size={16} />
+          <span>{error}</span>
+          <button type="button" onClick={loadDashboard}>
+            Tải lại
+          </button>
+        </div>
+      )}
+
+      <section className="dashboard-hero">
+        <div className="dashboard-hero__main">
+          <p className="eyebrow">Bảng điều khiển</p>
+          <h1>Trung tâm quản trị AlphaLearn</h1>
+          <p className="subtitle">
+            Giám sát doanh thu, học viên và nội dung chỉ trong một màn hình.
+            Tất cả dữ liệu được đồng bộ theo thời gian thực.
           </p>
-          <h1 className="text-3xl font-bold text-gray-900 mt-1">Xin chào, Admin 👋</h1>
-          <p className="text-gray-500 mt-2 max-w-xl">
-            Theo dõi tăng trưởng, phê duyệt khóa học và giám sát doanh thu theo thời
-            gian thực.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          <Link
-            to="/admin/courses"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white font-semibold shadow hover:bg-indigo-500"
-          >
-            <BookOpen size={18} />
-            Quản lý khóa học
-          </Link>
-          <Link
-            to="/admin/users"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-gray-800 font-semibold shadow-sm hover:border-gray-300"
-          >
-            <Users size={18} />
-            Danh sách người dùng
-          </Link>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
-        {summaryCards.map((card, idx) => (
-          <StatCard key={idx} {...card} />
-        ))}
-      </div>
-
-      <div className="grid gap-6 xl:grid-cols-3">
-        <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 xl:col-span-2">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-800">
-                Doanh thu theo tháng
-              </h2>
-              <p className="text-sm text-gray-500">
-                Dữ liệu tổng hợp từ các hóa đơn đã thanh toán
-              </p>
-            </div>
-            <select className="border rounded-lg px-3 py-1 text-sm focus:ring-2 focus:ring-indigo-500">
-              <option>2025</option>
-              <option>2024</option>
-            </select>
+          <div className="hero-badges">
+            {heroBadges.map((badge) => (
+              <span key={badge.id} className="hero-badge">
+                <strong>{numberFormatter.format(badge.value)}</strong>
+                <small>{badge.label}</small>
+              </span>
+            ))}
           </div>
-
-          <ResponsiveContainer width="100%" height={320}>
-            <AreaChart
-              data={revenueSeries}
-              margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-            >
-              <defs>
-                <linearGradient id="revFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#4f46e5" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip
-                formatter={(v) => currencyFormatter.format(Number(v) || 0)}
-              />
-              <Area
-                type="monotone"
-                dataKey="revenue"
-                stroke="#4f46e5"
-                strokeWidth={2.5}
-                fill="url(#revFill)"
-                dot={{ r: 3 }}
-                activeDot={{ r: 6 }}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+          <div className="hero-actions">
+            <Link className="btn btn--primary" to="/admin/courses">
+              Tạo khoá học
+            </Link>
+            <Link className="btn btn--ghost" to="/admin/reports">
+              Xem báo cáo chi tiết
+            </Link>
+          </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-800">
-                Ghi danh 7 ngày gần nhất
-              </h2>
-              <p className="text-sm text-gray-500">
-                Theo dõi lượng học viên mới mỗi ngày
-              </p>
-            </div>
-            <div className="rounded-xl bg-indigo-50 text-indigo-600 px-3 py-1 text-sm font-medium">
-              {enrollmentDelta >= 0 ? "+" : ""}
-              {enrollmentDelta} HV
-            </div>
-          </div>
-          <ResponsiveContainer width="100%" height={220}>
-            <LineChart data={enrollmentTrend}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-              <XAxis dataKey="name" />
-              <YAxis allowDecimals={false} />
-              <Tooltip />
-              <Line
-                type="monotone"
-                dataKey="count"
-                stroke="#f97316"
-                strokeWidth={2}
-                dot={{ r: 3 }}
-                activeDot={{ r: 6 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800">
-                Khóa học chờ duyệt
-              </h3>
-              <p className="text-sm text-gray-500">
-                {overview.pendingCourses?.length || 0} yêu cầu gần nhất
-              </p>
-            </div>
-            <Clock className="text-amber-500" size={20} />
-          </div>
-          <ul className="space-y-4 flex-1">
-            {overview.pendingCourses?.length ? (
-              overview.pendingCourses.map((course) => (
-                <li key={course._id} className="flex items-start justify-between">
-                  <div>
-                    <p className="font-semibold text-gray-900">{course.title}</p>
-                    <p className="text-sm text-gray-500">
-                      {course.instructor?.name || "Chưa có GV"} ·{" "}
-                      {course.category?.name || "Không có danh mục"}
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      Gửi ngày{" "}
-                      {new Date(course.createdAt).toLocaleDateString("vi-VN")}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-sm font-semibold text-gray-800">
-                      {currencyFormatter.format(course.price || 0)}
-                    </span>
-                    <span className="block text-xs text-amber-600 mt-1">
-                      Chờ phê duyệt
-                    </span>
-                  </div>
+        <div className="dashboard-hero__side">
+          <div className="side-card">
+            <p className="side-card__label">Tình trạng hệ thống</p>
+            <p className="side-card__value">
+              {numberFormatter.format(overview?.enrollments?.active || 0)}
+            </p>
+            <p className="side-card__helper">Học viên đang tham gia bài học</p>
+            <ul className="side-pulse">
+              {heroPulse.map((item) => (
+                <li key={item.label}>
+                  <span>{item.label}</span>
+                  <strong>{numberFormatter.format(item.value)}</strong>
                 </li>
-              ))
-            ) : (
-              <p className="text-gray-500 text-sm">Không có yêu cầu mới.</p>
-            )}
-          </ul>
-        </section>
-
-        <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 lg:col-span-2">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800">
-                Đơn hàng mới nhất
-              </h3>
-              <p className="text-sm text-gray-500">
-                Cập nhật real-time từ hệ thống thanh toán
-              </p>
-            </div>
-            <ShoppingBag className="text-indigo-500" size={20} />
+              ))}
+            </ul>
+            <Link className="side-card__link" to="/admin/orders">
+              Mở nhật ký hoạt động
+            </Link>
           </div>
+        </div>
+      </section>
 
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="text-gray-500 uppercase text-xs">
-                <tr>
-                  <th className="text-left py-2">Học viên</th>
-                  <th className="text-left py-2">Khóa học</th>
-                  <th className="text-right py-2">Số tiền</th>
-                  <th className="text-center py-2">Trạng thái</th>
-                  <th className="text-right py-2">Ngày</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {overview.recentOrders?.length ? (
-                  overview.recentOrders.map((order) => (
-                    <tr key={order._id} className="text-gray-700">
-                      <td className="py-2">
-                        <p className="font-medium">
-                          {order.student?.name || "Ẩn danh"}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {order.paymentMethod?.toUpperCase()}
-                        </p>
+      <section className="metric-grid">
+        {quickStats.map((stat) => (
+          <MetricCard
+            key={stat.id}
+            icon={stat.icon}
+            label={stat.label}
+            value={stat.value}
+            helper={stat.helper}
+            delta={stat.delta}
+          />
+        ))}
+      </section>
+
+      <section className="chart-grid">
+        <article className="dash-card chart-card">
+          <div className="card-head">
+            <div>
+              <h3>Doanh thu theo tháng</h3>
+              <p>12 tháng gần nhất</p>
+            </div>
+            <span className="pill pill--success">
+              <TrendingUp size={14} />
+              Realtime
+            </span>
+          </div>
+          <div className="chart-wrapper">
+            {hasRevenueChart ? (
+              <ResponsiveContainer width="100%" height={280}>
+                <AreaChart data={revenueSeries} margin={{ left: 0, right: 0 }}>
+                  <defs>
+                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="#4f46e5" stopOpacity={0.05} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#eef2ff" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    width={70}
+                    tickFormatter={(value) =>
+                      currencyFormatter.format(value).replace("₫", "")
+                    }
+                  />
+                  <Tooltip
+                    formatter={(value) => currencyFormatter.format(value)}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke="#4f46e5"
+                    fillOpacity={1}
+                    fill="url(#colorRevenue)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <EmptyState message="Chưa có dữ liệu doanh thu." />
+            )}
+          </div>
+        </article>
+
+        <article className="dash-card chart-card">
+          <div className="card-head">
+            <div>
+              <h3>Đăng ký trong 7 ngày</h3>
+              <p>Theo từng ngày trong tuần</p>
+            </div>
+            <span className="pill pill--neutral">
+              <ShieldCheck size={14} />
+              Theo dõi tự động
+            </span>
+          </div>
+          <div className="chart-wrapper">
+            {hasEnrollmentChart ? (
+              <ResponsiveContainer width="100%" height={280}>
+                <LineChart data={weeklyEnrollment.series}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#eef2ff" />
+                  <XAxis dataKey="label" axisLine={false} tickLine={false} />
+                  <YAxis axisLine={false} tickLine={false} />
+                  <Tooltip />
+                  <Line
+                    type="monotone"
+                    dataKey="count"
+                    stroke="#10b981"
+                    strokeWidth={3}
+                    dot={{ strokeWidth: 2 }}
+                    activeDot={{ r: 6 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <EmptyState message="Chưa có lượt đăng ký mới." />
+            )}
+          </div>
+        </article>
+      </section>
+
+      <section className="split-grid">
+        <article className="dash-card list-card">
+          <div className="card-head">
+            <div>
+              <h3>�?ơn gần đây</h3>
+              <p>Theo dõi học viên và trạng thái thanh toán</p>
+            </div>
+            <Link to="/admin/orders" className="text-link">
+              Quản lý �?ơn
+            </Link>
+          </div>
+          {recentOrders.length ? (
+            <div className="table-scroll">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Học viên</th>
+                    <th>Khoá học</th>
+                    <th>Ngày</th>
+                    <th>Trạng thái</th>
+                    <th className="text-right">Giá trị</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentOrders.map((order) => (
+                    <tr key={order._id}>
+                      <td>
+                        <div className="table-user">
+                          <Avatar
+                            src={order.student?.avatar}
+                            name={order.student?.name}
+                            size="sm"
+                          />
+                          <div>
+                            <p>{order.student?.name || "Không rõ"}</p>
+                            <small>{order.student?.email || "—"}</small>
+                          </div>
+                        </div>
                       </td>
-                      <td className="py-2">{order.course?.title || "Khóa học"}</td>
-                      <td className="py-2 text-right font-semibold">
-                        {currencyFormatter.format(order.amount || order.course?.price || 0)}
-                      </td>
-                      <td className="py-2 text-center">
+                  <td>
+                    <p>{order.course?.title || "Khoá học"}</p>
+                    <small>
+                      Giá niêm yết{" "}
+                      {currencyFormatter.format(order.course?.price || 0)}
+                    </small>
+                  </td>
+                      <td>{formatDate(order.createdAt)}</td>
+                      <td>
                         <span
-                          className={`text-xs px-2.5 py-1 rounded-full font-semibold ${
-                            statusBadge[order.status] || "bg-gray-100 text-gray-600"
-                          }`}
+                          className={
+                            statusClassMap[order.status] || "status status--neutral"
+                          }
                         >
                           {order.status}
                         </span>
                       </td>
-                      <td className="py-2 text-right text-gray-500">
-                        {new Date(order.createdAt).toLocaleDateString("vi-VN")}
+                      <td className="text-right">
+                        {currencyFormatter.format(order.amount || order.course?.price || 0)}
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={5} className="py-4 text-center text-gray-500">
-                      Chưa có giao dịch nào.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 lg:col-span-2">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800">
-                Khóa học doanh thu cao
-              </h3>
-              <p className="text-sm text-gray-500">
-                Top 5 khóa học có doanh thu lớn nhất
-              </p>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            <BarChart3 className="text-emerald-500" size={20} />
-          </div>
+          ) : (
+            <EmptyState message="Chưa có giao dịch nào gần đây." />
+          )}
+        </article>
 
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="text-gray-500 uppercase text-xs">
-                <tr>
-                  <th className="text-left py-2">Khóa học</th>
-                  <th className="text-left py-2">Danh mục</th>
-                  <th className="text-left py-2">Giảng viên</th>
-                  <th className="text-right py-2">Doanh thu</th>
-                  <th className="text-right py-2">Đơn</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {overview.topCourses?.length ? (
-                  overview.topCourses.map((course) => (
-                    <tr key={course._id}>
-                      <td className="py-2 font-semibold text-gray-900">
-                        {course.title}
-                      </td>
-                      <td className="py-2 text-gray-500">
-                        {course.categoryName || "Chưa có"}
-                      </td>
-                      <td className="py-2 text-gray-500">
-                        {course.instructorName || "Ẩn danh"}
-                      </td>
-                      <td className="py-2 text-right font-semibold">
-                        {currencyFormatter.format(course.revenue || 0)}
-                      </td>
-                      <td className="py-2 text-right text-gray-600">
-                        {course.orders || 0}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={5} className="py-4 text-center text-gray-500">
-                      Chưa có dữ liệu doanh thu.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-          <div className="flex items-center justify-between mb-4">
+        <article className="dash-card list-card">
+          <div className="card-head">
             <div>
-              <h3 className="text-lg font-semibold text-gray-800">
-                Giảng viên nổi bật
-              </h3>
-              <p className="text-sm text-gray-500">
-                Xếp hạng theo doanh thu khóa học
-              </p>
+              <h3>Khoá học chờ duyệt</h3>
+              <p>�?ảm bảo nội dung đạt chuẩn trước khi công bố</p>
             </div>
+            <Link to="/admin/courses" className="text-link">
+              Xem tất cả
+            </Link>
           </div>
-          <ul className="space-y-4">
-            {overview.topInstructors?.length ? (
-              overview.topInstructors.map((instructor) => (
-                <li key={instructor._id} className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-semibold">
-                    {instructor.avatar ? (
-                      <img
-                        src={instructor.avatar}
-                        alt={instructor.name}
-                        className="w-full h-full object-cover rounded-full"
-                      />
-                    ) : (
-                      (instructor.name || "?").charAt(0).toUpperCase()
-                    )}
+          {pendingCourses.length ? (
+            <ul className="timeline">
+              {pendingCourses.map((course) => (
+                <li key={course._id}>
+                  <div>
+                    <p className="timeline__title">{course.title}</p>
+                    <small>
+                      {course.category?.name || "Chưa có danh mục"} •{" "}
+                      {course.instructor?.name || "Chưa có giảng viên"}
+                    </small>
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-gray-900">{instructor.name}</p>
-                    <p className="text-xs text-gray-500">{instructor.email}</p>
+                  <span>{formatDate(course.createdAt)}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <EmptyState message="Không có khoá học nào chờ phê duyệt." />
+          )}
+        </article>
+      </section>
+
+      <section className="insights-grid">
+        <article className="dash-card list-card">
+          <div className="card-head">
+            <div>
+              <h3>Khoá học nổi bật</h3>
+              <p>Được xếp hạng theo doanh thu</p>
+            </div>
+            <Clock size={16} className="text-muted" />
+          </div>
+          {topCourses.length ? (
+            <ul className="course-list">
+              {topCourses.map((course) => (
+                <li key={course._id}>
+                  <div>
+                    <p className="course-list__title">{course.title}</p>
+                    <small>
+                      {course.categoryName || "KhA3a học"} •{" "}
+                      {course.instructorName || "�?n danh"}
+                    </small>
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-gray-900">
-                      {currencyFormatter.format(instructor.revenue || 0)}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {instructor.orders || 0} đơn
-                    </p>
+                  <div className="course-list__meta">
+                    <strong>{currencyFormatter.format(course.revenue || 0)}</strong>
+                    <small>{course.orders || 0} �?ơn</small>
                   </div>
                 </li>
-              ))
-            ) : (
-              <p className="text-gray-500 text-sm">Chưa có dữ liệu giảng viên.</p>
-            )}
-          </ul>
+              ))}
+            </ul>
+          ) : (
+            <EmptyState message="Chưa có dữ liệu khoá học nổi bật." />
+          )}
+        </article>
 
-          <div className="mt-6 border-t pt-4">
-            <p className="text-sm text-gray-500 mb-2 font-medium">
-              Học viên mới tham gia
-            </p>
-            <div className="space-y-3 max-h-48 overflow-y-auto pr-2">
-              {overview.newStudents?.length ? (
-                overview.newStudents.map((student) => (
-                  <div key={student._id} className="flex items-center justify-between">
-                    <div>
-                      <p className="font-semibold text-gray-800">{student.name}</p>
-                      <p className="text-xs text-gray-500">{student.email}</p>
-                    </div>
-                    <span className="text-xs text-gray-400">
-                      {new Date(student.createdAt).toLocaleDateString("vi-VN")}
-                    </span>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-500 text-sm">Chưa có học viên mới.</p>
-              )}
+        <article className="dash-card list-card">
+          <div className="card-head">
+            <div>
+              <h3>Giảng viên xuất sắc</h3>
+              <p>Dựa trên doanh thu khoá học</p>
             </div>
+            <ShieldCheck size={16} className="text-muted" />
           </div>
-        </section>
-      </div>
+          {topInstructors.length ? (
+            <ul className="person-list">
+              {topInstructors.map((instructor) => (
+                <li key={instructor._id}>
+                  <div className="person">
+                    <Avatar
+                      src={instructor.avatar}
+                      name={instructor.name}
+                    />
+                    <div>
+                      <p>{instructor.name}</p>
+                      <small>{instructor.email}</small>
+                    </div>
+                  </div>
+                  <div className="person__meta">
+                    <strong>
+                      {currencyFormatter.format(instructor.revenue || 0)}
+                    </strong>
+                    <small>{instructor.orders || 0} �?ơn</small>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <EmptyState message="Chưa có dữ liệu giảng viên." />
+          )}
+        </article>
+
+        <article className="dash-card list-card">
+          <div className="card-head">
+            <div>
+              <h3>Học viên mới</h3>
+              <p>Theo dõi đăng ký gần nhất</p>
+            </div>
+            <UserPlus size={16} className="text-muted" />
+          </div>
+          {newStudents.length ? (
+            <ul className="person-list">
+              {newStudents.map((student) => (
+                <li key={student._id}>
+                  <div className="person">
+                    <Avatar
+                      src={student.avatar}
+                      name={student.name}
+                    />
+                    <div>
+                      <p>{student.name}</p>
+                      <small>{student.email}</small>
+                    </div>
+                  </div>
+                  <div className="person__meta">
+                    <strong>{formatDate(student.createdAt)}</strong>
+                    <small>Ngày tham gia</small>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <EmptyState message="Chưa có học viên mới." />
+          )}
+        </article>
+      </section>
     </div>
   );
 }
