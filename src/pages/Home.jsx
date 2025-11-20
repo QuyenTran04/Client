@@ -9,8 +9,146 @@ export default function Home() {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
 
+  const subjects = [
+    {
+      href: "/courses?subject=physics",
+      title: "Vật lý",
+      description: "Cơ học, điện học, quang học...",
+      theme: "bg-blue",
+      sticker: "STEM",
+      tone: "blue",
+      icon: "🔭",
+    },
+    {
+      href: "/courses?subject=chemistry",
+      title: "Hóa học",
+      description: "Hóa vô cơ, hữu cơ, phân tích...",
+      theme: "bg-purple",
+      sticker: "LAB",
+      tone: "purple",
+      icon: "⚗️",
+    },
+    {
+      href: "/courses?subject=biology",
+      title: "Sinh học",
+      description: "Sinh tế bào, di truyền, tiến hóa...",
+      theme: "bg-green",
+      sticker: "DNA",
+      tone: "green",
+      icon: "🧬",
+    },
+    {
+      href: "/courses?subject=history",
+      title: "Lịch sử",
+      description: "Lịch sử Việt Nam và thế giới",
+      theme: "bg-amber",
+      sticker: "HIST",
+      tone: "amber",
+      icon: "🏺",
+    },
+    {
+      href: "/courses?subject=geography",
+      title: "Địa lý",
+      description: "Tự nhiên, kinh tế, xã hội",
+      theme: "bg-cyan",
+      sticker: "WORLD",
+      tone: "cyan",
+      icon: "🌍",
+    },
+    {
+      href: "/courses?subject=informatics",
+      title: "Tin học",
+      description: "Lập trình, dữ liệu, CNTT",
+      theme: "bg-slate",
+      sticker: "CODE",
+      tone: "slate",
+      icon: "💻",
+    },
+    {
+      href: "/courses?subject=english",
+      title: "Tiếng Anh",
+      description: "Ngữ pháp, giao tiếp, luyện thi",
+      theme: "bg-pink",
+      sticker: "IELTS",
+      tone: "pink",
+      icon: "📚",
+    },
+    {
+      href: "/courses",
+      title: "Xem tất cả",
+      description: "Khám phá thêm nhiều lĩnh vực khác",
+      theme: "",
+      sticker: "More",
+      tone: "dark",
+      icon: "✨",
+    },
+  ];
+
+  const stats = [
+    { label: "Học viên đang học", value: "75K+", sub: "trên toàn quốc" },
+    { label: "Khóa học chuyên sâu", value: "620+", sub: "đủ mọi lĩnh vực" },
+    { label: "Giảng viên chuyên gia", value: "140+", sub: "từ doanh nghiệp" },
+    { label: "Điểm hài lòng", value: "4.9/5", sub: "từ 12K+ đánh giá" },
+  ];
+
+  const blogPosts = [
+    {
+      id: 1,
+      title: "5 bước xây dựng lộ trình học tập cá nhân hóa",
+      excerpt: "Áp dụng mô hình SMART để chọn khóa học phù hợp mục tiêu sự nghiệp.",
+      image: "/assets/cover-1.jpg",
+      href: "/blog/lo-trinh-ca-nhan",
+    },
+    {
+      id: 2,
+      title: "Checklist thi chứng chỉ quốc tế hiệu quả",
+      excerpt: "Chuẩn bị kiến thức, thời gian và tài liệu giúp bạn tự tin khi thi.",
+      image: "/assets/cover-2.jpg",
+      href: "/blog/checklist-chung-chi",
+    },
+    {
+      id: 3,
+      title: "Kinh nghiệm học online tập trung trong 30 phút",
+      excerpt: "Kết hợp Pomodoro cùng mentor để tối ưu năng suất mỗi ngày.",
+      image: "/assets/cover-3.jpg",
+      href: "/blog/pomodoro-online",
+    },
+  ];
+
+  const faqItems = [
+    {
+      q: "Khóa học có cấp chứng chỉ không?",
+      a: "Mỗi khóa đều có chứng chỉ số kèm mã định danh và có thể tải về hồ sơ LinkedIn.",
+    },
+    {
+      q: "Tôi có thể học trên điện thoại chứ?",
+      a: "Có. Ứng dụng di động cho phép xem video offline và đồng bộ tiến độ với website.",
+    },
+    {
+      q: "Học phí thanh toán như thế nào?",
+      a: "Bạn có thể thanh toán bằng thẻ quốc tế, ví điện tử, chuyển khoản hoặc trả góp 0%.",
+    },
+    {
+      q: "Nếu không hài lòng thì sao?",
+      a: "Elearn áp dụng chính sách hoàn tiền trong 7 ngày nếu khóa học không phù hợp.",
+    },
+  ];
+
   return (
     <div className="home">
+      {/* PROMO BANNER */}
+      <section className="promo-banner">
+        <div className="container promo-inner">
+          <div>
+            <p className="badge glow">Giảm giá cuối năm</p>
+            <h3>Ưu đãi 40% cho gói học trọn đời • Hết hạn trong 48h</h3>
+          </div>
+          <button className="btn accent" onClick={() => navigate("/courses?tag=best-deal")}>
+            Nhận ưu đãi
+          </button>
+        </div>
+      </section>
+
       {/* HERO */}
       <header className="hero">
         <div className="container hero-wrap">
@@ -24,15 +162,27 @@ export default function Home() {
                 ? ` Chào mừng trở lại, ${user.name}!`
                 : " Tham gia miễn phí ngay hôm nay."}
             </p>
+            <form
+              className="hero-search"
+              onSubmit={(e) => {
+                e.preventDefault();
+                navigate(`/courses?q=${encodeURIComponent(query)}`);
+              }}
+            >
+              <input
+                className="ipt"
+                placeholder="Tìm khóa học, chủ đề, giảng viên..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+              <button className="btn primary" type="submit">
+                Tìm kiếm nhanh
+              </button>
+            </form>
             <div className="cta-row">
               <Link to="/courses" className="btn primary">
                 Khám phá khóa học
               </Link>
-              {!user && (
-                <Link to="/register" className="btn outline">
-                  Tạo tài khoản miễn phí
-                </Link>
-              )}
             </div>
           </div>
           <div className="hero-ill">
@@ -41,25 +191,29 @@ export default function Home() {
         </div>
       </header>
 
-      {/* GLOBAL SEARCH */}
+      {/* STATS */}
       <section className="section">
+        <div className="container stats-highlight">
+          {stats.map((item) => (
+            <div key={item.label} className="stat-card">
+              <span className="value">{item.value}</span>
+              <p>{item.label}</p>
+              <small>{item.sub}</small>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* TRUSTED LOGOS */}
+      <section className="section trust-strip">
         <div className="container">
-          <div className="search-wide">
-            <input
-              className="ipt grow"
-              placeholder="Tìm khóa học, bài giảng, tài liệu..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") navigate(`/courses?q=${encodeURIComponent(query)}`);
-              }}
-            />
-            <button
-              className="btn primary"
-              onClick={() => navigate(`/courses?q=${encodeURIComponent(query)}`)}
-            >
-              Tìm kiếm
-            </button>
+          <p className="muted">Được tin tưởng bởi các doanh nghiệp & trường học</p>
+          <div className="logo-row">
+            {["FPT Software", "Vietcredit", "MoMo", "VNPay", "HarvardX", "AWS Academy"].map(
+              (name, idx) => (
+                <span key={idx}>{name}</span>
+              )
+            )}
           </div>
         </div>
       </section>
@@ -69,54 +223,38 @@ export default function Home() {
         <div className="container">
           <h2 className="section-title">Môn học</h2>
           <div className="cards four">
-            <Link to="/courses?subject=physics" className="card subject bg-blue">
-              <div className="card-body">
-                <h3>Vật lý</h3>
-                <p className="muted">Cơ học, điện học, quang học...</p>
-              </div>
-            </Link>
-            <Link to="/courses?subject=chemistry" className="card subject bg-purple">
-              <div className="card-body">
-                <h3>Hóa học</h3>
-                <p className="muted">Hóa vô cơ, hữu cơ, phân tích...</p>
-              </div>
-            </Link>
-            <Link to="/courses?subject=biology" className="card subject bg-green">
-              <div className="card-body">
-                <h3>Sinh học</h3>
-                <p className="muted">Sinh tế bào, di truyền, tiến hóa...</p>
-              </div>
-            </Link>
-            <Link to="/courses?subject=history" className="card subject bg-amber">
-              <div className="card-body">
-                <h3>Lịch sử</h3>
-                <p className="muted">Lịch sử Việt Nam và thế giới</p>
-              </div>
-            </Link>
-            <Link to="/courses?subject=geography" className="card subject bg-cyan">
-              <div className="card-body">
-                <h3>Địa lý</h3>
-                <p className="muted">Tự nhiên, kinh tế, xã hội</p>
-              </div>
-            </Link>
-            <Link to="/courses?subject=informatics" className="card subject bg-slate">
-              <div className="card-body">
-                <h3>Tin học</h3>
-                <p className="muted">Lập trình, dữ liệu, CNTT</p>
-              </div>
-            </Link>
-            <Link to="/courses?subject=english" className="card subject bg-pink">
-              <div className="card-body">
-                <h3>Tiếng Anh</h3>
-                <p className="muted">Ngữ pháp, giao tiếp, luyện thi</p>
-              </div>
-            </Link>
-            <Link to="/courses" className="card subject">
-              <div className="card-body">
-                <h3>Xem tất cả</h3>
-                <p className="muted">Khám phá thêm nhiều lĩnh vực khác</p>
-              </div>
-            </Link>
+            {subjects.map((subject) => (
+              <Link key={subject.title} to={subject.href} className={`card subject ${subject.theme}`}>
+                <span className={`sticker sticker-${subject.tone}`}>{subject.sticker}</span>
+                <span className="subject-icon" aria-hidden="true">
+                  {subject.icon}
+                </span>
+                <div className="card-body">
+                  <h3>{subject.title}</h3>
+                  <p className="muted">{subject.description}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* TRUST BADGES */}
+      <section className="section trust-badges">
+        <div className="container">
+          <div className="badge-grid">
+            <div>
+              <h3>Đảm bảo chất lượng</h3>
+              <p>Lộ trình được hội đồng chuyên môn kiểm duyệt định kỳ.</p>
+            </div>
+            <div>
+              <h3>Hỗ trợ 24/7</h3>
+              <p>Mentor và AI Chatbot đồng hành, giải đáp trong 5 phút.</p>
+            </div>
+            <div>
+              <h3>Bảo mật & chứng chỉ</h3>
+              <p>Chứng chỉ có mã QR xác thực, thanh toán chuẩn PCI-DSS.</p>
+            </div>
           </div>
         </div>
       </section>
@@ -248,10 +386,37 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SECTION: Text + Ảnh + form */}
+      {/* BLOG */}
       <section className="section">
+        <div className="container">
+          <div className="section-head">
+            <h2 className="section-title">Góc kiến thức & Blog</h2>
+            <Link to="/blog" className="btn link">
+              Đọc thêm →
+            </Link>
+          </div>
+          <div className="cards three blog-grid">
+            {blogPosts.map((post) => (
+              <article key={post.id} className="card blog-card">
+                <div className="thumb" style={{ backgroundImage: `url(${post.image})` }} />
+                <div className="card-body">
+                  <span className="badge soft">Chia sẻ</span>
+                  <h3>{post.title}</h3>
+                  <p className="muted">{post.excerpt}</p>
+                  <Link to={post.href} className="btn link">
+                    Đọc ngay →
+                  </Link>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION: Text + Ảnh + form */}
+      <section className="section signup-section">
         <div className="container two-col reverse">
-          <div className="content">
+          <div className="content signup-card">
             <h2>
               Bắt đầu học bằng cách tạo
               <br />
@@ -261,7 +426,7 @@ export default function Home() {
               Tạo hồ sơ học viên để theo dõi tiến độ, lưu khóa học và nhận chứng
               chỉ.
             </p>
-            <div className="cta-row">
+            <div className="signup-form">
               <input className="ipt" placeholder="Họ và tên của bạn" />
               <input className="ipt" placeholder="Email của bạn" />
               <button className="btn accent">Đăng ký nhận tin</button>
@@ -269,6 +434,51 @@ export default function Home() {
           </div>
           <div className="media">
             <img src="/assets/section-2.jpg" alt="Đăng ký tài khoản" loading="lazy" />
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="section faq">
+        <div className="container">
+          <div className="two-col">
+            <div className="content">
+              <h2>Câu hỏi thường gặp</h2>
+              <p className="sub">
+                Giải đáp nhanh những điều bạn quan tâm trước khi đăng ký học tập trên Elearn.
+              </p>
+            </div>
+            <div className="faq-list">
+              {faqItems.map((item) => (
+                <details key={item.q} className="faq-item">
+                  <summary>{item.q}</summary>
+                  <p>{item.a}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* APP DOWNLOAD */}
+      <section className="section app-download">
+        <div className="container two-col">
+          <div className="content">
+            <h2>Học mọi lúc với ứng dụng Elearn</h2>
+            <p className="sub">
+              Đồng bộ tiến độ giữa web và mobile, xem bài giảng offline, nhận nhắc nhở cá nhân hóa.
+            </p>
+            <div className="store-buttons">
+              <a className="btn primary" href="#">
+                Tải trên App Store
+              </a>
+              <a className="btn outline" href="#">
+                Tải trên Google Play
+              </a>
+            </div>
+          </div>
+          <div className="media">
+            <img src="/assets/cover-4.jpg" alt="Ứng dụng Elearn" loading="lazy" />
           </div>
         </div>
       </section>
@@ -366,6 +576,31 @@ export default function Home() {
         </div>
       </section>
 
+      {/* NEWSLETTER */}
+      <section className="section newsletter">
+        <div className="container">
+          <div className="newsletter-card">
+            <div>
+              <span className="badge soft">Nhận tài liệu miễn phí</span>
+              <h3>Đăng ký nhận bản tin học tập mỗi tuần</h3>
+              <p className="muted">
+                Nhận bộ template lên kế hoạch học tập, gợi ý khóa học và ưu đãi độc quyền qua email.
+              </p>
+            </div>
+            <form
+              className="newsletter-form"
+              onSubmit={(e) => {
+                e.preventDefault();
+              }}
+            >
+              <input className="ipt" placeholder="Tên của bạn" />
+              <input className="ipt" placeholder="Email của bạn" />
+              <button className="btn accent">Đăng ký</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
       {/* FOOTER */}
       <footer className="footer">
         <div className="container fwrap">
@@ -400,6 +635,14 @@ export default function Home() {
           © {new Date().getFullYear()} Elearn — Mọi quyền được bảo lưu.
         </div>
       </footer>
+
+      {/* STICKY CTA */}
+      <div className="sticky-cta">
+        <p>🎯 Sẵn sàng bắt đầu? Tìm khóa học tiếp theo của bạn ngay bây giờ.</p>
+        <button className="btn primary" onClick={() => navigate("/courses")}>
+          Bắt đầu học
+        </button>
+      </div>
     </div>
   );
 }

@@ -1,14 +1,19 @@
 /* ========== Root theme ========== */
 :root{
-  --bg-grad-start:#f6d94a;     /* nền vàng sáng (ngoài card) */
-  --bg-grad-end:#d0ad16;       /* vàng đậm hơn */
-  --card:#ffffff;              /* màu nền thẻ */
-  --field:#eef1f4;             /* màu input mặc định */
-  --text:#0f172a;              /* chữ đậm */
-  --muted:#64748b;             /* chữ phụ */
-  --line:#e5e7eb;              /* viền nhạt */
-  --accent:#ffd947;            /* vàng nút chính */
-  --ring:#0f172a12;            /* focus ring nhẹ */
+  --bg-grad-start:#fff2d7;      /* nền cam nhạt */
+  --bg-grad-end:#ffe1ef;        /* nền hồng nhạt */
+  --card:#ffffff;               /* màu nền thẻ */
+  --surface-soft:#fff0e1;       /* nền phụ */
+  --field:#ffe9f5;              /* màu input */
+  --text-strong:#0f172a;        /* chữ đậm */
+  --text:#111827;               /* chữ thân bài */
+  --muted:#4b5563;              /* chữ phụ */
+  --line:#f0b9d2;               /* viền */
+  --accent:#ff5c5c;             /* đỏ tươi */
+  --accent-strong:#ff2d55;      /* hồng đậm */
+  --accent-soft:#ffe5ea;        /* nền nhấn mềm */
+  --accent-alt:#ff9f0a;         /* phụ vàng */
+  --ring:rgba(255,45,85,0.35);  /* focus ring */
 }
 
 /* ========== Reset / Base ========== */
@@ -16,9 +21,13 @@
 html, body{ height:100%; }
 body{
   margin:0;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  font-family: "Inter", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
   color:var(--text);
-  background:#fff; /* fallback khi không dùng canvas */
+  background:
+    radial-gradient(circle at 15% 20%, rgba(255,255,255,.6), transparent 60%),
+    radial-gradient(circle at 85% 0%, rgba(255,255,255,.45), transparent 55%),
+    linear-gradient(135deg, var(--bg-grad-start), var(--bg-grad-end));
+  min-height:100vh;
 }
 a{ color:inherit; }
 
@@ -42,7 +51,8 @@ a{ color:inherit; }
 .auth-canvas{
   min-height:100dvh;
   background:
-    radial-gradient(1200px 600px at 15% 10%, rgba(255,255,255,.25) 0 40%, transparent 41%),
+    radial-gradient(900px 500px at 15% 10%, rgba(255,255,255,.45) 0 45%, transparent 50%),
+    radial-gradient(600px 400px at 80% 0%, rgba(249,115,181,.25) 0 40%, transparent 50%),
     linear-gradient(135deg, var(--bg-grad-start), var(--bg-grad-end));
   display:grid;
   place-items:center;
@@ -88,12 +98,12 @@ a{ color:inherit; }
 /* ========== Panel phải: form ========== */
 .auth-form-side{
   padding:36px 40px;
-  background:#f8fafc;            /* xám- trắng rất nhạt */
+  background:#fdfbff;            /* xám- trắng rất nhạt */
   display:flex; flex-direction:column; justify-content:center;
 }
 .auth-title{
   margin:0 0 6px;
-  font-size:22px; font-weight:800; color:var(--text);
+  font-size:22px; font-weight:800; color:var(--text-strong);
 }
 .auth-subtitle{
   margin:0 0 22px; color:var(--muted);
@@ -118,7 +128,7 @@ a{ color:inherit; }
 .input::placeholder{ color:#9aa5b1; }
 .input:focus, .select:focus{
   background:#fff;
-  border-color:#cdd3da;
+  border-color:var(--accent-soft);
   box-shadow:0 0 0 6px var(--ring);
 }
 
@@ -128,16 +138,16 @@ a{ color:inherit; }
   padding:12px 14px;
   border:none;
   border-radius:12px;
-  background:var(--accent);
-  color:#111;
-  font-weight:800;
+  background:linear-gradient(120deg, var(--accent), var(--accent-strong));
+  color:#fff;
+  font-weight:700;
   cursor:pointer;
-  box-shadow:0 6px 0 #caa71e;
+  box-shadow:0 10px 25px rgba(255,90,31,0.35);
   transition:transform .05s ease, box-shadow .05s ease, opacity .2s;
 }
 .btn-primary:active{
   transform:translateY(2px);
-  box-shadow:0 3px 0 #caa71e;
+  box-shadow:0 6px 14px rgba(255,90,31,0.4);
 }
 .btn-primary:disabled{ opacity:.6; cursor:not-allowed; }
 
@@ -145,7 +155,7 @@ a{ color:inherit; }
   margin-top:10px; font-size:14px; color:var(--muted);
 }
 .auth-meta a{
-  color:#f2b400; text-decoration:none; font-weight:600;
+  color:var(--accent); text-decoration:none; font-weight:600;
 }
 
 /* ========== Divider + OAuth buttons ========== */
@@ -163,14 +173,20 @@ a{ color:inherit; }
   padding:10px 14px;
   font-weight:600;
   cursor:pointer;
+  color:var(--text);
+  transition:.2s ease;
+}
+.oauth-btn:hover{
+  border-color:var(--accent);
+  box-shadow:0 8px 16px rgba(255,138,61,0.18);
 }
 .oauth-btn img{ width:18px; height:18px; }
 
 /* ========== Thông báo lỗi ========== */
 .error{
-  background:#fff1f1;
-  border:1px solid #ffd6d6;
-  color:#b10000;
+  background:#fff2f2;
+  border:1px solid #ffc5c5;
+  color:#b42318;
   padding:10px 12px;
   border-radius:12px;
   margin:10px 0 14px;
@@ -185,10 +201,10 @@ a{ color:inherit; }
 }
 /* layout cơ bản */
 .container { max-width: 1100px; margin: 24px auto; padding: 0 16px; }
-.hero { background: linear-gradient(180deg,#fff, #f6f7fb); border-bottom: 1px solid #eee; }
+.hero { background: linear-gradient(180deg,#fff, #fff5ef); border-bottom: 1px solid var(--line); }
 .hero-inner { max-width: 1100px; margin: 0 auto; padding: 40px 16px; }
 .hero h1 { margin: 0 0 8px; font-size: 28px; }
-.hero p { margin: 0 0 16px; color: #666; }
+.hero p { margin: 0 0 16px; color: var(--muted); }
 
 /* toolbar */
 .toolbar { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -197,21 +213,23 @@ a{ color:inherit; }
 
 /* category pills */
 .pill-row { display:flex; gap:8px; flex-wrap: wrap; margin: 18px 0; }
-.pill { padding:8px 12px; border:1px solid #e5e7eb; background:#fff; border-radius:999px; cursor:pointer; }
-.pill.active { background:#111; color:#fff; border-color:#111; }
+.pill { padding:8px 12px; border:1px solid var(--line); background:#fff; border-radius:999px; cursor:pointer; color:var(--muted); transition:.2s ease; }
+.pill:hover { border-color:var(--accent); color:var(--text); }
+.pill.active { background:linear-gradient(120deg,var(--accent),var(--accent-strong)); color:#fff; border-color:transparent; box-shadow:0 6px 18px rgba(255,138,61,0.25); }
 
 /* grid & card */
 .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(240px,1fr)); gap:16px; }
-.card { border:1px solid #eee; background:#fff; border-radius:14px; overflow:hidden; display:flex; flex-direction:column; }
+.card { border:1px solid var(--line); background:var(--card); border-radius:16px; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 8px 18px rgba(15,23,42,0.05); }
 .thumb { background:#f0f0f0 center/cover no-repeat; height:140px; }
 .card-body { padding:12px; display:flex; flex-direction:column; gap:8px; }
-.title { font-size:16px; margin:0; line-height:1.3; height:2.6em; overflow:hidden; }
-.desc { color:#666; font-size:13px; height:3.2em; overflow:hidden; }
-.meta { display:flex; align-items:center; gap:6px; font-size:13px; color:#555; }
+.title { font-size:16px; margin:0; line-height:1.3; height:2.6em; overflow:hidden; color:var(--text-strong); }
+.desc { color:var(--muted); font-size:13px; height:3.2em; overflow:hidden; }
+.meta { display:flex; align-items:center; gap:6px; font-size:13px; color:#475467; }
 .meta .dot { opacity:.35; }
 .price { font-weight:600; }
 .actions { margin-top:8px; }
-.btn { display:inline-block; padding:8px 10px; border:1px solid #111; border-radius:10px; text-decoration:none; color:#111; }
+.btn { display:inline-block; padding:8px 12px; border:1px solid var(--accent); border-radius:12px; text-decoration:none; color:var(--accent-strong); background:var(--accent-soft); font-weight:600; transition:.2s ease; }
+.btn:hover { background:linear-gradient(120deg,var(--accent),var(--accent-strong)); color:#fff; box-shadow:0 8px 20px rgba(255,138,61,0.25); }
 
 /* skeleton */
 .skeleton .thumb{ background:linear-gradient(90deg,#eee,#f5f5f5,#eee); animation:sh 1.3s infinite; }

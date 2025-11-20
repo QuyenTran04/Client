@@ -13,11 +13,11 @@
 .course-page .head h1 {
   margin: 0;
   font-size: 2rem;
-  color: #222;
+  color: #0f172a;
 }
 
 .muted {
-  color: #666;
+  color: #667085;
 }
 
 /* ===== Filters ===== */
@@ -32,7 +32,7 @@
 .ipt,
 .sel {
   padding: 10px 14px;
-  border: 1px solid #ddd;
+  border: 1px solid #e4e7ec;
   border-radius: 10px;
   min-width: 220px;
   background: #fff;
@@ -42,8 +42,8 @@
 
 .ipt:focus,
 .sel:focus {
-  border-color: #f1b24a;
-  box-shadow: 0 0 0 2px #f1b24a33;
+  border-color: #ff8a3d;
+  box-shadow: 0 0 0 3px rgba(255,138,61,0.2);
   outline: none;
 }
 
@@ -58,7 +58,7 @@
 
 .pager button {
   padding: 8px 14px;
-  border: 1px solid #ddd;
+  border: 1px solid #e4e7ec;
   background: #fff;
   border-radius: 10px;
   cursor: pointer;
@@ -67,9 +67,10 @@
 }
 
 .pager button:hover {
-  background: #111;
+  background: linear-gradient(120deg, #ff8a3d, #ff5a1f);
   color: #fff;
-  border-color: #111;
+  border-color: transparent;
+  box-shadow: 0 10px 22px rgba(255,90,31,0.25);
 }
 
 /* ======= COURSE DETAIL ======= */
@@ -87,6 +88,14 @@
   overflow: hidden;
   margin-bottom: 40px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+.cd-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(4, 7, 17, 0.8), rgba(66, 31, 107, 0.5));
+  z-index: 1;
 }
 
 .cd-hero-bg {
@@ -225,18 +234,18 @@
 }
 
 .cd-card {
-  background: #fff;
-  border-radius: 16px;
+  background: linear-gradient(180deg, #ffffff, #fff8f3);
+  border-radius: 18px;
   padding: 28px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 25px 50px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(255, 138, 61, 0.15);
 }
 
 .cd-card-title {
   font-size: 24px;
   font-weight: 700;
   margin-bottom: 16px;
-  color: #222;
+  color: #0f172a;
 }
 
 .cd-card-title.small {
@@ -245,7 +254,7 @@
 }
 
 .cd-text {
-  color: #444;
+  color: #475467;
   line-height: 1.8;
   font-size: 16px;
 }
@@ -257,7 +266,7 @@
 .cd-list-item {
   padding: 12px 0;
   border-bottom: 1px solid #f0f0f0;
-  color: #444;
+  color: #475467;
   font-size: 15px;
 }
 
@@ -273,7 +282,7 @@
 
 .cd-bullets li {
   padding: 8px 0;
-  color: #444;
+  color: #475467;
   font-size: 15px;
 }
 
@@ -307,7 +316,7 @@
 .teacher .name {
   font-weight: 700;
   font-size: 18px;
-  color: #222;
+  color: #0f172a;
   margin-bottom: 4px;
 }
 
@@ -328,7 +337,7 @@
   flex-direction: column;
   gap: 12px;
   font-size: 14px;
-  color: #666;
+  color: #667085;
 }
 
 .course-detail .cd-top {
@@ -343,9 +352,9 @@
   width: 100%;
   aspect-ratio: 16 / 9;
   border-radius: 14px;
-  border: 1px solid #eee;
-  background: #f6f6f6 center/cover no-repeat;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  border: 1px solid rgba(255,138,61,0.15);
+  background: #fdf2e9 center/cover no-repeat;
+  box-shadow: 0 15px 35px rgba(15,23,42,0.08);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   filter: brightness(0.98) contrast(1.02);
   overflow: hidden;
@@ -353,20 +362,21 @@
 
 .cd-thumb:hover {
   transform: scale(1.02);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  box-shadow: 0 25px 45px rgba(255,138,61,0.25);
   filter: brightness(1.05) contrast(1.05);
 }
 
 .cd-meta h1 {
   margin: 0 0 8px;
   font-size: 1.8rem;
+  color: #0f172a;
 }
 
 .cd-row {
   display: flex;
   gap: 18px;
   flex-wrap: wrap;
-  color: #333;
+  color: #475467;
   margin: 12px 0 18px;
   font-size: 15px;
 }
@@ -380,18 +390,18 @@
 .cd-actions .btn {
   padding: 10px 18px;
   border-radius: 10px;
-  border: 1px solid #111;
-  background: #111;
+  border: none;
+  background: linear-gradient(120deg, #ff8a3d, #ff5a1f);
   color: #fff;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.25s ease;
+  box-shadow: 0 12px 24px rgba(255, 90, 31, 0.25);
 }
 
 .cd-actions .btn:hover {
-  background: #f1b24a;
-  color: #111;
-  border-color: #f1b24a;
+  transform: translateY(-2px);
+  box-shadow: 0 18px 32px rgba(255, 90, 31, 0.3);
 }
 
 /* ===== Sections ===== */
@@ -402,7 +412,7 @@
 .cd-section h2 {
   font-size: 1.5rem;
   margin-bottom: 16px;
-  color: #222;
+  color: #0f172a;
 }
 
 /* ===== Lesson list ===== */
@@ -410,10 +420,10 @@
   list-style: none;
   padding: 0;
   margin: 0;
-  border: 1px solid #eee;
-  border-radius: 12px;
+  border: 1px solid #e4e7ec;
+  border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  box-shadow: 0 15px 30px rgba(15,23,42,0.06);
 }
 
 .lesson-list li {
@@ -430,15 +440,16 @@
 }
 
 .lesson-list li:hover {
-  background: #faf6ee;
+  background: #fff4ec;
 }
 
 .ls-title {
-  font-weight: 500;
+  font-weight: 600;
+  color: #0f172a;
 }
 
 .ls-time {
-  color: #666;
+  color: #98a2b3;
   font-size: 14px;
 }
 
@@ -454,21 +465,21 @@
 
 .review-list li {
   padding: 14px 16px;
-  background: #fffdf8;
-  border: 1px solid #eee;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+  background: linear-gradient(135deg, #ffffff, #fff4ec);
+  border: 1px solid rgba(255,138,61,0.15);
+  border-radius: 14px;
+  box-shadow: 0 15px 30px rgba(15,23,42,0.06);
 }
 
 .rv-text {
-  color: #444;
+  color: #475467;
   margin-top: 4px;
   font-size: 15px;
 }
 
 .q-author {
   margin-top: 8px;
-  color: #888;
+  color: #98a2b3;
   font-size: 14px;
 }
 
@@ -517,10 +528,10 @@
 }
 
 .course-card {
-  border: 1px solid #eee;
-  border-radius: 14px;
-  background: #fff;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  border: 1px solid rgba(255,138,61,0.15);
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffffff, #fff5ee);
+  box-shadow: 0 18px 35px rgba(15,23,42,0.08);
   overflow: hidden;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
   text-align: left;
@@ -528,7 +539,7 @@
 
 .course-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+  box-shadow: 0 25px 50px rgba(255,138,61,0.28);
 }
 
 .course-card .thumb {
@@ -550,28 +561,29 @@
 
 .course-card h3 {
   margin: 0 0 8px;
-  color: #222;
+  color: #0f172a;
 }
 
 .course-card p {
   margin: 4px 0;
+  color: #475467;
 }
 
 .course-card .btn {
   margin-top: 10px;
   display: inline-block;
-  background: #111;
+  background: linear-gradient(120deg, #ff8a3d, #ff5a1f);
   color: #fff;
-  border: 1px solid #111;
+  border: none;
   padding: 8px 14px;
   border-radius: 8px;
   font-size: 14px;
   cursor: pointer;
   transition: all 0.25s ease;
+  box-shadow: 0 12px 24px rgba(255,90,31,0.25);
 }
 
 .course-card .btn:hover {
-  background: #f1b24a;
-  color: #111;
-  border-color: #f1b24a;
+  transform: translateY(-2px);
+  box-shadow: 0 18px 32px rgba(255,90,31,0.3);
 }

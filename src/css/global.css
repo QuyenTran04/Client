@@ -4,7 +4,7 @@
 .bg-white { background: #fff; }
 .bg-black { background: #000; }
 .text-white { color: #fff; }
-.text-gray-500 { color: #6b7280; }
+.text-gray-500 { color: #475467; }
 .text-2xl { font-size: 1.5rem; }
 .font-semibold { font-weight: 600; }
 .rounded-xl { border-radius: 0.75rem; }
@@ -16,7 +16,6 @@
 .px-3 { padding-left:.75rem; padding-right:.75rem; } .py-2 { padding-top:.5rem; padding-bottom:.5rem; }
 .rounded { border-radius: .25rem; }
 .hover\:bg-gray-100:hover { background: #f3f4f6; }
-.bg-[#f6f7fb]{ background:#f6f7fb; }
 .grid-cols-\[240px_1fr\]{ grid-template-columns: 240px 1fr; }
 .space-y-6 > * + * { margin-top: 1.5rem; }
 .space-y-4 > * + * { margin-top: 1rem; }
