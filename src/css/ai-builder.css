@@ -254,7 +254,7 @@
 }
 
 .ai-step--active .ai-step__dot {
-  background: #667eea;
+  background: linear-gradient(135deg, #5b7cfd, #5de0ff);
   color: white;
 }
 
@@ -358,7 +358,7 @@
 }
 
 .ai-btn--primary {
-  background: #667eea;
+  background: linear-gradient(135deg, #5b7cfd, #5de0ff);
   color: white;
 }
 
