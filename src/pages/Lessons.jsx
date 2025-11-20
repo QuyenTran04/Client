@@ -387,7 +387,7 @@ export default function Lessons() {
         />
       )}
 
-      <AIChat layout="drawer" courseId={id} lessonId={selectedLesson} page="lesson" title="Ho tro bai hoc" />
+      <AIChat layout="drawer" courseId={id} lessonId={selectedLesson} page="lesson" title="Chat" />
     </div>
   );
 }
