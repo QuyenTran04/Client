@@ -53,7 +53,7 @@ export default function Lessons() {
         }
       } catch (err) {
         if (!alive) return;
-        setError(err?.response?.data?.message || "Khong tai duoc du lieu!");
+        setError(err?.response?.data?.message || "Không tải được dữ liệu!");
       } finally {
         if (alive) setLoading(false);
       }
@@ -107,10 +107,10 @@ export default function Lessons() {
     return (
       <div className="lessons-loading lessons-error">
         <button className="lessons-back" onClick={() => navigate(-1)}>
-          Quay lai
+          Quay lại
         </button>
         <div className="lesson-card lesson-card--empty">
-          {error || "Khong tim thay khoa hoc."}
+          {error || "Không tìm thấy khóa học."}
         </div></div>
     );
   }
@@ -148,7 +148,7 @@ export default function Lessons() {
       navigate(`/lessons/${selectedLesson}/practice`);
     } catch (err) {
       console.error("[Lessons] Practice prepare failed:", err);
-      alert(err?.response?.data?.message || "Khong chuan bi duoc bai luyen tap. Vui long thu lai.");
+      alert(err?.response?.data?.message || "Không chuẩn bị được bài luyện tập. Vui lòng thử lại.");
     } finally {
       setPracticeLoading(false);
     }
@@ -160,7 +160,7 @@ export default function Lessons() {
         <div className="lessons-hero__inner">
           <div className="lessons-hero__top">
             <button className="lessons-back" onClick={() => navigate(-1)}>
-              Quay lai
+              Quay lại
             </button>
             {(course.category?.name || course.level) && (
               <div className="lessons-hero__tags">
@@ -220,7 +220,7 @@ export default function Lessons() {
                 </li>
               )}
               <li>
-                <span>So bai hoc</span>
+                <span>Số bài học</span>
                 <strong>{totalLessons}</strong>
               </li>
               {course.avgRating && (
@@ -235,10 +235,10 @@ export default function Lessons() {
           <div className="lessons-card lessons-list-card">
             <div className="lessons-card__title">
               <div>
-                <p>Tong quan chuong trinh</p>
-                <h3>Danh sach bai hoc</h3>
+                <p>Tổng quan chương trình</p>
+                <h3>Danh sách bài học</h3>
               </div>
-              <span className="pill">{totalLessons} bai</span>
+              <span className="pill">{totalLessons} bài</span>
             </div>
             <div className="lessons-list">
               {lessons.length ? (
@@ -264,7 +264,7 @@ export default function Lessons() {
                   );
                 })
               ) : (
-                <div className="lessons-empty">Chua co bai hoc nao</div>
+                <div className="lessons-empty">Chưa có bài học nào</div>
               )}
             </div>
           </div>
@@ -279,7 +279,7 @@ export default function Lessons() {
             </div>
           ) : !selectedLesson ? (
             <div className="lesson-card lesson-card--empty">
-              <p>Chon mot bai hoc de bat dau</p>
+              <p>Chọn một bài học để bắt đầu</p>
             </div>
           ) : (
             <div className="lesson-card">
@@ -302,14 +302,14 @@ export default function Lessons() {
                   className={`lesson-tab ${selectedTab === "content" ? "is-active" : ""}`}
                   onClick={() => setSelectedTab("content")}
                 >
-                  Noi dung bai hoc
+                  Nội dung bài học
                 </button>
                 <button
                   type="button"
                   className={`lesson-tab ${selectedTab === "document" ? "is-active" : ""}`}
                   onClick={() => setSelectedTab("document")}
                 >
-                  Tai lieu hoc tap
+                  Tài liệu học tập
                 </button>
               </div>
 
@@ -327,7 +327,7 @@ export default function Lessons() {
                       {lessonDetails?.createdAt && (
                         <span>Ngay: {new Date(lessonDetails.createdAt).toLocaleDateString("vi-VN")}</span>
                       )}
-                      {lessonDetails?.resources?.length > 0 && <span>Tai lieu: {lessonDetails.resources.length}</span>}
+                      {lessonDetails?.resources?.length > 0 && <span>Tài liệu: {lessonDetails.resources.length}</span>}
                     </div>
                   </div>
 
@@ -347,11 +347,11 @@ export default function Lessons() {
 
                   {lessonDetails?.resources?.length > 0 && (
                     <section className="lesson-section">
-                      <h3>Tai lieu dinh kem</h3>
+                      <h3>Tài liệu đính kèm</h3>
                       <div className="lesson-resources">
                         {lessonDetails.resources.map((resource, idx) => (
                           <a key={idx} href={resource.url} target="_blank" rel="noreferrer" className="resource-chip">
-                            Tai lieu: {resource.name || "Tai xuong tai lieu"}
+                            Tài liệu: {resource.name || "Tải xuống tài liệu"}
                           </a>
                         ))}
                       </div>

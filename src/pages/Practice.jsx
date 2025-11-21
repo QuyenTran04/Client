@@ -1,7 +1,6 @@
 ﻿import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getLessonById } from "../services/lesson";
-import { getCourseById } from "../services/course";
 import { getPracticeByLesson, createPractice, submitPracticeAnswer } from "../services/practice";
 import { useAuth } from "../context/AuthContext";
 import "../css/practice.css";
@@ -12,7 +11,6 @@ export default function Practice() {
   const { user } = useAuth();
 
   const [lesson, setLesson] = useState(null);
-  const [course, setCourse] = useState(null);
   const [practice, setPractice] = useState(null);
   const [loading, setLoading] = useState(true);
   const [creatingPractice, setCreatingPractice] = useState(false);
@@ -36,12 +34,6 @@ export default function Practice() {
         const lessonData = lessonResponse.lesson;
         setLesson(lessonData);
 
-        if (lessonData.course?._id || lessonData.courseId) {
-          const courseId = lessonData.course?._id || lessonData.courseId;
-          const courseData = await getCourseById(courseId);
-          setCourse(courseData);
-        }
-
         try {
           const response = await getPracticeByLesson(lessonId);
           setPractice(response.practice || response);
@@ -53,7 +45,7 @@ export default function Practice() {
           }
         }
       } catch (err) {
-        setError(err?.response?.data?.message || "Khong tai duoc du lieu");
+        setError(err?.response?.data?.message || "Không tải được dữ liệu");
         console.error("Error loading practice:", err);
       } finally {
         setLoading(false);
@@ -69,8 +61,8 @@ export default function Practice() {
       setError("");
 
       const practiceData = await createPractice(lessonId, {
-        title: `Luyen tap: ${lessonData?.title || "Bai hoc"}`,
-        lessonContent: lessonData?.content || lessonData?.description || `Bai hoc ve ${lessonData?.title || ""}`,
+        title: `Luyện tập: ${lessonData?.title || "Bài học"}`,
+        lessonContent: lessonData?.content || lessonData?.description || `Bài học về ${lessonData?.title || ""}`,
         courseId: lessonData?.course?._id || lessonData?.courseId,
         difficulty: "medium",
         questionType: "open_ended",
@@ -78,7 +70,7 @@ export default function Practice() {
 
       setPractice(practiceData);
     } catch (err) {
-      setError(err?.response?.data?.message || "Khong tao duoc bai luyen tap");
+      setError(err?.response?.data?.message || "Không tạo được bài luyện tập");
       console.error("Error creating practice:", err);
     } finally {
       setCreatingPractice(false);
@@ -87,7 +79,7 @@ export default function Practice() {
 
   const handleSubmitAnswer = async () => {
     if (!userAnswer.trim() || !practice) {
-      alert("Vui long nhap cau tra loi!");
+      alert("Vui lòng nhập câu trả lời!");
       return;
     }
 
@@ -100,7 +92,7 @@ export default function Practice() {
 
       setFeedback(result?.feedback || result || null);
     } catch (err) {
-      setError(err?.response?.data?.message || "Khong nop duoc cau tra loi");
+      setError(err?.response?.data?.message || "Không nộp được câu trả lời");
       console.error("Error submitting answer:", err);
     } finally {
       setSubmitting(false);
@@ -108,7 +100,7 @@ export default function Practice() {
   };
 
   const showHint = () => {
-    const hintText = practice?.hints?.[0] || "Doc ky noi dung bai hoc va tim tu khoa chinh.";
+    const hintText = practice?.hints?.[0] || "Đọc kỹ nội dung bài học và tìm từ khóa chính.";
     setActiveHint(hintText);
   };
 
@@ -116,7 +108,7 @@ export default function Practice() {
     return (
       <div className="practice-loading">
         <div className="spinner" />
-        <p>Dang tai bai luyen tap...</p>
+        <p>Đang tải bài luyện tập...</p>
       </div>
     );
   }
@@ -125,11 +117,11 @@ export default function Practice() {
     return (
       <div className="practice-loading">
         <div className="error-card">
-          <h3>Loi</h3>
+          <h3>Lỗi</h3>
           <p>{error}</p>
         </div>
         <button className="btn primary" onClick={() => navigate(-1)}>
-          Quay lai
+          Quay lại
         </button>
       </div>
     );
@@ -140,8 +132,8 @@ export default function Practice() {
       <div className="practice-loading">
         <div className="spinner" />
         <div className="text-center">
-          <h3>AI dang tao bai luyen tap...</h3>
-          <p>Dang phan tich noi dung bai hoc va tao cau hoi phu hop</p>
+          <h3>AI đang tạo bài luyện tập...</h3>
+          <p>Đang phân tích nội dung bài học và tạo câu hỏi phù hợp</p>
         </div>
       </div>
     );
@@ -151,52 +143,30 @@ export default function Practice() {
 
   return (
     <div className="practice-page">
-      <header className="practice-header">
-        <div>
-          <p className="eyebrow">Practice</p>
-          <h1>{practice?.title || "Bai luyen tap"}</h1>
-          <p className="muted">{lesson?.title} - {course?.title}</p>
-        </div>
-        <div className="practice-stats">
-          <div className="stat-chip dark">
-            <span>Do kho</span>
-            <strong>{practice?.difficulty || "Medium"}</strong>
-          </div>
-          <div className="stat-chip dark">
-            <span>Loai</span>
-            <strong>{practice?.questionType === "open_ended" ? "Tu luan" : "Trac nghiem"}</strong>
-          </div>
-          <div className="stat-chip dark">
-            <span>Trang thai</span>
-            <strong>{feedback ? "Da cham" : "Chua nop"}</strong>
-          </div>
-        </div>
-      </header>
-
       <div className="practice-grid">
         <section className="practice-card prompt-card">
           <div className="card-head">
             <div>
-              <p className="eyebrow">Cau hoi</p>
-              <h2>{practice?.question ? "Thuc hanh voi bai hoc" : "Dang tai cau hoi..."}</h2>
+              <p className="eyebrow">Câu hỏi</p>
+              <h2>{practice?.question ? "Thực hành với bài học" : "Đang tải câu hỏi..."}</h2>
             </div>
-            {activeHint && <div className="hint-pill">Goi y: {activeHint}</div>}
+            {activeHint && <div className="hint-pill">Gợi ý: {activeHint}</div>}
           </div>
 
           <div className="prompt-body">
             {practice?.question ? (
               <>
                 <div className="context">
-                  <h4>Van ban/Ngá»¯ cáº£nh</h4>
+                  <h4>Văn bản/Ngữ cảnh</h4>
                   <p className="context-text">{practice?.lessonContent || lesson?.content || lesson?.description}</p>
                 </div>
                 <div className="question">
-                  <h4>Yeu cau</h4>
+                  <h4>Yêu cầu</h4>
                   <p className="question-text">{practice.question}</p>
                 </div>
               </>
             ) : (
-              <div className="skeleton-block">Dang tai cau hoi...</div>
+              <div className="skeleton-block">Đang tải câu hỏi...</div>
             )}
           </div>
 
@@ -204,7 +174,7 @@ export default function Practice() {
             <textarea
               value={userAnswer}
               onChange={(e) => setUserAnswer(e.target.value)}
-              placeholder="Nhap cau tra loi cua ban..."
+              placeholder="Nhập câu trả lời của bạn..."
               disabled={submitting}
             />
             <div className="input-actions">
@@ -216,7 +186,7 @@ export default function Practice() {
                   Hint
                 </button>
                 <button className="btn primary" onClick={handleSubmitAnswer} disabled={submitting || !userAnswer.trim()}>
-                  {submitting ? "Dang nop..." : "Submit"}
+                  {submitting ? "Đang nộp..." : "Submit"}
                 </button>
               </div>
             </div>
@@ -227,9 +197,9 @@ export default function Practice() {
           <div className="card-head">
             <div>
               <p className="eyebrow">Feedback</p>
-              <h3>AI danh gia</h3>
+              <h3>AI đánh giá</h3>
             </div>
-            <div className="pill success">{accuracy !== null ? `${accuracy}% Accuracy` : "Chua co diem"}</div>
+            <div className="pill success">{accuracy !== null ? `${accuracy}% Accuracy` : "Chưa có điểm"}</div>
           </div>
 
           {feedback ? (
@@ -239,19 +209,19 @@ export default function Practice() {
                 <strong>{feedback.score}/10</strong>
               </div>
               <div className="feedback-text">
-                <h4>Nhan xet</h4>
+                <h4>Nhận xét</h4>
                 <p>{feedback.feedback}</p>
               </div>
               {feedback.suggestions && (
                 <div className="suggestions">
-                  <h4>Goi y cai thien</h4>
+                  <h4>Gợi ý cải thiện</h4>
                   <p>{feedback.suggestions}</p>
                 </div>
               )}
             </div>
           ) : (
             <div className="feedback-empty">
-              <p>Nop cau tra loi de nhan feedback.</p>
+              <p>Nộp câu trả lời để nhận feedback.</p>
             </div>
           )}
 
