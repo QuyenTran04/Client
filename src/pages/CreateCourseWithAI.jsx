@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
+import SkillAssessment from "../components/SkillAssessment";
 
 const STEP_FLOW = [
   { id: 1, title: "Nhập thông tin", caption: "Mô tả chủ đề & mục tiêu" },
-  { id: 2, title: "Xem bản nháp", caption: "AI tạo xương sống bài học" },
-  { id: 3, title: "Khởi tạo khóa học", caption: "Tài liệu & quiz được sinh" },
+  { id: 2, title: "Đánh giá trình độ", caption: "AI khảo sát để hiểu rõ năng lực" },
+  { id: 3, title: "Xem bản nháp", caption: "AI tạo lộ trình phù hợp" },
+  { id: 4, title: "Khởi tạo khóa học", caption: "Tài liệu & quiz được sinh" },
 ];
 
 const SIDE_CARDS = [
@@ -40,17 +42,12 @@ const DELIVERABLES = [
 ];
 
 const CREATION_STEPS = [
-  "Phân tích chủ đề và đối tượng",
-  "Tạo danh sách bài học",
+  "Phân tích chủ đề và kết quả khảo sát",
+  "Đánh giá trình độ thực tế",
+  "Tạo danh sách bài học phù hợp",
   "Sinh tài liệu tự động",
   "Tạo quiz phù hợp",
   "Lưu khóa học vào hệ thống",
-];
-
-const LEVEL_OPTIONS = [
-  { value: "Beginner", label: "Người mới bắt đầu" },
-  { value: "Intermediate", label: "Trung cấp" },
-  { value: "Advanced", label: "Nâng cao" },
 ];
 
 export default function CreateCourseWithAI() {
@@ -59,26 +56,41 @@ export default function CreateCourseWithAI() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const promptRef = useRef(null);
 
   const [formData, setFormData] = useState({
     prompt: "",
     targetAudience: "",
-    level: "Beginner",
   });
 
+  const [assessmentData, setAssessmentData] = useState(null);
   const [draft, setDraft] = useState(null);
   const [lessonProgress, setLessonProgress] = useState({});
   const [creationStatus, setCreationStatus] = useState("preparing");
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    console.log("[handleInputChange] name:", name, "value:", value);
+    setFormData((prev) => {
+      console.log("[handleInputChange] prev:", prev);
+      const newFormData = { ...prev, [name]: value };
+      console.log("[handleInputChange] newFormData:", newFormData);
+      return newFormData;
+    });
+    // Clear error when user starts typing
+    if (error) {
+      setError("");
+    }
   };
 
-  const handleGenerateDraft = async (e) => {
-    e.preventDefault();
+  const handleGenerateDraft = async () => {
     if (!formData.prompt.trim()) {
       setError("Vui lòng nhập chủ đề khóa học rõ ràng.");
+      return;
+    }
+
+    if (!assessmentData) {
+      setError("Vui lòng hoàn thành khảo sát trình độ.");
       return;
     }
 
@@ -86,14 +98,73 @@ export default function CreateCourseWithAI() {
     setError("");
 
     try {
-      const response = await api.post("/ai/courses/draft", formData);
+      const requestData = {
+        ...formData,
+        assessment: assessmentData
+      };
+      const response = await api.post("/ai/courses/draft", requestData);
       setDraft(response.data);
-      setStep(2);
+      setStep(3);
     } catch (err) {
       setError(err?.response?.data?.message || "Không thể tạo bản nháp, vui lòng thử lại.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAssessmentComplete = async (assessment) => {
+    setAssessmentData(assessment);
+    setLoading(true);
+    setError("");
+
+    try {
+      const requestData = {
+        ...formData,
+        assessment: assessment
+      };
+
+      console.log("[handleAssessmentComplete] Sending request with assessment:", assessment);
+      const response = await api.post("/ai/courses/draft", requestData);
+
+      console.log("[handleAssessmentComplete] Received response:", response.data);
+      setDraft(response.data);
+
+      // Add a small delay for better UX transition
+      setTimeout(() => {
+        setStep(3);
+        setLoading(false);
+      }, 500);
+    } catch (err) {
+      console.error("[handleAssessmentComplete] Error:", err);
+      setError(err?.response?.data?.message || "Không thể tạo bản nháp, vui lòng thử lại.");
+      setStep(2); // Quay lại assessment nếu lỗi
+      setLoading(false);
+    }
+  };
+
+  const handleBackToBasicInfo = () => {
+    setStep(1);
+  };
+
+  const proceedToAssessment = () => {
+    // Get actual textarea value
+    const actualPrompt = promptRef.current ? promptRef.current.value.trim() : '';
+    console.log("[proceedToAssessment] formData:", formData);
+    console.log("[proceedToAssessment] actualPrompt from ref:", actualPrompt);
+
+    setError(""); // Clear any existing errors first
+
+    if (!actualPrompt) {
+      console.log("[proceedToAssessment] Error: Empty prompt");
+      setError("Vui lòng nhập chủ đề khóa học rõ ràng.");
+      return;
+    }
+
+    // Update formData with actual value before proceeding
+    setFormData(prev => ({ ...prev, prompt: actualPrompt }));
+
+    console.log("[proceedToAssessment] Moving to step 2");
+    setStep(2);
   };
 
   const handleCreateCourse = async () => {
@@ -104,13 +175,13 @@ export default function CreateCourseWithAI() {
     }
     setLoading(true);
     setError("");
-    setStep(3);
+    setStep(4);
     setCreationStatus("preparing");
     setLessonProgress({});
 
     try {
       const token = localStorage.getItem("token");
-      setStep(3);
+      setStep(4);
       setCreationStatus("preparing");
       
       // 🚀 Step 1: Tạo course + bài 1
@@ -283,6 +354,8 @@ export default function CreateCourseWithAI() {
   const totalLessons = draft?.lessons?.length || 0;
   const readyLessons = Object.values(lessonProgress).filter((p) => p.ready).length;
 
+  console.log("[CreateCourseWithAI] Render step:", step, "loading:", loading);
+
   return (
     <div className="ai-builder">
       <div className="ai-builder__hero">
@@ -323,7 +396,15 @@ export default function CreateCourseWithAI() {
 
       {step === 1 && (
         <div className="ai-layout">
-          <form className="ai-card ai-form" onSubmit={handleGenerateDraft}>
+          {loading ? (
+            <div className="ai-card">
+              <div className="ai-loading">
+                <div className="ai-loading__spinner" />
+                <p>AI đang phân tích yêu cầu của bạn...</p>
+              </div>
+            </div>
+          ) : (
+            <form className="ai-card ai-form">
             <div className="ai-form__group">
               <label htmlFor="prompt" className="ai-field__label">
                 Chủ đề khóa học
@@ -332,9 +413,10 @@ export default function CreateCourseWithAI() {
               <textarea
                 id="prompt"
                 name="prompt"
+                ref={promptRef}
                 className="ai-input ai-input--textarea"
                 rows={6}
-                placeholder="Ví dụ: Xây dựng khóa học Python có bài tập thực hành cho người mới"
+                placeholder="Ví dụ: Lập trình React.js từ cơ bản đến nâng cao • Thiết kế UI/UX cho web app • Phân tích dữ liệu với Excel • Tiếng Anh giao tiếp công việc • Marketing digital cho người mới bắt đầu"
                 value={formData.prompt}
                 onChange={handleInputChange}
               />
@@ -355,19 +437,7 @@ export default function CreateCourseWithAI() {
               />
             </div>
 
-            <div className="ai-form__grid">
-              <div className="ai-form__group">
-                <label className="ai-field__label">Cấp độ</label>
-                <select name="level" value={formData.level} onChange={handleInputChange} className="ai-input">
-                  {LEVEL_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
+            
             <div className="ai-deliverables">
               {DELIVERABLES.map((item) => (
                 <div key={item.title}>
@@ -383,19 +453,20 @@ export default function CreateCourseWithAI() {
               <button type="button" className="ai-btn ai-btn--ghost" onClick={() => navigate(-1)}>
                 Thoát
               </button>
-              <button type="submit" className="ai-btn ai-btn--primary" disabled={loading}>
-                {loading ? "Đang tạo bản nháp..." : "Sinh bản nháp"}
+              <button
+                type="button"
+                className="ai-btn ai-btn--primary"
+                disabled={loading || !formData.prompt.trim() || !promptRef.current?.value.trim()}
+                onClick={() => {
+                  console.log("Button clicked - formData:", formData);
+                  proceedToAssessment();
+                }}
+              >
+                {loading ? "Đang xử lý..." : "Tiếp tục →"}
               </button>
             </div>
-
-            {loading && (
-              <div className="ai-loading">
-                <div className="ai-loading__spinner" />
-                <p>AI đang phân tích yêu cầu của bạn...</p>
-              </div>
-            )}
           </form>
-
+          )}
           <aside className="ai-card ai-sidebar">
             <p className="ai-eyebrow">AI Toolkit</p>
             <h3>Bạn sẽ nhận dữ liệu gì?</h3>
@@ -421,7 +492,63 @@ export default function CreateCourseWithAI() {
         </div>
       )}
 
-      {step === 2 && draft && (
+      {step === 2 && (
+        <div className="ai-layout">
+          {loading ? (
+            <div className="ai-card">
+              <div className="ai-loading">
+                <div className="ai-loading__spinner" />
+                <p>AI đang phân tích kết quả khảo sát...</p>
+                <p className="ai-loading__subtext">Đang tạo lộ trình học tập phù hợp nhất cho bạn</p>
+                <div className="ai-loading__dots">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <SkillAssessment
+              topic={formData.prompt}
+              onComplete={handleAssessmentComplete}
+              onBack={handleBackToBasicInfo}
+            />
+          )}
+
+          <aside className="ai-card ai-sidebar">
+            <p className="ai-eyebrow">AI Assessment</p>
+            <h3>Tại sao cần khảo sát?</h3>
+            <p className="ai-sidebar__text">
+              AI sẽ phân tích câu trả lời của bạn để xác định chính xác trình độ hiện tại, từ đó tạo ra lộ trình học tập phù hợp nhất.
+            </p>
+            <div className="ai-sidebar__cards">
+              <div>
+                <h4>Khảo sát thông minh</h4>
+                <p>Câu hỏi được tạo riêng dựa trên chủ đề bạn nhập, đảm bảo đánh giá chính xác nhất</p>
+              </div>
+              <div>
+                <h4>Đánh giá chính xác</h4>
+                <p>AI phân tích câu trả lời chi tiết để xác định trình độ thực tế, không cần tự đánh giá</p>
+              </div>
+              <div>
+                <h4>Nội dung cá nhân hóa</h4>
+                <p>Khóa học được điều chỉnh theo năng lực và mục tiêu cụ thể của bạn</p>
+              </div>
+              <div>
+                <h4>Tối ưu hóa lộ trình</h4>
+                <p>Tránh nội dung quá dễ hoặc quá khó, tập trung vào kiến thức thực sự cần thiết</p>
+              </div>
+            </div>
+            <div className="ai-sidebar__note">
+              <p>
+                Khảo sát chỉ mất 2-3 phút với các câu hỏi liên quan trực tiếp đến khóa học bạn muốn tạo. Câu trả lời trung thực sẽ giúp AI tạo ra khóa học hoàn hảo cho bạn!
+              </p>
+            </div>
+          </aside>
+        </div>
+      )}
+
+      {step === 3 && draft && (
         <div className="ai-review">
           <div className="ai-review__header">
             <div>
@@ -439,9 +566,19 @@ export default function CreateCourseWithAI() {
           <div className="ai-review__grid">
             <div className="ai-card ai-card--subtle">
               <h3>Tổng quan mục tiêu</h3>
-              <p>Cấp độ: {draft.level || formData.level}</p>
-              <p>Ngôn ngữ: {draft.language || formData.language}</p>
+              <p>Cấp độ: {
+                draft.assessedLevel === "Beginner" ? "Người mới bắt đầu" :
+                draft.assessedLevel === "Intermediate" ? "Trung cấp" :
+                draft.assessedLevel === "Advanced" ? "Nâng cao" :
+                "Đang đánh giá..."
+              }</p>
+              <p>Ngôn ngữ: {draft.language || "Tiếng Việt"}</p>
               <p>Đối tượng: {draft.targetAudience || formData.targetAudience || "Chưa xác định"}</p>
+              {draft.assessmentInsights && (
+                <p className="assessment-insights">
+                  <strong>Phân tích chuyên sâu:</strong> {draft.assessmentInsights}
+                </p>
+              )}
             </div>
 
             <div className="ai-card ai-card--subtle">
@@ -480,6 +617,9 @@ export default function CreateCourseWithAI() {
           {error && <div className="ai-alert ai-alert--error">{error}</div>}
 
           <div className="ai-review__actions">
+            <button type="button" className="ai-btn ai-btn--ghost" disabled={loading} onClick={() => setStep(2)}>
+              Làm lại khảo sát
+            </button>
             <button type="button" className="ai-btn ai-btn--ghost" disabled={loading} onClick={() => setStep(1)}>
               Chỉnh sửa thông tin
             </button>
@@ -490,7 +630,7 @@ export default function CreateCourseWithAI() {
         </div>
       )}
 
-      {step === 3 && (
+      {step === 4 && (
         <div className="ai-creating">
           <div className="ai-creating__orb" />
           <h2>AI đang tạo khóa học của bạn</h2>
@@ -918,6 +1058,39 @@ export default function CreateCourseWithAI() {
           border-top-color: #5b7cfd;
           animation: spin 1s linear infinite;
         }
+
+        .ai-loading__subtext {
+          font-size: 13px;
+          color: #64748b;
+          margin-top: 0.5rem;
+          margin-bottom: 1.5rem;
+        }
+
+        .ai-loading__dots {
+          display: flex;
+          gap: 8px;
+          justify-content: center;
+        }
+
+        .ai-loading__dots span {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: #5b7cfd;
+          animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .ai-loading__dots span:nth-child(1) {
+          animation-delay: 0s;
+        }
+
+        .ai-loading__dots span:nth-child(2) {
+          animation-delay: 0.3s;
+        }
+
+        .ai-loading__dots span:nth-child(3) {
+          animation-delay: 0.6s;
+        }
         .ai-review {
           max-width: 960px;
           margin: 0 auto;
@@ -1001,6 +1174,20 @@ export default function CreateCourseWithAI() {
           justify-content: flex-end;
           gap: 12px;
         }
+
+        .assessment-insights {
+          margin-top: 8px;
+          padding: 8px 12px;
+          background: rgba(91, 124, 253, 0.1);
+          border-radius: 8px;
+          font-size: 13px;
+          color: #1e40af;
+          line-height: 1.4;
+        }
+
+        .assessment-insights strong {
+          color: #1d4ed8;
+        }
         .ai-creating {
           max-width: 720px;
           margin: 0 auto;
@@ -1077,6 +1264,18 @@ export default function CreateCourseWithAI() {
         @keyframes spin {
           to { transform: rotate(360deg); }
         }
+
+        @keyframes pulse {
+          0%, 80%, 100% {
+            opacity: 0.3;
+            transform: scale(0.8);
+          }
+          40% {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
         @keyframes progress {
           0% { transform: translateX(-100%); }
           50% { transform: translateX(0%); }
