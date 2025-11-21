@@ -1,31 +1,17 @@
 /* src/css/global.css – giữ nguyên file hiện có, thêm vài tiện ích nhỏ nếu muốn */
 :root {
-  /* Light mode (mặc định) */
-  --text-primary: #0f172a;
-  --text-secondary: #334155;
-  --text-highlight: #0b1a37;
-  --text-emphasis-shadow: 0 2px 8px rgba(15, 23, 42, 0.22);
-  --text-glow: 0 12px 35px rgba(59, 130, 246, 0.25);
+  --text-primary: #111827;
+  --text-secondary: #1f2937;
+  --text-highlight: #0b1f44;
+  --text-emphasis-shadow: 0 4px 18px rgba(15, 23, 42, 0.2);
+  --text-glow: 0 18px 45px rgba(14, 116, 144, 0.3);
   --surface-1: #ffffff;
-  --surface-2: #f5f9ff;
-  --surface-muted: #eef4ff;
-  --surface-border: rgba(15, 23, 42, 0.08);
+  --surface-2: #f9fbff;
+  --surface-muted: #f1f5fd;
+  --surface-border: rgba(15, 23, 42, 0.1);
   --accent-cyan: #0ec6b2;
-  --accent-blue: #3b82f6;
-  --accent-violet: #a855f7;
-}
-
-/* Dark mode */
-.dark-mode {
-  --text-primary: #f1f5f9;
-  --text-secondary: #cbd5e1;
-  --text-highlight: #ffffff;
-  --text-emphasis-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --text-glow: 0 12px 35px rgba(59, 130, 246, 0.2);
-  --surface-1: #1e293b;
-  --surface-2: #1a2332;
-  --surface-muted: #16202d;
-  --surface-border: rgba(148, 163, 184, 0.15);
+  --accent-blue: #2563eb;
+  --accent-violet: #7c3aed;
 }
 
 body {
@@ -35,17 +21,10 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   background:
-    radial-gradient(circle at 8% 0%, rgba(14, 165, 233, 0.2), transparent 55%),
-    radial-gradient(circle at 90% 0%, rgba(244, 114, 182, 0.18), transparent 60%),
-    var(--surface-2);
+    radial-gradient(circle at 8% -10%, rgba(14, 165, 233, 0.22), transparent 55%),
+    radial-gradient(circle at 90% -5%, rgba(244, 114, 182, 0.15), transparent 60%),
+    linear-gradient(180deg, #fffdfa 0%, #f2f6ff 45%, #eef3ff 100%);
   transition: background 0.3s ease, color 0.3s ease;
-}
-
-.dark-mode body {
-  background:
-    radial-gradient(circle at 8% 0%, rgba(14, 165, 233, 0.08), transparent 55%),
-    radial-gradient(circle at 90% 0%, rgba(244, 114, 182, 0.06), transparent 60%),
-    var(--surface-2);
 }
 
 h1,
@@ -62,7 +41,9 @@ p,
 li,
 span {
   color: var(--text-secondary);
-  line-height: 1.7;
+  line-height: 1.75;
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
 
 .text-emphasis {
@@ -90,15 +71,18 @@ span {
     0 0 25px rgba(59, 130, 246, 0.25);
 }
 
-.dark-mode .text-hero {
-  text-shadow:
-    0 8px 25px rgba(0, 0, 0, 0.4),
-    0 0 25px rgba(59, 130, 246, 0.2);
-}
-
 .text-soft {
   color: var(--text-secondary);
   opacity: 0.9;
+}
+
+.text-pop {
+  color: var(--text-highlight);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  text-shadow:
+    0 4px 18px rgba(59, 130, 246, 0.25),
+    0 1px 3px rgba(255, 255, 255, 0.85);
 }
 
 .glow-panel {
@@ -111,21 +95,11 @@ span {
   transition: all 0.3s ease;
 }
 
-.dark-mode .glow-panel {
-  box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
-}
-
 .frosted {
   background: rgba(255, 255, 255, 0.7);
   border: 1px solid var(--surface-border);
   backdrop-filter: blur(18px);
   transition: all 0.3s ease;
-}
-
-.dark-mode .frosted {
-  background: rgba(30, 41, 59, 0.7);
 }
 
 .text-contrast {

@@ -164,10 +164,6 @@ body > div:first-of-type > .navbar,
 }
 
 /* Theme toggle spacing */
-.right-row .theme-toggle {
-  margin-right: 4px;
-}
-
 .nav-search {
   position: relative;
 }
