@@ -260,6 +260,35 @@ export default function AIChat({
     }
   }, [autoMessage, send]);
 
+  // Handle click outside to close drawer
+  useEffect(() => {
+    if (!open || layout !== "drawer") return;
+
+    const handleClickOutside = (event) => {
+      // Check if click is outside the chat drawer and not on the handle button
+      const isClickOnHandle = event.target.classList.contains('ai-drawer__handle');
+      if (chatRef.current && !chatRef.current.contains(event.target) && !isClickOnHandle) {
+        setOpen(false);
+      }
+    };
+
+    const handleTouchOutside = (event) => {
+      // Handle touch events for mobile devices
+      const isClickOnHandle = event.target.classList.contains('ai-drawer__handle');
+      if (chatRef.current && !chatRef.current.contains(event.target) && !isClickOnHandle) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleTouchOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleTouchOutside);
+    };
+  }, [open, layout]);
+
   const onKey = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();

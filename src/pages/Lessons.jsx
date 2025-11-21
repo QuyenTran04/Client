@@ -4,11 +4,10 @@ import { getCourseById } from "../services/course";
 import { getLessonsByCourse } from "../services/lesson";
 import { useAuth } from "../context/AuthContext";
 import { getYouTubeEmbedUrl } from "../lib/utils";
-import AIChat from "../components/AIChat";
 import DocumentLoader from "../components/DocumentLoader";
+import AIChat from "../components/AIChat";
 import "../css/courses.css";
 import { getQuizzesByLesson } from "../services/quiz";
-import api from "../services/api";
 import GenerateQuizModal from "../components/GenerateQuizModal";
 
 export default function Lessons() {
@@ -26,7 +25,6 @@ export default function Lessons() {
   const [selectedTab, setSelectedTab] = useState("content");
   const [quizzes, setQuizzes] = useState([]);
   const [showGenerateQuizModal, setShowGenerateQuizModal] = useState(false);
-  const [generatingQuiz, setGeneratingQuiz] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -387,7 +385,14 @@ export default function Lessons() {
         />
       )}
 
-      <AIChat layout="drawer" courseId={id} lessonId={selectedLesson} page="lesson" title="Chat" />
+      <AIChat
+        layout="drawer"
+        courseId={id}
+        lessonId={selectedLesson}
+        page="lesson"
+        title="Hỏi đáp tài liệu"
+        defaultOpen={true}
+      />
     </div>
   );
 }

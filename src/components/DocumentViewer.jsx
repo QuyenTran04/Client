@@ -5,10 +5,10 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import {
   getDocumentByLesson,
-  askAboutDocument,
   generateExample,
 } from "../services/document";
 import { pronounceText } from "../services/ai";
+import AIChat from "./AIChat";
 import "../css/document-viewer.css";
 
 const TTS_VOICES = {
@@ -39,14 +39,10 @@ export default function DocumentViewer({ lessonId, document: initialDocument = n
   const [loading, setLoading] = useState(!initialDocument);
   const [error, setError] = useState("");
   const [selectedText, setSelectedText] = useState("");
-  const [showAIChat, setShowAIChat] = useState(false);
-  const [chatMessages, setChatMessages] = useState([]);
   const [aiLoading, setAiLoading] = useState(false);
-  const [question, setQuestion] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState("en_US");
   const [selectedVoice, setSelectedVoice] = useState("en-US-Neural2-A");
   const contentRef = useRef(null);
-  const chatEndRef = useRef(null);
   const [pronounceAnchor, setPronounceAnchor] = useState({
     visible: false,
     text: "",
@@ -185,10 +181,7 @@ export default function DocumentViewer({ lessonId, document: initialDocument = n
     })();
   }, [lessonId]);
 
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [chatMessages]);
-
+  
   useEffect(() => {
     if (typeof window === "undefined" || typeof window.document === "undefined") {
       return undefined;
@@ -220,50 +213,16 @@ export default function DocumentViewer({ lessonId, document: initialDocument = n
 
 
 
-  const handleAsk = async () => {
-    if (!question.trim() || !lessonDocument) return;
-
-    const userMsg = { role: "user", content: question };
-    setChatMessages((prev) => [...prev, userMsg]);
-    setQuestion("");
-    setAiLoading(true);
-
-    try {
-      const response = await askAboutDocument(lessonDocument._id, question, "vi");
-      const aiMsg = {
-        role: "assistant",
-        content: response.answer,
-        source: response.documentTitle,
-      };
-      setChatMessages((prev) => [...prev, aiMsg]);
-    } catch (err) {
-      const errMsg = {
-        role: "assistant",
-        content: `Lỗi: ${err?.response?.data?.message || err.message}`,
-      };
-      setChatMessages((prev) => [...prev, errMsg]);
-    } finally {
-      setAiLoading(false);
-    }
-  };
-
+  
   const handleGenerateExample = async () => {
     if (!selectedText || !lessonDocument) return;
 
     setAiLoading(true);
     try {
       const response = await generateExample(lessonDocument._id, selectedText, "vi");
-      const aiMsg = {
-        role: "assistant",
-        content: `**Ví dụ về "${selectedText}":**\n\n${response.example}`,
-      };
-      setChatMessages((prev) => [...prev, aiMsg]);
+      alert(`Ví dụ về "${selectedText}":\n\n${response.example}`);
     } catch (err) {
-      const errMsg = {
-        role: "assistant",
-        content: `Lỗi: ${err?.response?.data?.message || err.message}`,
-      };
-      setChatMessages((prev) => [...prev, errMsg]);
+      alert(`Lỗi: ${err?.response?.data?.message || err.message}`);
     } finally {
       setAiLoading(false);
       setSelectedText("");
@@ -521,25 +480,7 @@ export default function DocumentViewer({ lessonId, document: initialDocument = n
             >
               💡 Ví dụ
             </button>
-            <button
-              onClick={() => {
-                setQuestion(selectedText);
-                setShowAIChat(true);
-              }}
-              title="Hỏi AI"
-              style={{
-                padding: "4px 8px",
-                background: "#e2e3e5",
-                border: "1px solid #6c757d",
-                borderRadius: 4,
-                cursor: "pointer",
-                fontSize: 12,
-                fontWeight: 500,
-              }}
-            >
-              🤖 Hỏi
-            </button>
-            <select
+              <select
               value={selectedLanguage}
               onChange={(e) => {
                 const lang = e.target.value;
@@ -622,209 +563,7 @@ export default function DocumentViewer({ lessonId, document: initialDocument = n
         )}
       </div>
 
-      {/* AI Chat Panel */}
-      <div
-        className="ai-chat-panel"
-        style={{
-          width: showAIChat ? "350px" : "0",
-          transition: "width 0.3s ease",
-          background: "#fff",
-          borderLeft: "1px solid #eee",
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-        }}
-      >
-        {/* Header */}
-        <div
-          style={{
-            padding: "16px",
-            borderBottom: "1px solid #eee",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <h3 style={{ margin: 0, fontSize: 14, fontWeight: 600 }}>
-            🤖 AI Hỗ Trợ
-          </h3>
-          <button
-            onClick={() => setShowAIChat(false)}
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              fontSize: 18,
-              color: "#999",
-            }}
-          >
-            ✕
-          </button>
-        </div>
-
-        {/* Messages */}
-        <div
-          style={{
-            flex: 1,
-            overflowY: "auto",
-            padding: "16px",
-            display: "flex",
-            flexDirection: "column",
-            gap: 12,
-          }}
-        >
-          {chatMessages.length === 0 ? (
-            <div
-              style={{
-                color: "#999",
-                fontSize: 13,
-                textAlign: "center",
-                marginTop: 20,
-              }}
-            >
-              💬 Đặt câu hỏi về tài liệu...
-            </div>
-          ) : (
-            chatMessages.map((msg, idx) => (
-              <div
-                key={idx}
-                style={{
-                  display: "flex",
-                  justifyContent: msg.role === "user" ? "flex-end" : "flex-start",
-                  gap: 8,
-                }}
-              >
-                <div
-                  style={{
-                    maxWidth: "80%",
-                    padding: "8px 12px",
-                    borderRadius: 8,
-                    background:
-                      msg.role === "user" ? "#f1b24a" : "#f0f0f0",
-                    color: msg.role === "user" ? "#111" : "#333",
-                    fontSize: 12,
-                    lineHeight: 1.5,
-                    wordWrap: "break-word",
-                  }}
-                >
-                  {msg.content}
-                </div>
-              </div>
-            ))
-          )}
-          {aiLoading && (
-            <div
-              style={{
-                display: "flex",
-                gap: 4,
-                alignItems: "center",
-                color: "#999",
-              }}
-            >
-              <div
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: "50%",
-                  background: "#999",
-                  animation: "pulse 1s infinite",
-                }}
-              />
-              <div
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: "50%",
-                  background: "#999",
-                  animation: "pulse 1s infinite 0.2s",
-                }}
-              />
-              <div
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: "50%",
-                  background: "#999",
-                  animation: "pulse 1s infinite 0.4s",
-                }}
-              />
-            </div>
-          )}
-          <div ref={chatEndRef} />
-        </div>
-
-        {/* Input */}
-        <div
-          style={{
-            padding: "12px",
-            borderTop: "1px solid #eee",
-            display: "flex",
-            gap: 8,
-          }}
-        >
-          <input
-            type="text"
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && handleAsk()}
-            placeholder="Hỏi gì..."
-            disabled={aiLoading}
-            style={{
-              flex: 1,
-              padding: "8px 12px",
-              border: "1px solid #ddd",
-              borderRadius: 6,
-              fontSize: 12,
-              outline: "none",
-              backgroundColor: "#fff",
-            }}
-          />
-          <button
-            onClick={handleAsk}
-            disabled={aiLoading || !question.trim()}
-            style={{
-              padding: "8px 12px",
-              background: aiLoading || !question.trim() ? "#ccc" : "#f1b24a",
-              color: "#111",
-              border: "none",
-              borderRadius: 6,
-              cursor: aiLoading || !question.trim() ? "default" : "pointer",
-              fontSize: 12,
-              fontWeight: 600,
-            }}
-          >
-            Gửi
-          </button>
-        </div>
-      </div>
-
-      {/* Float Button to open AI Chat */}
-      {!showAIChat && (
-        <button
-          onClick={() => setShowAIChat(true)}
-          title="Mở AI chat"
-          style={{
-            position: "absolute",
-            bottom: "20px",
-            right: "20px",
-            width: 50,
-            height: 50,
-            borderRadius: "50%",
-            background: "#f1b24a",
-            border: "none",
-            cursor: "pointer",
-            fontSize: 24,
-            boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 50,
-          }}
-        >
-          💬
-        </button>
-      )}
-      {pronounceAnchor.visible && (
+        {pronounceAnchor.visible && (
         <button
           type="button"
           onClick={handlePronounceSelection}
@@ -850,6 +589,14 @@ export default function DocumentViewer({ lessonId, document: initialDocument = n
         </button>
       )}
       <audio ref={audioRef} style={{ display: "none" }} />
+
+      <AIChat
+        layout="drawer"
+        lessonId={lessonId}
+        page="document"
+        title="Hỏi đáp tài liệu"
+        defaultOpen={true}
+      />
     </div>
   );
 }
