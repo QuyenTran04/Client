@@ -2,6 +2,7 @@
 import { Link, NavLink } from "react-router-dom";
 import React from "react";
 import { useAuth } from "../context/AuthContext";
+import ThemeToggle from "./ThemeToggle";
 import "../css/navbar.css";
 export default function NavBar() {
   const { user, logout } = useAuth();
@@ -49,6 +50,7 @@ export default function NavBar() {
 
         {/* Tìm kiếm + Xác thực */}
         <div className="right-row">
+          <ThemeToggle />
           {user && (
             <>
               <Link to="/courses/create-ai" className="btn ai-course desktop-only">
