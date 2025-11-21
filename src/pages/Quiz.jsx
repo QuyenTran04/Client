@@ -3,8 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { getQuizzesForLesson, submitQuiz } from "../services/quiz";
 import { getLessonById } from "../services/lesson";
 import { useAuth } from "../context/AuthContext";
-import AIChat from "../components/AIChat";
 import ExplanationCard from "../components/ExplanationCard";
+import AIChat from "../components/AIChat";
 import { explainQuiz } from "../services/ai";
 
 export default function Quiz() {
@@ -839,13 +839,14 @@ export default function Quiz() {
         </div>
       </div>
 
-      <AIChat 
-        layout="drawer" 
-        courseId={courseId} 
-        lessonId={lessonId} 
-        quizId={getQuizId(currentQuiz)} 
-        page="quiz" 
-        title="Hỗ trợ Quiz" 
+      <AIChat
+        layout="drawer"
+        courseId={courseId}
+        lessonId={lessonId}
+        quizId={getQuizId(currentQuiz)}
+        page="quiz"
+        title="Hỗ trợ Quiz"
+        defaultOpen={true}
       />
     </div>
   );

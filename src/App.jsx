@@ -12,6 +12,7 @@ import Payment from "./pages/Payment";
 
 import LessonsPage from "./pages/Lessons";
 import QuizPage from "./pages/Quiz";
+import Practice from "./pages/Practice";
 import CreateCourseWithAI from "./pages/CreateCourseWithAI";
 import CreateQuiz from "./pages/CreateQuiz";
 import AIChat from "./components/AIChat";
@@ -61,17 +62,17 @@ import ActivityLogs from "./pages/admin/ActivityLogs";
 import Reports from "./pages/admin/Reports";
 
 /**
- * Hiện chatbot nổi ở tất cả trang public, trừ:
- * - /login, /register (tránh che UI form)
- * - /admin/*
+ * Hiện chatbot nổi chỉ ở trang home, ẩn ở tất cả các trang khác:
+ * - Chỉ hiện ở "/" (trang chủ)
+ * - Ẩn ở tất cả các trang khác kể cả /login, /register, /admin/*
  */
 function GlobalChatSwitcher() {
   const { pathname } = useLocation();
 
-  const isAdmin = pathname.startsWith("/admin");
-  const isAuthPage = pathname === "/login" || pathname === "/register";
+  const isHomePage = pathname === "/";
 
-  if (isAdmin || isAuthPage) return null;
+  // Chỉ hiển thị ở trang chủ, ẩn ở tất cả các trang khác
+  if (!isHomePage) return null;
 
   return (
     <AIChat
@@ -153,6 +154,14 @@ function AppShell() {
           element={
             <ProtectedRoute>
               <QuizPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/lessons/:id/practice"
+          element={
+            <ProtectedRoute>
+              <Practice />
             </ProtectedRoute>
           }
         />
