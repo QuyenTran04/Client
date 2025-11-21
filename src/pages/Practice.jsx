@@ -1,5 +1,6 @@
 ﻿import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import ReactMarkdown from "react-markdown";
 import { getLessonById } from "../services/lesson";
 import { getPracticeByLesson, createPractice, submitPracticeAnswer } from "../services/practice";
 import { useAuth } from "../context/AuthContext";
@@ -18,6 +19,8 @@ export default function Practice() {
   const [error, setError] = useState("");
   const [userAnswer, setUserAnswer] = useState("");
   const [feedback, setFeedback] = useState(null);
+  const [displayedFeedback, setDisplayedFeedback] = useState("");
+  const [displayedSuggestions, setDisplayedSuggestions] = useState("");
   const [activeHint, setActiveHint] = useState("");
 
   useEffect(() => {
@@ -104,6 +107,51 @@ export default function Practice() {
     setActiveHint(hintText);
   };
 
+  // Typewriter effect for feedback
+  useEffect(() => {
+    if (feedback && feedback.feedback) {
+      const fullText = feedback.feedback;
+      let currentIndex = 0;
+      setDisplayedFeedback("");
+
+      const interval = setInterval(() => {
+        if (currentIndex < fullText.length) {
+          setDisplayedFeedback(prev => prev + fullText[currentIndex]);
+          currentIndex++;
+        } else {
+          clearInterval(interval);
+        }
+      }, 15); // Faster typing for better readability with markdown
+
+      return () => clearInterval(interval);
+    }
+  }, [feedback]);
+
+  // Typewriter effect for suggestions
+  useEffect(() => {
+    if (feedback && feedback.suggestions) {
+      const fullText = feedback.suggestions;
+      let currentIndex = 0;
+      setDisplayedSuggestions("");
+
+      // Start suggestions after feedback is complete
+      const timeout = setTimeout(() => {
+        const interval = setInterval(() => {
+          if (currentIndex < fullText.length) {
+            setDisplayedSuggestions(prev => prev + fullText[currentIndex]);
+            currentIndex++;
+          } else {
+            clearInterval(interval);
+          }
+        }, 12); // Slightly faster for suggestions
+
+        return () => clearInterval(interval);
+      }, feedback.feedback ? feedback.feedback.length * 15 + 500 : 1000);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [feedback]);
+
   if (loading) {
     return (
       <div className="practice-loading">
@@ -162,7 +210,25 @@ export default function Practice() {
                 </div>
                 <div className="question">
                   <h4>Yêu cầu</h4>
-                  <p className="question-text">{practice.question}</p>
+                  <div className="markdown-content question-text">
+                    <ReactMarkdown
+                      components={{
+                        p: ({ children }) => <p className="question-paragraph">{children}</p>,
+                        strong: ({ children }) => <strong>{children}</strong>,
+                        em: ({ children }) => <em>{children}</em>,
+                        ul: ({ children }) => <ul className="question-list">{children}</ul>,
+                        ol: ({ children }) => <ol className="question-list">{children}</ol>,
+                        li: ({ children }) => <li>{children}</li>,
+                        code: ({ children }) => <code>{children}</code>,
+                        blockquote: ({ children }) => <blockquote className="question-quote">{children}</blockquote>,
+                        h1: ({ children }) => <h4>{children}</h4>,
+                        h2: ({ children }) => <h4>{children}</h4>,
+                        h3: ({ children }) => <h5>{children}</h5>,
+                      }}
+                    >
+                      {practice.question}
+                    </ReactMarkdown>
+                  </div>
                 </div>
               </>
             ) : (
@@ -210,12 +276,66 @@ export default function Practice() {
               </div>
               <div className="feedback-text">
                 <h4>Nhận xét</h4>
-                <p>{feedback.feedback}</p>
+                <div className="markdown-content">
+                  {displayedFeedback && (
+                    <ReactMarkdown
+                      components={{
+                        p: ({ children }) => (
+                          <p>
+                            {children}
+                            {feedback && feedback.feedback && displayedFeedback.length < feedback.feedback.length && (
+                              <span className="typewriter-cursor"></span>
+                            )}
+                          </p>
+                        ),
+                        strong: ({ children }) => <strong>{children}</strong>,
+                        em: ({ children }) => <em>{children}</em>,
+                        ul: ({ children }) => <ul>{children}</ul>,
+                        ol: ({ children }) => <ol>{children}</ol>,
+                        li: ({ children }) => <li>{children}</li>,
+                        code: ({ children }) => <code>{children}</code>,
+                        blockquote: ({ children }) => <blockquote>{children}</blockquote>,
+                      }}
+                    >
+                      {displayedFeedback}
+                    </ReactMarkdown>
+                  )}
+                  {!displayedFeedback && feedback && feedback.feedback && displayedFeedback.length < feedback.feedback.length && (
+                    <span className="typewriter-cursor"></span>
+                  )}
+                </div>
               </div>
               {feedback.suggestions && (
                 <div className="suggestions">
                   <h4>Gợi ý cải thiện</h4>
-                  <p>{feedback.suggestions}</p>
+                  <div className="markdown-content">
+                    {displayedSuggestions && (
+                      <ReactMarkdown
+                        components={{
+                          p: ({ children }) => (
+                            <p>
+                              {children}
+                              {displayedSuggestions.length < feedback.suggestions.length && (
+                                <span className="typewriter-cursor"></span>
+                              )}
+                            </p>
+                          ),
+                          strong: ({ children }) => <strong>{children}</strong>,
+                          em: ({ children }) => <em>{children}</em>,
+                          ul: ({ children }) => <ul>{children}</ul>,
+                          ol: ({ children }) => <ol>{children}</ol>,
+                          li: ({ children }) => <li>{children}</li>,
+                          code: ({ children }) => <code>{children}</code>,
+                          blockquote: ({ children }) => <blockquote>{children}</blockquote>,
+                        }}
+                      >
+                        {displayedSuggestions}
+                      </ReactMarkdown>
+                    )}
+                    {!displayedSuggestions && displayedSuggestions.length < feedback.suggestions.length && (
+                      <span className="typewriter-cursor"></span>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
