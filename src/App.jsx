@@ -38,6 +38,7 @@ import CompanionsList from "./components/CompanionsList";
 
 // 🔐 Context và route bảo vệ
 import AuthProvider from "./context/AuthContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import { AdminRoute, ProtectedRoute, GuestOnly } from "./context/RouteGuards";
 
 
@@ -231,8 +232,10 @@ function AppShell() {
 export default function App() {
 
   return (
-    <AuthProvider>
-      <AppShell />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <AppShell />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
