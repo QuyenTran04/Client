@@ -899,6 +899,30 @@
   box-shadow: 0 12px 24px rgba(108, 92, 231, 0.35);
 }
 
+.lesson-action.accent {
+  background: linear-gradient(135deg, #0ec6b2 0%, #0b9e91 100%);
+  color: #fff;
+  border-color: #0b9e91;
+  box-shadow: 0 12px 24px rgba(14, 198, 178, 0.35);
+}
+
+.lesson-action.accent:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px rgba(14, 198, 178, 0.45);
+}
+
+.lesson-action.secondary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border-color: #667eea;
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+}
+
+.lesson-action.secondary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(102, 126, 234, 0.4);
+}
+
 .lesson-action:disabled {
   opacity: 0.5;
   cursor: not-allowed;

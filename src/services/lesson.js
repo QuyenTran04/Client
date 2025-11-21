@@ -9,6 +9,6 @@ export const getLessonsByCourse = async (courseId, params = {}) => {
 };
 
 export const getLessonById = async (lessonId) => {
-  const res = await api.get(`/lessons/${lessonId}`);
+  const res = await api.get(`/lessons/getLessonById/${lessonId}`);
   return res.data; // { lesson }
 };

@@ -595,7 +595,7 @@ export default function DocumentViewer({ lessonId, document: initialDocument = n
         lessonId={lessonId}
         page="document"
         title="Hỏi đáp tài liệu"
-        defaultOpen={true}
+        defaultOpen={false}
       />
     </div>
   );

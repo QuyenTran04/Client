@@ -9,6 +9,7 @@ import AIChat from "../components/AIChat";
 import "../css/courses.css";
 import { getQuizzesByLesson } from "../services/quiz";
 import GenerateQuizModal from "../components/GenerateQuizModal";
+import { getPracticeByLesson, createPractice } from "../services/practice";
 
 export default function Lessons() {
   const { id } = useParams();
@@ -25,6 +26,7 @@ export default function Lessons() {
   const [selectedTab, setSelectedTab] = useState("content");
   const [quizzes, setQuizzes] = useState([]);
   const [showGenerateQuizModal, setShowGenerateQuizModal] = useState(false);
+  const [practiceLoading, setPracticeLoading] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -116,6 +118,41 @@ export default function Lessons() {
   const embedUrl = lessonDetails?.videoUrl ? getYouTubeEmbedUrl(lessonDetails.videoUrl) : null;
   const currentLessonIndex = lessons.findIndex((l) => l._id === selectedLesson);
   const totalLessons = lessons.length;
+
+  const ensurePracticeExists = async () => {
+    if (!selectedLesson) return;
+
+    try {
+      await getPracticeByLesson(selectedLesson);
+    } catch (err) {
+      const status = err?.response?.status;
+      if (status === 404) {
+        await createPractice(selectedLesson, {
+          title: `Luyen tap: ${lessonDetails?.title || "Bai hoc"}`,
+          lessonContent: lessonDetails?.content || lessonDetails?.description || course?.description || "",
+          courseId: course?._id,
+          difficulty: "medium",
+          questionType: "open_ended",
+        });
+      } else {
+        throw err;
+      }
+    }
+  };
+
+  const handlePracticeNavigate = async () => {
+    if (!selectedLesson) return;
+    try {
+      setPracticeLoading(true);
+      await ensurePracticeExists();
+      navigate(`/lessons/${selectedLesson}/practice`);
+    } catch (err) {
+      console.error("[Lessons] Practice prepare failed:", err);
+      alert(err?.response?.data?.message || "Khong chuan bi duoc bai luyen tap. Vui long thu lai.");
+    } finally {
+      setPracticeLoading(false);
+    }
+  };
 
   return (
     <div className="lessons-shell">
@@ -336,6 +373,14 @@ export default function Lessons() {
                     </button>
                     <button
                       type="button"
+                      className="lesson-action accent"
+                      onClick={handlePracticeNavigate}
+                      disabled={practiceLoading}
+                    >
+                      {practiceLoading ? "Dang chuan bi..." : "Luyen tap"}
+                    </button>
+                    <button
+                      type="button"
                       className="lesson-action primary"
                       onClick={() => {
                         if (quizzes.length === 0) {
@@ -396,3 +441,4 @@ export default function Lessons() {
     </div>
   );
 }
+
