@@ -1,0 +1,161 @@
+.wallet-card {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  border-radius: 12px;
+  padding: 16px;
+  color: white;
+  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+  transition: transform 0.2s ease;
+}
+
+.wallet-card:hover {
+  transform: translateY(-2px);
+}
+
+.wallet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.wallet-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.wallet-icon {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 8px;
+  border-radius: 50%;
+  backdrop-filter: blur(10px);
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  color: white;
+}
+
+.wallet-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.wallet-label {
+  font-size: 12px;
+  opacity: 0.9;
+  margin: 0 0 4px 0;
+}
+
+.wallet-balance {
+  font-size: 20px;
+  font-weight: bold;
+  margin: 0;
+}
+
+/* Wallet balance wrapper with refresh button */
+.wallet-balance-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wallet-refresh-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  transition: all 0.2s ease;
+  opacity: 0.8;
+}
+
+.wallet-refresh-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  opacity: 1;
+}
+
+.wallet-refresh-btn:active {
+  transform: scale(0.95);
+}
+
+.wallet-skeleton {
+  display: inline-block;
+  width: 64px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.wallet-badge {
+  background: #f59e0b;
+  color: #78350f;
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-icon {
+  width: 12px;
+  height: 12px;
+}
+
+.wallet-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.wallet-rate {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.rate-icon {
+  width: 12px;
+  height: 12px;
+}
+
+.wallet-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.wallet-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.button-icon {
+  width: 12px;
+  height: 12px;
+}

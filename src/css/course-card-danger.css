@@ -1,0 +1,417 @@
+.course-card-btn.danger {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.course-card-btn.danger:hover {
+  background: #fecaca;
+}
+
+.course-card-btn.share {
+  background: #10b981;
+  color: white;
+}
+
+.course-card-btn.share:hover {
+  background: #059669;
+}
+
+.course-card-btn.secondary {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.course-card-btn.secondary:hover {
+  background: #bae6fd;
+}
+
+.course-card-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Profile Compact Version */
+.course-card-profile-compact {
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+.course-card-profile-compact .course-card-media {
+  height: 140px;
+}
+
+.course-card-profile-compact .course-card-body {
+  padding: 10px;
+}
+
+.course-card-profile-compact .course-card-chip-row {
+  margin-bottom: 4px;
+}
+
+.course-card-profile-compact .course-card-title {
+  font-size: 14px;
+  line-height: 1.2;
+  margin-bottom: 6px;
+  max-height: 2.4em;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.course-card-profile-compact .course-card-meta {
+  font-size: 10px;
+  margin-bottom: 8px;
+}
+
+.course-card-profile-compact .course-card-actions {
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.course-card-profile-compact .course-card-btn {
+  padding: 4px 8px;
+  font-size: 11px;
+  border-radius: 4px;
+}
+
+.course-card-profile-compact .course-card-btn.primary {
+  flex: 1;
+  min-width: 70px;
+}
+
+.course-card-profile-compact .course-card-btn.share,
+.course-card-profile-compact .course-card-btn.danger {
+  min-width: 50px;
+  padding: 4px 6px;
+}
+
+/* Profile Course Card Styles */
+.course-card-profile {
+  display: flex;
+  flex-direction: row;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  margin-bottom: 16px;
+  border: 1px solid #e5e7eb;
+}
+
+.course-card-profile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.course-card-profile-image {
+  width: 200px;
+  height: 120px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.course-card-profile-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.course-card-profile:hover .course-card-profile-image img {
+  transform: scale(1.05);
+}
+
+.course-card-profile-content {
+  flex: 1;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  min-height: 120px;
+  min-width: 0; /* Important for text overflow */
+  overflow: hidden;
+}
+
+.course-card-profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.course-card-profile-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+  line-height: 1.3;
+  flex: 1;
+  min-width: 0;
+  word-wrap: break-word;
+  word-break: break-word;
+  display: block;
+  white-space: normal;
+  min-height: auto;
+}
+
+.course-card-profile-badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.course-card-profile-badge {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.course-card-profile-badge.published {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.course-card-profile-badge.draft {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.course-card-profile-badge.category {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+
+.course-card-profile-meta {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.meta-item {
+  font-size: 12px;
+  color: #6b7280;
+  padding: 2px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.course-card-profile-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.profile-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.profile-btn:hover {
+  transform: translateY(-1px);
+}
+
+.profile-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.profile-btn.primary {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+.profile-btn.primary:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.profile-btn.share {
+  background: #10b981;
+  color: white;
+  border-color: #10b981;
+}
+
+.profile-btn.share:hover {
+  background: #059669;
+  border-color: #059669;
+}
+
+.profile-btn.danger {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fee2e2;
+}
+
+.profile-btn.danger:hover {
+  background: #fecaca;
+  border-color: #fecaca;
+}
+
+/* Modal Styles for Share Confirmation */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  max-width: 400px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.modal-header {
+  padding: 20px 20px 16px 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.modal-body p {
+  margin: 0 0 16px 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #374151;
+}
+
+.modal-warning {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 14px;
+  color: #92400e;
+}
+
+.modal-footer {
+  padding: 16px 20px 20px 20px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.btn-primary, .btn-secondary {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.btn-primary {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+.btn-primary:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.btn-secondary {
+  background: #f3f4f6;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+.btn-secondary:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .course-card-profile {
+    flex-direction: column;
+  }
+
+  .course-card-profile-image {
+    width: 100%;
+    height: 160px;
+  }
+
+  .course-card-profile-header {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .course-card-profile-title {
+    max-width: 100%;
+  }
+
+  .course-card-profile-actions {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .profile-btn {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .course-card-profile-content {
+    padding: 12px;
+  }
+
+  .course-card-profile-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .profile-btn {
+    justify-content: center;
+  }
+}
