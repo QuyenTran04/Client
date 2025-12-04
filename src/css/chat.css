@@ -440,7 +440,7 @@
   border: none;
   cursor: pointer;
   z-index: 999;
-  background: var(--primary-gradient);
+  background: linear-gradient(135deg, #ffd48a, #f6b347);
   color: #fff;
   letter-spacing: 2px;
   font-weight: 700;
