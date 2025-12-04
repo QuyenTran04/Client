@@ -30,58 +30,10 @@ function generateDynamicQuestions(topic) {
       ]
     },
     {
-      id: "related_background",
-      type: "multiple",
-      question: `Nền tảng kiến thức liên quan của bạn với "${topic}" là gì?`,
-      options: [
-        { value: 0, label: "Không có nền tảng liên quan, bắt đầu từ zero" },
-        { value: 1, label: "Có kiến thức từ các lĩnh vực hơi liên quan" },
-        { value: 2, label: "Có nền tảng từ ngành học/làm việc liên quan" },
-        { value: 3, label: "Kiến thức nền tảng vững chắc từ nhiều nguồn" },
-        { value: 4, label: "Chuyên gia về các kiến thức nền tảng liên quan" }
-      ]
-    },
-    {
       id: "learning_goals",
       type: "text",
       question: `Mục tiêu cụ thể của bạn khi học khóa học "${topic}" là gì?`,
-      placeholder: "Ví dụ: Để chuyển ngành, thăng tiến trong công việc hiện tại, làm dự án cá nhân, mở rộng kiến thức, lấy chứng chỉ, start công việc kinh doanh..."
-    },
-    {
-      id: "time_commitment",
-      type: "multiple",
-      question: `Bạn dự định dành bao nhiêu thời gian cho việc học "${topic}"?`,
-      options: [
-        { value: 0, label: "1-2 tiếng/tuần - Học cho biết, không áp lực" },
-        { value: 1, label: "3-5 tiếng/tuần - Học nghiêm túc nhưng từ từ" },
-        { value: 2, label: "6-10 tiếng/tuần - Học tập chuyên cần" },
-        { value: 3, label: "10+ tiếng/tuần - Học tập intensively, muốn nhanh chóng" },
-        { value: 4, label: "Toàn thời gian - Học như công việc chính" }
-      ]
-    },
-    {
-      id: "learning_preference",
-      type: "multiple",
-      question: `Phong cách học tập bạn ưa thích nhất khi học "${topic}" là gì?`,
-      options: [
-        { value: 0, label: "Lý thuyết chi tiết + bài tập cơ bản" },
-        { value: 1, label: "Thực hành ngay + học qua dự án" },
-        { value: 2, label: "Case study thực tế + ví dụ cụ thể" },
-        { value: 3, label: "Cân bằng lý thuyết và thực hành" },
-        { value: 4, label: "Tương tác nhiều + giải quyết vấn đề" }
-      ]
-    },
-    {
-      id: "application_context",
-      type: "multiple",
-      question: `Bạn dự định áp dụng kiến thức "${topic}" vào đâu?`,
-      options: [
-        { value: 0, label: "Học để biết, mở rộng hiểu biết" },
-        { value: 1, label: "Áp dụng vào công việc hiện tại" },
-        { value: 2, label: "Chuyển sang công việc/nghề mới" },
-        { value: 3, label: "Làm dự án cá nhân/khởi nghiệp" },
-        { value: 4, label: "Học chuyên sâu để trở thành chuyên gia" }
-      ]
+      placeholder: "Ví dụ: Để chuyển ngành, thăng tiến trong công việc hiện tại, làm dự án cá nhân, mở rộng kiến thức, lấy chứng chỉ..."
     }
   ];
 
@@ -177,7 +129,7 @@ export default function SkillAssessment({ topic, onComplete, onBack }) {
       )}
       <div className="assessment-header">
         <h2>Đánh giá trình độ cá nhân hóa</h2>
-        <p>Khảo sát 7 câu hỏi phổ quát để hiểu rõ trình độ và mục tiêu học tập của bạn với "{topic}"</p>
+        <p>Khảo sát 3 câu hỏi quan trọng để hiểu rõ trình độ và mục tiêu học tập của bạn với "{topic}"</p>
         <div className="progress-bar">
           <div
             className="progress-fill"
