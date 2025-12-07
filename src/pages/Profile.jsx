@@ -659,9 +659,12 @@ const Profile = () => {
                     <RefreshCw className="btn-icon" />
                     Làm mới
                   </button>
-                  <button className="btn-primary">
+                  <button
+                    className="btn-primary"
+                    onClick={() => window.location.href = '/courses/create-ai'}
+                  >
                     <Plus />
-                    Tạo khóa học mới
+                    Tạo khóa học với AI
                   </button>
                 </div>
               </div>
