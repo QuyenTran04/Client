@@ -11,20 +11,6 @@ const STEP_FLOW = [
   { id: 4, title: "Khởi tạo khóa học", caption: "Tài liệu & quiz được sinh" },
 ];
 
-const SIDE_CARDS = [
-  {
-    title: "AI Research",
-    description: "Hệ thống đọc prompt, trích thông tin và xây dựng mục tiêu rõ ràng.",
-  },
-  {
-    title: "Lesson Builder",
-    description: "AI đề xuất 6-20 bài, sắp xếp theo mức độ kèm gợi ý tài liệu.",
-  },
-  {
-    title: "Quiz & Docs",
-    description: "Mỗi bài được tạo tài liệu markdown và bộ câu hỏi từ nội dung.",
-  },
-];
 
 const DELIVERABLES = [
   {
@@ -395,7 +381,7 @@ export default function CreateCourseWithAI() {
       </div>
 
       {step === 1 && (
-        <div className="ai-layout">
+        <div className="ai-layout-single">
           {loading ? (
             <div className="ai-card">
               <div className="ai-loading">
@@ -467,33 +453,11 @@ export default function CreateCourseWithAI() {
             </div>
           </form>
           )}
-          <aside className="ai-card ai-sidebar">
-            <p className="ai-eyebrow">AI Toolkit</p>
-            <h3>Bạn sẽ nhận dữ liệu gì?</h3>
-            <p className="ai-sidebar__text">
-              AI xu ly yeu cau cua ban de tao ke hoach hoc tap hoan chinh. Hay mo ta cu the ve muc tieu, rang buoc,
-              tai nguyen co san neu co.
-            </p>
-            <div className="ai-sidebar__cards">
-              {SIDE_CARDS.map((card) => (
-                <div key={card.title}>
-                  <h4>{card.title}</h4>
-                  <p>{card.description}</p>
-                </div>
-              ))}
-            </div>
-            <div className="ai-sidebar__note">
-              <p>
-                Sau khi bạn nhận bản nháp, có thể điều chỉnh nội dung trước khi tạo khóa học chính thức. Mỗi lần sinh
-                lại sẽ dựa trên prompt hiện tại.
-              </p>
-            </div>
-          </aside>
         </div>
       )}
 
       {step === 2 && (
-        <div className="ai-layout">
+        <div className="ai-layout-single">
           {loading ? (
             <div className="ai-card">
               <div className="ai-loading">
@@ -514,37 +478,6 @@ export default function CreateCourseWithAI() {
               onBack={handleBackToBasicInfo}
             />
           )}
-
-          <aside className="ai-card ai-sidebar">
-            <p className="ai-eyebrow">AI Assessment</p>
-            <h3>Tại sao cần khảo sát?</h3>
-            <p className="ai-sidebar__text">
-              AI sẽ phân tích câu trả lời của bạn để xác định chính xác trình độ hiện tại, từ đó tạo ra lộ trình học tập phù hợp nhất.
-            </p>
-            <div className="ai-sidebar__cards">
-              <div>
-                <h4>Khảo sát thông minh</h4>
-                <p>Câu hỏi được tạo riêng dựa trên chủ đề bạn nhập, đảm bảo đánh giá chính xác nhất</p>
-              </div>
-              <div>
-                <h4>Đánh giá chính xác</h4>
-                <p>AI phân tích câu trả lời chi tiết để xác định trình độ thực tế, không cần tự đánh giá</p>
-              </div>
-              <div>
-                <h4>Nội dung cá nhân hóa</h4>
-                <p>Khóa học được điều chỉnh theo năng lực và mục tiêu cụ thể của bạn</p>
-              </div>
-              <div>
-                <h4>Tối ưu hóa lộ trình</h4>
-                <p>Tránh nội dung quá dễ hoặc quá khó, tập trung vào kiến thức thực sự cần thiết</p>
-              </div>
-            </div>
-            <div className="ai-sidebar__note">
-              <p>
-                Khảo sát chỉ mất 2-3 phút với các câu hỏi liên quan trực tiếp đến khóa học bạn muốn tạo. Câu trả lời trung thực sẽ giúp AI tạo ra khóa học hoàn hảo cho bạn!
-              </p>
-            </div>
-          </aside>
         </div>
       )}
 
@@ -808,7 +741,7 @@ export default function CreateCourseWithAI() {
       <style>{`
         .ai-builder {
           min-height: 100vh;
-          background: radial-gradient(circle at top, #f3f4ff 0%, #ecf7ff 40%, #f9fbff 100%);
+          background: radial-gradient(circle at top, #f0f9ff 0%, #e0f2fe 40%, #f0f9ff 100%);
           padding: 56px 16px 80px;
         }
         .ai-builder__hero {
@@ -829,7 +762,7 @@ export default function CreateCourseWithAI() {
           font-size: 12px;
           font-weight: 600;
           margin-bottom: 12px;
-          color: #9cc6ff;
+          color: #93c5fd;
         }
         .ai-builder__hero h1 {
           font-size: 36px;
@@ -885,7 +818,7 @@ export default function CreateCourseWithAI() {
           justify-content: center;
           font-weight: 700;
           color: #fff;
-          background: linear-gradient(135deg, #5b7cfd, #5de0ff);
+          background: linear-gradient(135deg, #3b82f6, #06b6d4);
         }
         .ai-step__title {
           margin: 0;
@@ -902,6 +835,10 @@ export default function CreateCourseWithAI() {
           display: grid;
           grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
           gap: 24px;
+        }
+        .ai-layout-single {
+          max-width: 720px;
+          margin: 0 auto;
         }
         .ai-card {
           background: #fff;
@@ -943,8 +880,8 @@ export default function CreateCourseWithAI() {
           background: #fff;
         }
         .ai-input:focus {
-          border-color: #5b7cfd;
-          box-shadow: 0 0 0 3px rgba(91, 124, 253, 0.15);
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
         }
         .ai-input--textarea {
           resize: none;
@@ -960,9 +897,9 @@ export default function CreateCourseWithAI() {
           grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
           gap: 16px;
           padding: 16px;
-          border: 1px dashed #dbeafe;
+          border: 1px dashed #bfdbfe;
           border-radius: 16px;
-          background: #f8fbff;
+          background: #f0f9ff;
           margin-bottom: 20px;
         }
         .ai-deliverables__title {
@@ -997,7 +934,7 @@ export default function CreateCourseWithAI() {
           color: #0f172a;
         }
         .ai-btn--primary {
-          background: linear-gradient(135deg, #5b7cfd, #5de0ff);
+          background: linear-gradient(135deg, #3b82f6, #06b6d4);
           color: #fff;
           flex: 1;
         }
@@ -1005,6 +942,11 @@ export default function CreateCourseWithAI() {
           background: linear-gradient(135deg, #34d399, #059669);
           color: #fff;
           min-width: 180px;
+        }
+        .ai-btn--primary:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+          background: linear-gradient(135deg, #3b82f6, #06b6d4);
         }
         .ai-sidebar__text {
           color: #475569;
@@ -1060,7 +1002,7 @@ export default function CreateCourseWithAI() {
           height: 48px;
           border-radius: 50%;
           border: 4px solid #e2e8f0;
-          border-top-color: #5b7cfd;
+          border-top-color: #3b82f6;
           animation: spin 1s linear infinite;
         }
 
@@ -1081,7 +1023,7 @@ export default function CreateCourseWithAI() {
           width: 8px;
           height: 8px;
           border-radius: 50%;
-          background: #5b7cfd;
+          background: #3b82f6;
           animation: pulse 1.5s ease-in-out infinite;
         }
 
@@ -1183,9 +1125,9 @@ export default function CreateCourseWithAI() {
         .assessment-insights {
           margin-top: 12px;
           padding: 16px;
-          background: rgba(91, 124, 253, 0.1);
+          background: rgba(59, 130, 246, 0.1);
           border-radius: 12px;
-          border: 1px solid rgba(91, 124, 253, 0.2);
+          border: 1px solid rgba(59, 130, 246, 0.2);
         }
 
         .assessment-insights__content {
@@ -1214,8 +1156,8 @@ export default function CreateCourseWithAI() {
           height: 96px;
           margin: 0 auto 24px;
           border-radius: 50%;
-          background: radial-gradient(circle, rgba(93, 224, 255, 0.35), rgba(91, 124, 253, 0.1));
-          border: 1px solid rgba(93, 224, 255, 0.3);
+          background: radial-gradient(circle, rgba(56, 189, 248, 0.35), rgba(59, 130, 246, 0.1));
+          border: 1px solid rgba(56, 189, 248, 0.3);
         }
         .ai-progress {
           width: 100%;
@@ -1228,7 +1170,7 @@ export default function CreateCourseWithAI() {
         .ai-progress__bar {
           width: 40%;
           height: 100%;
-          background: linear-gradient(90deg, #5b7cfd, #5de0ff);
+          background: linear-gradient(90deg, #3b82f6, #06b6d4);
           animation: progress 2.2s ease-in-out infinite;
         }
         .ai-timeline {
