@@ -87,4 +87,7 @@ export const adminApi = {
     api.put(`/admin/quiz/${id}`, payload).then((r) => r.data),
   deleteQuiz: (id) =>
     api.delete(`/admin/quiz/${id}`).then((r) => r.data),
+
+  // NOTIFICATIONS
+  getNotifications: () => api.get("/admin/notifications").then((r) => r.data),
 };

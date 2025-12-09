@@ -9,7 +9,14 @@ import {
   BookOpen,
   Trash2,
   Download,
+  Eye,
+  Edit,
+  Plus,
+  Filter,
+  Search,
 } from "lucide-react";
+import CourseDetailModal from "../../components/admin/CourseDetailModal";
+import CourseEditModal from "../../components/admin/CourseEditModal";
 
 export default function Courses() {
   const qc = useQueryClient();
@@ -17,6 +24,10 @@ export default function Courses() {
   const [published, setPublished] = useState("");
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState(new Set());
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const { data, isFetching, isError } = useQuery({
     queryKey: ["admin-courses", { q, published, page }],
@@ -81,6 +92,22 @@ export default function Courses() {
     setSelected(newSelected);
   };
 
+  const handleViewDetail = (course) => {
+    setSelectedCourse(course);
+    setShowDetailModal(true);
+  };
+
+  const handleEdit = (course) => {
+    setSelectedCourse(course);
+    setShowDetailModal(false);
+    setShowEditModal(true);
+  };
+
+  const handleEditSuccess = () => {
+    setShowEditModal(false);
+    setSelectedCourse(null);
+  };
+
   const exportToCSV = () => {
     if (items.length === 0) {
       alert("Không có dữ liệu để xuất");
@@ -117,37 +144,61 @@ export default function Courses() {
           <BookOpen className="w-8 h-8 text-blue-600" />
           Quản lý khóa học
         </h1>
+        <button
+          onClick={() => {
+            setSelectedCourse(null);
+            setShowEditModal(true);
+          }}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+        >
+          <Plus size={20} />
+          Tạo khóa học mới
+        </button>
       </div>
 
       {/* FILTER BAR */}
-      <div className="bg-white p-4 rounded-2xl shadow-sm flex flex-wrap gap-3 items-center border border-gray-100">
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="🔍 Tìm theo tiêu đề…"
-          className="border border-gray-300 px-3 py-2 rounded-lg w-64 focus:ring-2 focus:ring-blue-500 outline-none"
-        />
-        <select
-          value={published}
-          onChange={(e) => setPublished(e.target.value)}
-          className="border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-        >
-          <option value="">Tất cả</option>
-          <option value="true">Đã xuất bản</option>
-          <option value="false">Bản nháp</option>
-        </select>
-        {isFetching && (
-          <span className="text-gray-500 text-sm flex items-center gap-1">
-            <Loader2 className="animate-spin w-4 h-4" /> Đang tải...
-          </span>
-        )}
-        <button
-          onClick={exportToCSV}
-          className="ml-auto text-indigo-600 hover:bg-indigo-50 p-2 rounded-lg inline-flex items-center gap-1 text-sm"
-        >
-          <Download size={16} />
-          Xuất CSV
-        </button>
+      <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+        <div className="flex flex-wrap gap-3 items-center">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Tìm theo tiêu đề..."
+              className="pl-10 pr-3 py-2 border border-gray-300 rounded-lg w-64 focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+          </div>
+          <select
+            value={published}
+            onChange={(e) => setPublished(e.target.value)}
+            className="border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+          >
+            <option value="">Tất cả trạng thái</option>
+            <option value="true">Đã xuất bản</option>
+            <option value="false">Bản nháp</option>
+          </select>
+          {isFetching && (
+            <span className="text-gray-500 text-sm flex items-center gap-1">
+              <Loader2 className="animate-spin w-4 h-4" /> Đang tải...
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-3 mt-3">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="text-gray-600 hover:bg-gray-100 px-3 py-1.5 rounded-lg inline-flex items-center gap-1 text-sm"
+          >
+            <Filter size={16} />
+            Bộ lọc nâng cao
+          </button>
+          <button
+            onClick={exportToCSV}
+            className="text-indigo-600 hover:bg-indigo-50 px-3 py-1.5 rounded-lg inline-flex items-center gap-1 text-sm"
+          >
+            <Download size={16} />
+            Xuất CSV
+          </button>
+        </div>
       </div>
 
       {/* BULK ACTIONS */}
@@ -203,6 +254,9 @@ export default function Courses() {
                 Giá
               </th>
               <th className="p-3 text-center font-semibold text-gray-700">
+                Học viên
+              </th>
+              <th className="p-3 text-center font-semibold text-gray-700">
                 Trạng thái
               </th>
               <th className="p-3 text-right font-semibold text-gray-700">
@@ -213,14 +267,14 @@ export default function Courses() {
           <tbody className="divide-y divide-gray-100">
             {isError && (
               <tr>
-                <td colSpan={5} className="p-4 text-center text-red-500">
+                <td colSpan={6} className="p-4 text-center text-red-500">
                   ⚠️ Lỗi khi tải dữ liệu. Vui lòng thử lại.
                 </td>
               </tr>
             )}
             {!isError && items.length === 0 && !isFetching && (
               <tr>
-                <td colSpan={5} className="p-4 text-center text-gray-500">
+                <td colSpan={6} className="p-4 text-center text-gray-500">
                   Không có dữ liệu
                 </td>
               </tr>
@@ -248,6 +302,11 @@ export default function Courses() {
                   {c.price?.toLocaleString?.("vi-VN") || 0}₫
                 </td>
                 <td className="p-3 text-center">
+                  <span className="inline-flex items-center gap-1 text-sm font-medium text-gray-700">
+                    {c.enrollmentCount || 0}
+                  </span>
+                </td>
+                <td className="p-3 text-center">
                   <span
                     className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
                       c.published
@@ -260,39 +319,56 @@ export default function Courses() {
                     ) : (
                       <XCircle className="w-3.5 h-3.5" />
                     )}
-                    {c.published ? "Published" : "Draft"}
+                    {c.published ? "Đã xuất bản" : "Bản nháp"}
                   </span>
                 </td>
-                <td className="p-3 text-right flex gap-2 justify-end">
-                  <button
-                    disabled={toggleMut.isLoading}
-                    onClick={() => toggleMut.mutate(c._id)}
-                    className={`inline-flex items-center gap-1 px-3 py-1 border rounded-lg text-sm font-medium transition-all shadow-sm ${
-                      c.published
-                        ? "border-gray-300 text-gray-600 hover:bg-gray-100 hover:shadow-md"
-                        : "border-blue-500 text-blue-600 hover:bg-blue-50 hover:shadow-md"
-                    } ${
-                      toggleMut.isLoading ? "opacity-60 cursor-not-allowed" : ""
-                    }`}
-                  >
-                    {toggleMut.isLoading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <RefreshCcw className="w-4 h-4" />
-                    )}
-                    {c.published ? "Unpublish" : "Publish"}
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (confirm("Bạn chắc chắn muốn xóa khóa học này?")) {
-                        deleteMut.mutate(c._id);
-                      }
-                    }}
-                    disabled={deleteMut.isLoading}
-                    className="text-red-600 hover:bg-red-50 p-1.5 rounded-lg"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                <td className="p-3 text-right">
+                  <div className="flex items-center gap-1 justify-end">
+                    <button
+                      onClick={() => handleViewDetail(c)}
+                      className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                      title="Xem chi tiết"
+                    >
+                      <Eye size={16} />
+                    </button>
+                    <button
+                      onClick={() => handleEdit(c)}
+                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="Chỉnh sửa"
+                    >
+                      <Edit size={16} />
+                    </button>
+                    <button
+                      disabled={toggleMut.isLoading}
+                      onClick={() => toggleMut.mutate(c._id)}
+                      className={`p-1.5 rounded-lg transition-colors ${
+                        c.published
+                          ? "text-gray-600 hover:bg-gray-100"
+                          : "text-green-600 hover:bg-green-50"
+                      } ${
+                        toggleMut.isLoading ? "opacity-60 cursor-not-allowed" : ""
+                      }`}
+                      title={c.published ? "Ẩn khóa học" : "Xuất bản"}
+                    >
+                      {toggleMut.isLoading ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <RefreshCcw className="w-4 h-4" />
+                      )}
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (confirm("Bạn chắc chắn muốn xóa khóa học này?")) {
+                          deleteMut.mutate(c._id);
+                        }
+                      }}
+                      disabled={deleteMut.isLoading}
+                      className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Xóa khóa học"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -322,6 +398,29 @@ export default function Courses() {
           </button>
         </div>
       </div>
+
+      {/* Modals */}
+      {showDetailModal && (
+        <CourseDetailModal
+          course={selectedCourse}
+          onClose={() => {
+            setShowDetailModal(false);
+            setSelectedCourse(null);
+          }}
+          onEdit={handleEdit}
+        />
+      )}
+
+      {showEditModal && (
+        <CourseEditModal
+          course={selectedCourse}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedCourse(null);
+          }}
+          onSuccess={handleEditSuccess}
+        />
+      )}
     </div>
   );
 }
