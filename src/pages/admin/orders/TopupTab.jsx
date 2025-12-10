@@ -42,7 +42,7 @@ export default function TopupTab({ q, setQ, page, setPage }) {
             className="status-select"
           >
             <option value="">📊 Tất cả trạng thái</option>
-            <option value="success">✅ Thành công</option>
+            <option value="paid">✅ Thành công</option>
             <option value="pending">⏳ Đang xử lý</option>
             <option value="failed">❌ Thất bại</option>
           </select>
@@ -97,19 +97,19 @@ export default function TopupTab({ q, setQ, page, setPage }) {
                   </td>
                   <td>
                     <span className="amount-vnd">
-                      {currencyFormatter.format(tx.metadata?.amount || 0)}
+                      {currencyFormatter.format(tx.amount || 0)}
                     </span>
                   </td>
                   <td>
                     <span className="amount-coins">
                       <Coins size={14} />
-                      {tx.amount?.toLocaleString()} xu
+                      {tx.coins?.toLocaleString()} xu
                     </span>
                   </td>
                   <td>
-                    <span className={`status-badge ${tx.metadata?.status || "pending"}`}>
-                      {tx.metadata?.status === "success" ? "Thành công" : 
-                       tx.metadata?.status === "failed" ? "Thất bại" : "Đang xử lý"}
+                    <span className={`status-badge ${tx.status || "pending"}`}>
+                      {tx.status === "paid" ? "Thành công" : 
+                       tx.status === "failed" ? "Thất bại" : "Đang xử lý"}
                     </span>
                   </td>
                   <td className="date-cell">

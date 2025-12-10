@@ -304,11 +304,14 @@ export default function Orders() {
           gap: 12px;
         }
 
-        .user-avatar {
+        .user-avatar,
+        .user-avatar-img {
           width: 40px;
           height: 40px;
           border-radius: 50%;
           object-fit: cover;
+          border: 2px solid #dbeafe;
+          box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
         }
 
         .user-avatar-placeholder {
@@ -321,6 +324,8 @@ export default function Orders() {
           justify-content: center;
           color: white;
           font-weight: 700;
+          border: 2px solid #dbeafe;
+          box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
         }
 
         .user-name {
@@ -359,7 +364,8 @@ export default function Orders() {
           font-weight: 600;
         }
 
-        .status-badge.success {
+        .status-badge.success,
+        .status-badge.paid {
           background: linear-gradient(135deg, #d1fae5, #a7f3d0);
           color: #065f46;
         }

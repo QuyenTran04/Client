@@ -207,12 +207,19 @@ export default function Users() {
                     <div className="user-wrapper">
                       <div className="user-avatar-container">
                         {user.avatar ? (
-                          <img src={user.avatar} alt={user.name} className="user-avatar-img" />
-                        ) : (
-                          <div className="user-avatar-placeholder">
-                            {(user.name || "?").charAt(0).toUpperCase()}
-                          </div>
-                        )}
+                          <img 
+                            src={user.avatar} 
+                            alt={user.name} 
+                            className="user-avatar-img"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              e.target.nextElementSibling?.classList.remove('hidden');
+                            }}
+                          />
+                        ) : null}
+                        <div className={`user-avatar-placeholder ${user.avatar ? 'hidden' : ''}`}>
+                          {(user.name || "?").charAt(0).toUpperCase()}
+                        </div>
                         <div className={`online-indicator ${user.isOnline ? 'online' : 'offline'}`} 
                              title={user.isOnline ? 'Đang online' : 'Offline'}>
                         </div>
@@ -753,15 +760,20 @@ export default function Users() {
           width: 48px;
           height: 48px;
           flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
         .user-avatar-img {
+          position: absolute;
           width: 100%;
           height: 100%;
           border-radius: 50%;
           object-fit: cover;
           border: 2px solid #dbeafe;
           box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+          z-index: 1;
         }
 
         .user-avatar-placeholder {
@@ -1089,6 +1101,11 @@ export default function Users() {
         .pagination-btn:disabled {
           opacity: 0.4;
           cursor: not-allowed;
+        }
+
+        /* Utility */
+        .hidden {
+          display: none !important;
         }
 
         /* Error Message */

@@ -83,6 +83,8 @@ export const adminApi = {
     api.delete(`/admin/reviews/${id}`).then((r) => r.data),
   hideReview: (id) =>
     api.put(`/admin/reviews/${id}/hide`).then((r) => r.data),
+  unhideReview: (id) =>
+    api.put(`/admin/reviews/${id}/unhide`).then((r) => r.data),
 
   // LESSONS
   listLessons: (courseId, params) =>
