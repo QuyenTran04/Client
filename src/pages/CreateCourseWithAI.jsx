@@ -347,25 +347,27 @@ export default function CreateCourseWithAI() {
   return (
     <div className="ai-builder">
       <div className="ai-builder__hero">
-        <div>
-          <p className="ai-eyebrow">AI Course Studio</p>
-          <h1>Tạo khóa học trong vài phút</h1>
+        <div className="ai-hero__content">
+          <div className="ai-hero__badge">
+            <span>✨</span> AI Course Studio
+          </div>
+          <h1 className="ai-hero__title">Tạo khóa học với AI</h1>
           <p className="ai-hero__subtitle">
-            Điền chủ đề, phần còn lại để AI xử lý: lộ trình bài học, tài liệu, quiz và mức độ phù hợp.
+            Mô tả chủ đề, AI sẽ tạo lộ trình học tập, tài liệu và quiz tự động.
           </p>
         </div>
         <div className="ai-hero__stats">
-          <div>
-            <span className="ai-hero__value">6 - 20</span>
-            <span className="ai-hero__label">Bài học đề xuất</span>
+          <div className="ai-hero__stat">
+            <span className="ai-hero__stat-value">6-20</span>
+            <span className="ai-hero__stat-label">Bài học</span>
           </div>
-          <div>
-            <span className="ai-hero__value">100%</span>
-            <span className="ai-hero__label">Tài liệu & quiz tự động</span>
+          <div className="ai-hero__stat">
+            <span className="ai-hero__stat-value">100%</span>
+            <span className="ai-hero__stat-label">Tự động</span>
           </div>
-          <div>
-            <span className="ai-hero__value">~5 phut</span>
-            <span className="ai-hero__label">Thời gian hoàn tất</span>
+          <div className="ai-hero__stat">
+            <span className="ai-hero__stat-value">~5'</span>
+            <span className="ai-hero__stat-label">Hoàn tất</span>
           </div>
         </div>
       </div>
@@ -884,137 +886,107 @@ export default function CreateCourseWithAI() {
       <style>{`
         .ai-builder {
           min-height: 100vh;
-          background: radial-gradient(circle at top, #f0f9ff 0%, #e0f2fe 40%, #f0f9ff 100%);
-          padding: 40px 16px 80px;
+          background: #f8fafc;
+          padding: 24px 16px 60px;
         }
         .ai-builder__hero {
-          max-width: 1100px;
-          margin: 0 auto 40px;
-          padding: 48px 56px;
-          border-radius: 32px;
-          background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+          max-width: 900px;
+          margin: 0 auto 20px;
+          padding: 20px 28px;
+          border-radius: 14px;
+          background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
           color: #fff;
           display: flex;
           flex-wrap: wrap;
-          gap: 32px;
+          gap: 20px;
           justify-content: space-between;
           align-items: center;
-          box-shadow: 0 20px 60px rgba(15, 23, 42, 0.4);
-          position: relative;
-          overflow: hidden;
+          box-shadow: 0 2px 12px rgba(15, 23, 42, 0.12);
         }
-        .ai-builder__hero::before {
-          content: '';
-          position: absolute;
-          top: -50%;
-          right: -20%;
-          width: 500px;
-          height: 500px;
-          background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
-          border-radius: 50%;
-          pointer-events: none;
+        .ai-hero__content {
+          flex: 1;
+          min-width: 260px;
         }
-        .ai-eyebrow {
-          text-transform: uppercase;
-          letter-spacing: 0.25em;
-          font-size: 11px;
-          font-weight: 700;
-          margin-bottom: 16px;
-          color: #60a5fa;
+        .ai-hero__badge {
           display: inline-flex;
           align-items: center;
-          gap: 8px;
-          padding: 6px 14px;
-          background: rgba(59, 130, 246, 0.15);
-          border-radius: 20px;
-          border: 1px solid rgba(59, 130, 246, 0.3);
+          gap: 5px;
+          padding: 3px 10px;
+          background: rgba(59, 130, 246, 0.25);
+          border-radius: 16px;
+          font-size: 10px;
+          font-weight: 600;
+          color: #93c5fd;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          margin-bottom: 8px;
         }
-        .ai-eyebrow::before {
-          content: '✨';
-          font-size: 14px;
-        }
-        .ai-builder__hero h1 {
-          font-size: 42px;
-          margin: 0 0 16px;
-          font-weight: 800;
-          line-height: 1.2;
-          background: linear-gradient(135deg, #ffffff 0%, #e0f2fe 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
+        .ai-hero__title {
+          font-size: 22px;
+          margin: 0 0 6px;
+          font-weight: 700;
+          color: #ffffff;
         }
         .ai-hero__subtitle {
-          max-width: 580px;
-          font-size: 17px;
-          line-height: 1.7;
-          color: rgba(255, 255, 255, 0.9);
+          font-size: 13px;
+          line-height: 1.5;
+          color: rgba(255, 255, 255, 0.65);
+          margin: 0;
         }
         .ai-hero__stats {
           display: flex;
-          gap: 32px;
-          align-items: flex-start;
+          gap: 10px;
           flex-wrap: wrap;
         }
-        .ai-hero__stats > div {
-          padding: 20px 24px;
+        .ai-hero__stat {
+          padding: 10px 14px;
           background: rgba(255, 255, 255, 0.08);
-          border-radius: 16px;
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          backdrop-filter: blur(10px);
-          min-width: 140px;
-          transition: all 0.3s ease;
+          border-radius: 8px;
+          text-align: center;
+          min-width: 65px;
         }
-        .ai-hero__stats > div:hover {
-          background: rgba(255, 255, 255, 0.12);
-          transform: translateY(-4px);
-          box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
-        }
-        .ai-hero__value {
-          font-size: 32px;
-          font-weight: 800;
+        .ai-hero__stat-value {
+          font-size: 16px;
+          font-weight: 700;
           display: block;
-          background: linear-gradient(135deg, #60a5fa 0%, #34d399 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          margin-bottom: 6px;
+          color: #60a5fa;
+          margin-bottom: 2px;
         }
-        .ai-hero__label {
-          font-size: 13px;
-          color: rgba(255, 255, 255, 0.75);
-          line-height: 1.4;
+        .ai-hero__stat-label {
+          font-size: 10px;
+          color: rgba(255, 255, 255, 0.55);
         }
         .ai-stepper {
-          max-width: 1100px;
-          margin: 0 auto 48px;
+          max-width: 900px;
+          margin: 0 auto 20px;
           background: #fff;
-          border-radius: 20px;
-          padding: 24px 32px;
+          border-radius: 10px;
+          padding: 12px 20px;
           display: flex;
           justify-content: space-between;
-          gap: 16px;
-          box-shadow: 0 10px 40px rgba(15, 23, 42, 0.08);
-          border: 1px solid rgba(59, 130, 246, 0.1);
+          gap: 10px;
+          box-shadow: 0 1px 4px rgba(15, 23, 42, 0.06);
+          border: 1px solid #e5e7eb;
           position: relative;
         }
         .ai-stepper::before {
           content: '';
           position: absolute;
           top: 50%;
-          left: 80px;
-          right: 80px;
+          left: 50px;
+          right: 50px;
           height: 2px;
-          background: linear-gradient(90deg, #e2e8f0 0%, #cbd5e1 50%, #e2e8f0 100%);
+          background: #e5e7eb;
           transform: translateY(-50%);
           z-index: 0;
         }
         .ai-step {
           display: flex;
-          gap: 14px;
+          gap: 8px;
           align-items: center;
           flex: 1;
-          opacity: 0.35;
-          transition: all 0.3s ease;
+          opacity: 0.4;
+          transition: all 0.25s ease;
           position: relative;
           z-index: 1;
         }
@@ -1022,52 +994,53 @@ export default function CreateCourseWithAI() {
           opacity: 1;
         }
         .ai-step--active .ai-step__dot {
-          background: linear-gradient(135deg, #3b82f6, #06b6d4);
-          box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
-          transform: scale(1.1);
+          background: linear-gradient(135deg, #3b82f6, #0ea5e9);
+          box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
         }
         .ai-step__dot {
-          width: 48px;
-          height: 48px;
-          border-radius: 14px;
+          width: 30px;
+          height: 30px;
+          border-radius: 8px;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-weight: 800;
-          font-size: 18px;
+          font-weight: 700;
+          font-size: 13px;
           color: #fff;
           background: #cbd5e1;
-          transition: all 0.3s ease;
+          transition: all 0.25s ease;
           flex-shrink: 0;
         }
         .ai-step__title {
           margin: 0;
-          font-weight: 700;
-          font-size: 15px;
-          color: #0f172a;
+          font-weight: 600;
+          font-size: 12px;
+          color: #1f2937;
         }
         .ai-step__caption {
-          margin: 4px 0 0;
-          font-size: 12px;
-          color: #64748b;
-          line-height: 1.4;
+          margin: 2px 0 0;
+          font-size: 10px;
+          color: #6b7280;
+          line-height: 1.3;
+          display: none;
         }
         .ai-layout {
-          max-width: 960px;
+          max-width: 900px;
           margin: 0 auto;
           display: grid;
           grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
-          gap: 24px;
+          gap: 20px;
         }
         .ai-layout-single {
-          max-width: 800px;
+          max-width: 700px;
           margin: 0 auto;
         }
         .ai-card {
           background: #fff;
-          border-radius: 24px;
-          padding: 40px;
-          box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
+          border-radius: 16px;
+          padding: 28px;
+          box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+          border: 1p: 0 20px 60px rgba(15, 23, 42, 0.08);
           position: relative;
           border: 1px solid rgba(59, 130, 246, 0.08);
         }
@@ -1926,20 +1899,20 @@ export default function CreateCourseWithAI() {
         /* Responsive Design */
         @media (max-width: 1024px) {
           .ai-builder__hero {
-            padding: 40px 32px;
+            padding: 18px 24px;
           }
-          .ai-builder__hero h1 {
-            font-size: 36px;
+          .ai-hero__title {
+            font-size: 20px;
           }
           .ai-stepper {
-            padding: 20px 24px;
+            padding: 10px 16px;
           }
           .ai-review {
-            padding: 36px;
+            padding: 28px;
           }
           .ai-review__content {
             grid-template-columns: 1fr;
-            gap: 24px;
+            gap: 20px;
           }
           .ai-review__sidebar {
             order: 2;
@@ -1951,36 +1924,36 @@ export default function CreateCourseWithAI() {
 
         @media (max-width: 768px) {
           .ai-builder {
-            padding: 24px 12px 60px;
+            padding: 16px 12px 50px;
           }
           .ai-builder__hero {
-            padding: 32px 24px;
+            padding: 16px 20px;
             flex-direction: column;
-            gap: 24px;
+            gap: 16px;
           }
-          .ai-builder__hero h1 {
-            font-size: 28px;
+          .ai-hero__title {
+            font-size: 18px;
           }
           .ai-hero__subtitle {
-            font-size: 15px;
+            font-size: 12px;
           }
           .ai-hero__stats {
             width: 100%;
             justify-content: space-between;
-            gap: 12px;
+            gap: 8px;
           }
-          .ai-hero__stats > div {
+          .ai-hero__stat {
             flex: 1;
             min-width: 0;
-            padding: 16px;
+            padding: 10px 12px;
           }
-          .ai-hero__value {
-            font-size: 24px;
+          .ai-hero__stat-value {
+            font-size: 14px;
           }
           .ai-stepper {
             flex-direction: column;
-            padding: 16px 20px;
-            gap: 12px;
+            padding: 12px 16px;
+            gap: 8px;
           }
           .ai-stepper::before {
             display: none;
