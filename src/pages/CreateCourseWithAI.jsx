@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import SkillAssessment from "../components/SkillAssessment";
+import "../css/CreateCourseWithAI.css";
 
 const STEP_FLOW = [
   { id: 1, title: "Nhập thông tin", caption: "Mô tả chủ đề & mục tiêu" },
@@ -53,6 +54,7 @@ export default function CreateCourseWithAI() {
   const [draft, setDraft] = useState(null);
   const [lessonProgress, setLessonProgress] = useState({});
   const [creationStatus, setCreationStatus] = useState("preparing");
+  const [expandedLesson, setExpandedLesson] = useState(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -496,59 +498,200 @@ export default function CreateCourseWithAI() {
             </div>
           </div>
 
-          <div className="ai-review__grid">
-            <div className="ai-card ai-card--subtle">
-              <h3>Tổng quan mục tiêu</h3>
-              <p>Cấp độ: {
-                draft.assessedLevel === "Expert" ? "Chuyên gia" :
-                draft.assessedLevel === "Advanced" ? "Nâng cao" :
-                draft.assessedLevel === "Upper Intermediate" ? "Trung cấp khá" :
-                draft.assessedLevel === "Lower Intermediate" ? "Trung cấp cơ bản" :
-                draft.assessedLevel === "Upper Beginner" ? "Sơ cấp nâng cao" :
-                draft.assessedLevel === "Complete Beginner" ? "Hoàn toàn mới bắt đầu" :
-                "Đang đánh giá..."
-              }</p>
-              <p>Ngôn ngữ: {draft.language || "Tiếng Việt"}</p>
-              <p>Đối tượng: {draft.targetAudience || formData.targetAudience || "Chưa xác định"}</p>
-              {draft.assessmentInsights && (
-                <div className="assessment-insights">
-                  <div className="assessment-insights__content">
-                    {draft.assessmentInsights}
+          <div className="ai-review__content">
+            {/* Tổng quan bên trái */}
+            <div className="ai-review__sidebar">
+              <div className="ai-card ai-card--info">
+                <h3>📊 Thông tin khóa học</h3>
+                <div className="info-grid">
+                  <div className="info-item">
+                    <span className="info-label">Cấp độ</span>
+                    <span className="info-value">{
+                      draft.assessedLevel === "Expert" ? "Chuyên gia" :
+                      draft.assessedLevel === "Advanced" ? "Nâng cao" :
+                      draft.assessedLevel === "Upper Intermediate" ? "Trung cấp khá" :
+                      draft.assessedLevel === "Lower Intermediate" ? "Trung cấp cơ bản" :
+                      draft.assessedLevel === "Upper Beginner" ? "Sơ cấp nâng cao" :
+                      draft.assessedLevel === "Complete Beginner" ? "Hoàn toàn mới bắt đầu" :
+                      "Đang đánh giá..."
+                    }</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">Ngôn ngữ</span>
+                    <span className="info-value">{draft.language || "Tiếng Việt"}</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">Đối tượng</span>
+                    <span className="info-value">{draft.targetAudience || formData.targetAudience || "Chưa xác định"}</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">Tổng bài học</span>
+                    <span className="info-value">{draft.lessons?.length || 0} bài</span>
                   </div>
                 </div>
-              )}
+              </div>
             </div>
 
-            <div className="ai-card ai-card--subtle">
-              <h3>Danh sach bài học</h3>
-              <ul className="ai-review__lessons">
-                {lessonPreview.map((lesson, idx) => (
-                  <li key={lesson.title + idx}>
-                    <span>{idx + 1}.</span>
-                    <div>
-                      <p className="ai-review__lesson-title">{lesson.title}</p>
-                      <p className="ai-review__lesson-desc">
-                        {(lesson.content || "").slice(0, 120)}
-                        {lesson.content?.length > 120 ? "..." : ""}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              {draft.lessons?.length > 5 && (
-                <p className="ai-review__more">
-                  + {draft.lessons.length - 5} bài học khác sẽ được tạo trong hệ thống
-                </p>
-              )}
-            </div>
-
-            <div className="ai-card ai-card--subtle">
-              <h3>AI sẽ làm gì tiếp?</h3>
-              <ol className="ai-review__list">
-                {CREATION_STEPS.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ol>
+            {/* Danh sách bài học bên phải */}
+            <div className="ai-review__main">
+              <div className="ai-card ai-card--lessons">
+                <div className="lessons-header">
+                  <h3>📚 Danh sách bài học</h3>
+                  <span className="lessons-count">{draft.lessons?.length || 0} bài học</span>
+                </div>
+                <div style={{ 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: '0', 
+                  maxHeight: '600px', 
+                  overflowY: 'auto', 
+                  paddingRight: '8px' 
+                }}>
+                  {draft.lessons?.map((lesson, idx) => {
+                    const isExpanded = expandedLesson === idx;
+                    const lessonContent = lesson.content || lesson.description || lesson.summary || null;
+                    return (
+                      <div 
+                        key={`lesson-${idx}`} 
+                        style={{
+                          background: '#ffffff',
+                          borderRadius: '10px',
+                          border: isExpanded ? '2px solid #3b82f6' : '1px solid #e5e7eb',
+                          marginBottom: '10px',
+                          boxShadow: isExpanded ? '0 4px 12px rgba(59, 130, 246, 0.15)' : '0 1px 2px rgba(0,0,0,0.05)'
+                        }}
+                      >
+                        {/* Header - Click để mở/đóng */}
+                        <div 
+                          onClick={() => setExpandedLesson(isExpanded ? null : idx)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            padding: '14px 16px',
+                            cursor: 'pointer',
+                            background: isExpanded ? '#eff6ff' : '#ffffff',
+                            borderRadius: isExpanded ? '8px 8px 0 0' : '10px'
+                          }}
+                        >
+                          {/* Số thứ tự */}
+                          <div style={{
+                            width: '40px',
+                            height: '40px',
+                            minWidth: '40px',
+                            borderRadius: '10px',
+                            background: 'linear-gradient(135deg, #3b82f6, #0ea5e9)',
+                            color: '#ffffff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontWeight: '700',
+                            fontSize: '16px'
+                          }}>
+                            {idx + 1}
+                          </div>
+                          
+                          {/* Tiêu đề */}
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{
+                              margin: 0,
+                              fontWeight: '600',
+                              fontSize: '15px',
+                              color: '#111827',
+                              lineHeight: '1.4',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis'
+                            }}>
+                              {lesson.title || `Bài ${idx + 1}`}
+                            </div>
+                            <div style={{
+                              marginTop: '4px',
+                              fontSize: '12px',
+                              color: '#6b7280'
+                            }}>
+                              {isExpanded ? '▲ Nhấn để thu gọn' : '▼ Nhấn để xem chi tiết'}
+                            </div>
+                          </div>
+                          
+                          {/* Icon mũi tên */}
+                          <div style={{
+                            width: '28px',
+                            height: '28px',
+                            borderRadius: '50%',
+                            background: isExpanded ? '#3b82f6' : '#f3f4f6',
+                            color: isExpanded ? '#ffffff' : '#6b7280',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}>
+                            <svg 
+                              width="16" 
+                              height="16" 
+                              viewBox="0 0 24 24" 
+                              fill="none"
+                              style={{ 
+                                transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', 
+                                transition: 'transform 0.2s ease' 
+                              }}
+                            >
+                              <path 
+                                d="M6 9L12 15L18 9" 
+                                stroke="currentColor" 
+                                strokeWidth="2.5" 
+                                strokeLinecap="round" 
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                        
+                        {/* Nội dung mở rộng */}
+                        {isExpanded && (
+                          <div style={{ 
+                            padding: '16px', 
+                            borderTop: '1px solid #e5e7eb',
+                            background: '#fafafa'
+                          }}>
+                            <div style={{
+                              padding: '14px',
+                              background: '#ffffff',
+                              borderRadius: '8px',
+                              border: '1px solid #e5e7eb'
+                            }}>
+                              <div style={{
+                                marginBottom: '10px',
+                                fontSize: '13px',
+                                fontWeight: '600',
+                                color: '#1d4ed8',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px'
+                              }}>
+                                📝 Nội dung bài học
+                              </div>
+                              <div style={{
+                                color: '#374151',
+                                lineHeight: '1.7',
+                                fontSize: '14px',
+                                whiteSpace: 'pre-wrap',
+                                wordBreak: 'break-word'
+                              }}>
+                                {lessonContent ? (
+                                  lessonContent
+                                ) : (
+                                  <span style={{ color: '#9ca3af', fontStyle: 'italic' }}>
+                                    Nội dung chi tiết sẽ được tạo tự động khi khóa học được khởi tạo.
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -556,13 +699,13 @@ export default function CreateCourseWithAI() {
 
           <div className="ai-review__actions">
             <button type="button" className="ai-btn ai-btn--ghost" disabled={loading} onClick={() => setStep(2)}>
-              Làm lại khảo sát
+              ← Làm lại khảo sát
             </button>
             <button type="button" className="ai-btn ai-btn--ghost" disabled={loading} onClick={() => setStep(1)}>
-              Chỉnh sửa thông tin
+              ✏️ Chỉnh sửa thông tin
             </button>
             <button type="button" className="ai-btn ai-btn--success" disabled={loading} onClick={handleCreateCourse}>
-              {loading ? "Đang tạo khóa học..." : "Tạo khóa học"}
+              {loading ? "Đang tạo khóa học..." : "✨ Tạo khóa học ngay"}
             </button>
           </div>
         </div>
@@ -742,92 +885,172 @@ export default function CreateCourseWithAI() {
         .ai-builder {
           min-height: 100vh;
           background: radial-gradient(circle at top, #f0f9ff 0%, #e0f2fe 40%, #f0f9ff 100%);
-          padding: 56px 16px 80px;
+          padding: 40px 16px 80px;
         }
         .ai-builder__hero {
-          max-width: 960px;
-          margin: 0 auto 32px;
-          padding: 32px;
-          border-radius: 28px;
-          background: linear-gradient(120deg, #101935, #1f3160 60%, #354e9f);
+          max-width: 1100px;
+          margin: 0 auto 40px;
+          padding: 48px 56px;
+          border-radius: 32px;
+          background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
           color: #fff;
           display: flex;
           flex-wrap: wrap;
-          gap: 24px;
+          gap: 32px;
           justify-content: space-between;
+          align-items: center;
+          box-shadow: 0 20px 60px rgba(15, 23, 42, 0.4);
+          position: relative;
+          overflow: hidden;
+        }
+        .ai-builder__hero::before {
+          content: '';
+          position: absolute;
+          top: -50%;
+          right: -20%;
+          width: 500px;
+          height: 500px;
+          background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+          border-radius: 50%;
+          pointer-events: none;
         }
         .ai-eyebrow {
           text-transform: uppercase;
-          letter-spacing: 0.2em;
-          font-size: 12px;
-          font-weight: 600;
-          margin-bottom: 12px;
-          color: #93c5fd;
+          letter-spacing: 0.25em;
+          font-size: 11px;
+          font-weight: 700;
+          margin-bottom: 16px;
+          color: #60a5fa;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 6px 14px;
+          background: rgba(59, 130, 246, 0.15);
+          border-radius: 20px;
+          border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        .ai-eyebrow::before {
+          content: '✨';
+          font-size: 14px;
         }
         .ai-builder__hero h1 {
-          font-size: 36px;
-          margin: 0 0 12px;
+          font-size: 42px;
+          margin: 0 0 16px;
+          font-weight: 800;
+          line-height: 1.2;
+          background: linear-gradient(135deg, #ffffff 0%, #e0f2fe 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
         }
         .ai-hero__subtitle {
-          max-width: 520px;
-          font-size: 16px;
-          line-height: 1.6;
-          color: rgba(255, 255, 255, 0.85);
+          max-width: 580px;
+          font-size: 17px;
+          line-height: 1.7;
+          color: rgba(255, 255, 255, 0.9);
         }
         .ai-hero__stats {
           display: flex;
-          gap: 24px;
+          gap: 32px;
           align-items: flex-start;
+          flex-wrap: wrap;
+        }
+        .ai-hero__stats > div {
+          padding: 20px 24px;
+          background: rgba(255, 255, 255, 0.08);
+          border-radius: 16px;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          backdrop-filter: blur(10px);
+          min-width: 140px;
+          transition: all 0.3s ease;
+        }
+        .ai-hero__stats > div:hover {
+          background: rgba(255, 255, 255, 0.12);
+          transform: translateY(-4px);
+          box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
         }
         .ai-hero__value {
-          font-size: 28px;
-          font-weight: 700;
+          font-size: 32px;
+          font-weight: 800;
           display: block;
+          background: linear-gradient(135deg, #60a5fa 0%, #34d399 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          margin-bottom: 6px;
         }
         .ai-hero__label {
           font-size: 13px;
-          color: rgba(255, 255, 255, 0.85);
+          color: rgba(255, 255, 255, 0.75);
+          line-height: 1.4;
         }
         .ai-stepper {
-          max-width: 960px;
-          margin: 0 auto 32px;
+          max-width: 1100px;
+          margin: 0 auto 48px;
           background: #fff;
-          border-radius: 16px;
-          padding: 16px 24px;
+          border-radius: 20px;
+          padding: 24px 32px;
           display: flex;
           justify-content: space-between;
-          gap: 12px;
-          box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
+          gap: 16px;
+          box-shadow: 0 10px 40px rgba(15, 23, 42, 0.08);
+          border: 1px solid rgba(59, 130, 246, 0.1);
+          position: relative;
+        }
+        .ai-stepper::before {
+          content: '';
+          position: absolute;
+          top: 50%;
+          left: 80px;
+          right: 80px;
+          height: 2px;
+          background: linear-gradient(90deg, #e2e8f0 0%, #cbd5e1 50%, #e2e8f0 100%);
+          transform: translateY(-50%);
+          z-index: 0;
         }
         .ai-step {
           display: flex;
-          gap: 12px;
+          gap: 14px;
           align-items: center;
           flex: 1;
-          opacity: 0.4;
+          opacity: 0.35;
+          transition: all 0.3s ease;
+          position: relative;
+          z-index: 1;
         }
         .ai-step--active {
           opacity: 1;
         }
+        .ai-step--active .ai-step__dot {
+          background: linear-gradient(135deg, #3b82f6, #06b6d4);
+          box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+          transform: scale(1.1);
+        }
         .ai-step__dot {
-          width: 40px;
-          height: 40px;
-          border-radius: 12px;
+          width: 48px;
+          height: 48px;
+          border-radius: 14px;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-weight: 700;
+          font-weight: 800;
+          font-size: 18px;
           color: #fff;
-          background: linear-gradient(135deg, #3b82f6, #06b6d4);
+          background: #cbd5e1;
+          transition: all 0.3s ease;
+          flex-shrink: 0;
         }
         .ai-step__title {
           margin: 0;
           font-weight: 700;
+          font-size: 15px;
+          color: #0f172a;
         }
         .ai-step__caption {
           margin: 4px 0 0;
-          font-size: 13px;
+          font-size: 12px;
           color: #64748b;
+          line-height: 1.4;
         }
         .ai-layout {
           max-width: 960px;
@@ -837,21 +1060,111 @@ export default function CreateCourseWithAI() {
           gap: 24px;
         }
         .ai-layout-single {
-          max-width: 720px;
+          max-width: 800px;
           margin: 0 auto;
         }
         .ai-card {
           background: #fff;
-          border-radius: 20px;
-          padding: 32px;
-          box-shadow: 0 30px 80px rgba(15, 23, 42, 0.08);
+          border-radius: 24px;
+          padding: 40px;
+          box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
           position: relative;
+          border: 1px solid rgba(59, 130, 246, 0.08);
         }
         .ai-card--subtle {
-          box-shadow: none;
+          box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
           border: 1px solid #e2e8f0;
+          background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
         }
         .ai-form__group {
+          margin-bottom: 28px;
+        }
+        .ai-field__label {
+          display: block;
+          font-weight: 700;
+          font-size: 15px;
+          color: #0f172a;
+          margin-bottom: 10px;
+        }
+        .ai-field__label span {
+          display: block;
+          font-weight: 400;
+          font-size: 13px;
+          color: #64748b;
+          margin-top: 4px;
+        }
+        .ai-input {
+          width: 100%;
+          padding: 14px 18px;
+          border: 2px solid #e2e8f0;
+          border-radius: 12px;
+          font-size: 15px;
+          transition: all 0.3s ease;
+          background: #f8fafc;
+          font-family: inherit;
+        }
+        .ai-input:focus {
+          outline: none;
+          border-color: #3b82f6;
+          background: #fff;
+          box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+        .ai-input--textarea {
+          resize: vertical;
+          min-height: 140px;
+          line-height: 1.6;
+        }
+        .ai-deliverables {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 20px;
+          padding: 24px;
+          border: 1px dashed #bfdbfe;
+          border-radius: 16px;
+          background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+          margin-bottom: 24px;
+        }
+        .ai-deliverables > div {
+          padding: 16px;
+          background: rgba(255, 255, 255, 0.7);
+          border-radius: 12px;
+          border: 1px solid rgba(59, 130, 246, 0.15);
+          transition: all 0.3s ease;
+        }
+        .ai-deliverables > div:hover {
+          background: rgba(255, 255, 255, 0.95);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 24px rgba(59, 130, 246, 0.15);
+        }
+        .ai-deliverables__title {
+          margin: 0 0 6px;
+          font-weight: 700;
+          font-size: 14px;
+          color: #1e40af;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+        .ai-deliverables__title::before {
+          content: '✓';
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 20px;
+          height: 20px;
+          background: linear-gradient(135deg, #3b82f6, #06b6d4);
+          color: white;
+          border-radius: 50%;
+          font-size: 12px;
+          font-weight: 700;
+        }
+        .ai-deliverables__detail {
+          margin: 0;
+          font-size: 13px;
+          color: #475569;
+          line-height: 1.5;
+        }
+        .ai-form__actions {
           display: flex;
           flex-direction: column;
           gap: 8px;
@@ -913,40 +1226,72 @@ export default function CreateCourseWithAI() {
         }
         .ai-form__actions {
           display: flex;
-          gap: 12px;
-          margin-top: 12px;
+          gap: 14px;
+          margin-top: 32px;
+          padding-top: 24px;
+          border-top: 1px solid #e2e8f0;
         }
         .ai-btn {
           border: none;
-          border-radius: 12px;
-          padding: 14px 20px;
-          font-weight: 600;
-          font-size: 14px;
+          border-radius: 14px;
+          padding: 16px 28px;
+          font-weight: 700;
+          font-size: 15px;
           cursor: pointer;
-          transition: transform 0.2s ease, opacity 0.2s ease;
+          transition: all 0.3s ease;
+          position: relative;
+          overflow: hidden;
+        }
+        .ai-btn::before {
+          content: '';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 0;
+          height: 0;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.2);
+          transform: translate(-50%, -50%);
+          transition: width 0.6s, height 0.6s;
+        }
+        .ai-btn:hover::before {
+          width: 300px;
+          height: 300px;
         }
         .ai-btn:disabled {
-          opacity: 0.6;
-          cursor: default;
+          opacity: 0.5;
+          cursor: not-allowed;
         }
         .ai-btn--ghost {
           background: #f1f5f9;
           color: #0f172a;
+          border: 2px solid #e2e8f0;
+        }
+        .ai-btn--ghost:hover:not(:disabled) {
+          background: #e2e8f0;
+          border-color: #cbd5e1;
         }
         .ai-btn--primary {
-          background: linear-gradient(135deg, #3b82f6, #06b6d4);
-          color: #fff;
+          background: linear-gradient(135deg, #3b82f6, #06b6d4) !important;
+          color: #fff !important;
           flex: 1;
+          box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
         }
         .ai-btn--success {
-          background: linear-gradient(135deg, #34d399, #059669);
-          color: #fff;
-          min-width: 180px;
+          background: linear-gradient(135deg, #10b981, #059669) !important;
+          color: #fff !important;
+          min-width: 200px;
+          box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
         }
-        .ai-btn--primary:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
-          background: linear-gradient(135deg, #3b82f6, #06b6d4);
+        .ai-btn--primary:hover:not(:disabled) {
+          background: linear-gradient(135deg, #3b82f6, #06b6d4) !important;
+          transform: translateY(-3px);
+          box-shadow: 0 12px 32px rgba(59, 130, 246, 0.4);
+        }
+        .ai-btn--success:hover:not(:disabled) {
+          background: linear-gradient(135deg, #10b981, #059669) !important;
+          transform: translateY(-3px);
+          box-shadow: 0 12px 32px rgba(16, 185, 129, 0.4);
         }
         .ai-sidebar__text {
           color: #475569;
@@ -988,43 +1333,108 @@ export default function CreateCourseWithAI() {
         .ai-loading {
           position: absolute;
           inset: 0;
-          border-radius: 20px;
-          background: rgba(255, 255, 255, 0.95);
+          border-radius: 24px;
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.98) 100%);
+          backdrop-filter: blur(10px);
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 12px;
+          gap: 16px;
           text-align: center;
+          padding: 40px;
+        }
+        .ai-loading > p {
+          font-size: 16px;
+          font-weight: 600;
+          color: #0f172a;
+          margin: 0;
+          animation: fade-in-out 2s ease-in-out infinite;
         }
         .ai-loading__spinner {
-          width: 48px;
-          height: 48px;
+          width: 56px;
+          height: 56px;
           border-radius: 50%;
-          border: 4px solid #e2e8f0;
+          border: 5px solid transparent;
           border-top-color: #3b82f6;
-          animation: spin 1s linear infinite;
+          border-right-color: #06b6d4;
+          border-bottom-color: #3b82f6;
+          animation: spin 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+          position: relative;
+          box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+        }
+
+        .ai-loading__spinner::before {
+          content: '';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          border: 4px solid transparent;
+          border-top-color: #06b6d4;
+          border-left-color: #3b82f6;
+          transform: translate(-50%, -50%);
+          animation: spin 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite reverse;
+        }
+
+        .ai-loading__spinner::after {
+          content: '';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #3b82f6, #06b6d4);
+          transform: translate(-50%, -50%);
+          animation: pulse-center 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-center {
+          0%, 100% {
+            transform: translate(-50%, -50%) scale(0.8);
+            opacity: 0.6;
+          }
+          50% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+          }
         }
 
         .ai-loading__subtext {
-          font-size: 13px;
+          font-size: 14px;
           color: #64748b;
-          margin-top: 0.5rem;
+          margin-top: 0.75rem;
           margin-bottom: 1.5rem;
+          font-weight: 500;
+          animation: fade-in-out 2s ease-in-out infinite;
+        }
+
+        @keyframes fade-in-out {
+          0%, 100% {
+            opacity: 0.5;
+          }
+          50% {
+            opacity: 1;
+          }
         }
 
         .ai-loading__dots {
           display: flex;
-          gap: 8px;
+          gap: 10px;
           justify-content: center;
+          align-items: center;
         }
 
         .ai-loading__dots span {
-          width: 8px;
-          height: 8px;
+          width: 10px;
+          height: 10px;
           border-radius: 50%;
-          background: #3b82f6;
-          animation: pulse 1.5s ease-in-out infinite;
+          background: linear-gradient(135deg, #3b82f6, #06b6d4);
+          animation: bounce-dot 1.4s ease-in-out infinite;
+          box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
         }
 
         .ai-loading__dots span:nth-child(1) {
@@ -1032,28 +1442,49 @@ export default function CreateCourseWithAI() {
         }
 
         .ai-loading__dots span:nth-child(2) {
-          animation-delay: 0.3s;
+          animation-delay: 0.2s;
         }
 
         .ai-loading__dots span:nth-child(3) {
-          animation-delay: 0.6s;
+          animation-delay: 0.4s;
+        }
+
+        @keyframes bounce-dot {
+          0%, 80%, 100% {
+            transform: scale(0.6) translateY(0);
+            opacity: 0.5;
+          }
+          40% {
+            transform: scale(1.2) translateY(-12px);
+            opacity: 1;
+          }
         }
         .ai-review {
-          max-width: 960px;
+          max-width: 1100px;
           margin: 0 auto;
           background: #fff;
-          border-radius: 24px;
-          padding: 40px;
-          box-shadow: 0 30px 80px rgba(15, 23, 42, 0.08);
+          border-radius: 28px;
+          padding: 48px;
+          box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
+          border: 1px solid rgba(59, 130, 246, 0.08);
         }
         .ai-review__header {
           display: flex;
           justify-content: space-between;
           flex-wrap: wrap;
-          gap: 16px;
-          border-bottom: 1px solid #e2e8f0;
-          padding-bottom: 24px;
-          margin-bottom: 24px;
+          gap: 24px;
+          border-bottom: 2px solid #e2e8f0;
+          padding-bottom: 32px;
+          margin-bottom: 32px;
+        }
+        .ai-review__header h2 {
+          font-size: 32px;
+          font-weight: 800;
+          margin: 8px 0 12px;
+          background: linear-gradient(135deg, #0f172a 0%, #3b82f6 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
         }
         .ai-review__desc {
           max-width: 560px;
@@ -1064,49 +1495,272 @@ export default function CreateCourseWithAI() {
           display: flex;
           gap: 12px;
           flex-wrap: wrap;
+          align-items: center;
         }
         .ai-review__tags span {
-          padding: 6px 12px;
-          background: #f1f5f9;
-          border-radius: 999px;
-          font-size: 12px;
-          font-weight: 600;
+          padding: 8px 16px;
+          background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+          border-radius: 20px;
+          font-size: 13px;
+          font-weight: 700;
+          color: #1e40af;
+          border: 1px solid rgba(59, 130, 246, 0.2);
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+        }
+        .ai-review__tags span::before {
+          content: '•';
+          color: #3b82f6;
+          font-size: 16px;
+        }
+        .ai-review__content {
+          display: grid;
+          grid-template-columns: 320px 1fr;
+          gap: 32px;
+          margin-bottom: 32px;
+        }
+
+        .ai-review__sidebar {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+        }
+
+        .ai-review__main {
+          min-width: 0;
+        }
+
+        .ai-card--info {
+          background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+          border: 2px solid rgba(59, 130, 246, 0.2);
+          padding: 28px;
+        }
+
+        .ai-card--info h3 {
+          font-size: 18px;
+          font-weight: 800;
+          margin: 0 0 20px;
           color: #0f172a;
         }
-        .ai-review__grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-          gap: 20px;
-          margin-bottom: 24px;
+
+        .info-grid {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          margin-bottom: 20px;
         }
+
+        .info-item {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          padding: 14px;
+          background: rgba(255, 255, 255, 0.7);
+          border-radius: 12px;
+          border: 1px solid rgba(59, 130, 246, 0.15);
+        }
+
+        .info-label {
+          font-size: 12px;
+          font-weight: 600;
+          color: #64748b;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .info-value {
+          font-size: 15px;
+          font-weight: 700;
+          color: #0f172a;
+        }
+
+        .ai-card--lessons {
+          background: #fff;
+          border: 2px solid rgba(59, 130, 246, 0.1);
+          padding: 32px;
+        }
+
         .ai-review__lessons {
           list-style: none;
           padding: 0;
           margin: 0;
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: 16px;
+          max-height: 600px;
+          overflow-y: auto;
+          padding-right: 8px;
         }
-        .ai-review__lessons li {
+
+        .ai-review__lessons::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .ai-review__lessons::-webkit-scrollbar-track {
+          background: #f1f5f9;
+          border-radius: 10px;
+        }
+
+        .ai-review__lessons::-webkit-scrollbar-thumb {
+          background: linear-gradient(135deg, #3b82f6, #06b6d4);
+          border-radius: 10px;
+        }
+
+        .lesson-item {
           display: flex;
-          gap: 12px;
-          padding: 12px;
+          flex-direction: column;
+          border-radius: 16px;
+          background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+          border: 2px solid #e2e8f0;
+          transition: all 0.3s ease;
+          position: relative;
+          overflow: hidden;
+          margin-bottom: 12px;
+        }
+
+        .lesson-item--expanded {
+          border-color: #3b82f6;
+          box-shadow: 0 8px 24px rgba(59, 130, 246, 0.15);
+        }
+
+        .lesson-item::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 0;
+          bottom: 0;
+          width: 4px;
+          background: linear-gradient(135deg, #3b82f6, #06b6d4);
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        }
+
+        .lesson-item:hover::before,
+        .lesson-item--expanded::before {
+          opacity: 1;
+        }
+
+        .lesson-header {
+          display: flex;
+          gap: 16px;
+          padding: 20px;
+          cursor: pointer;
+          align-items: center;
+          transition: all 0.3s ease;
+        }
+
+        .lesson-header:hover {
+          background: rgba(59, 130, 246, 0.05);
+        }
+
+        .lesson-number {
+          width: 44px;
+          height: 44px;
           border-radius: 12px;
-          background: #f8fafc;
+          background: linear-gradient(135deg, #3b82f6, #06b6d4);
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 800;
+          font-size: 18px;
+          flex-shrink: 0;
+          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
         }
-        .ai-review__lesson-title {
+
+        .lesson-info {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .lesson-title {
           margin: 0 0 4px;
-          font-weight: 600;
+          font-weight: 700;
+          font-size: 16px;
+          color: #0f172a;
+          line-height: 1.4;
         }
-        .ai-review__lesson-desc {
+
+        .lesson-preview {
           margin: 0;
           font-size: 12px;
           color: #64748b;
+          font-weight: 500;
         }
-        .ai-review__more {
-          font-size: 12px;
-          color: #475569;
-          margin-top: 12px;
+
+        .lesson-toggle {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+          color: #3b82f6;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          transition: all 0.3s ease;
+        }
+
+        .lesson-item--expanded .lesson-toggle {
+          background: linear-gradient(135deg, #3b82f6, #06b6d4);
+          color: white;
+        }
+
+        .lesson-body {
+          padding: 0 20px 20px 20px;
+          animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .lesson-content-wrapper {
+          padding: 20px;
+          background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+          border-radius: 12px;
+          border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .lesson-content-wrapper h4 {
+          margin: 0 0 12px;
+          font-size: 14px;
+          font-weight: 700;
+          color: #1e40af;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .lesson-content-text {
+          color: #0f172a;
+          line-height: 1.7;
+          font-size: 14px;
+          white-space: pre-wrap;
+          max-height: 400px;
+          overflow-y: auto;
+          padding-right: 8px;
+        }
+
+        .lesson-content-text::-webkit-scrollbar {
+          width: 4px;
+        }
+
+        .lesson-content-text::-webkit-scrollbar-track {
+          background: rgba(59, 130, 246, 0.1);
+          border-radius: 10px;
+        }
+
+        .lesson-content-text::-webkit-scrollbar-thumb {
+          background: linear-gradient(135deg, #3b82f6, #06b6d4);
+          border-radius: 10px;
         }
         .ai-review__list {
           margin: 0;
@@ -1121,43 +1775,68 @@ export default function CreateCourseWithAI() {
           justify-content: flex-end;
           gap: 12px;
         }
-
-        .assessment-insights {
-          margin-top: 12px;
-          padding: 16px;
-          background: rgba(59, 130, 246, 0.1);
-          border-radius: 12px;
-          border: 1px solid rgba(59, 130, 246, 0.2);
-        }
-
-        .assessment-insights__content {
-          font-size: 13px;
-          color: #1e40af;
-          line-height: 1.6;
-          white-space: pre-wrap;
-        }
-
-        .assessment-insights__content strong {
-          color: #1d4ed8;
-          font-weight: 600;
-        }
         .ai-creating {
-          max-width: 720px;
+          max-width: 800px;
           margin: 0 auto;
-          padding: 60px;
+          padding: 64px;
           text-align: center;
-          background: #050816;
-          border-radius: 28px;
+          background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+          border-radius: 32px;
           color: #fff;
           box-shadow: 0 30px 90px rgba(5, 8, 22, 0.8);
+          border: 1px solid rgba(59, 130, 246, 0.2);
+          position: relative;
+          overflow: hidden;
+        }
+        .ai-creating::before {
+          content: '';
+          position: absolute;
+          top: -50%;
+          left: -50%;
+          width: 200%;
+          height: 200%;
+          background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
+          animation: rotate 20s linear infinite;
+        }
+        .ai-creating h2 {
+          font-size: 28px;
+          font-weight: 800;
+          margin-bottom: 12px;
+          position: relative;
+          z-index: 1;
+        }
+        .ai-creating > p {
+          position: relative;
+          z-index: 1;
         }
         .ai-creating__orb {
-          width: 96px;
-          height: 96px;
-          margin: 0 auto 24px;
+          width: 120px;
+          height: 120px;
+          margin: 0 auto 32px;
           border-radius: 50%;
-          background: radial-gradient(circle, rgba(56, 189, 248, 0.35), rgba(59, 130, 246, 0.1));
-          border: 1px solid rgba(56, 189, 248, 0.3);
+          background: radial-gradient(circle, rgba(56, 189, 248, 0.4), rgba(59, 130, 246, 0.1));
+          border: 2px solid rgba(56, 189, 248, 0.4);
+          animation: pulse-orb 3s ease-in-out infinite;
+          position: relative;
+          z-index: 1;
+        }
+        @keyframes pulse-orb {
+          0%, 100% {
+            transform: scale(1);
+            box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7);
+          }
+          50% {
+            transform: scale(1.05);
+            box-shadow: 0 0 0 20px rgba(56, 189, 248, 0);
+          }
+        }
+        @keyframes rotate {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
         }
         .ai-progress {
           width: 100%;
@@ -1195,10 +1874,19 @@ export default function CreateCourseWithAI() {
           margin-bottom: 8px;
         }
         .ai-loading__spinner--large {
-          margin: 24px auto 0;
-          width: 64px;
-          height: 64px;
+          margin: 32px auto 0;
+          width: 72px;
+          height: 72px;
+          border-width: 6px;
+        }
+        .ai-loading__spinner--large::before {
+          width: 52px;
+          height: 52px;
           border-width: 5px;
+        }
+        .ai-loading__spinner--large::after {
+          width: 32px;
+          height: 32px;
         }
         @media (max-width: 960px) {
           .ai-layout {
@@ -1233,6 +1921,227 @@ export default function CreateCourseWithAI() {
           0% { transform: translateX(-100%); }
           50% { transform: translateX(0%); }
           100% { transform: translateX(120%); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+          .ai-builder__hero {
+            padding: 40px 32px;
+          }
+          .ai-builder__hero h1 {
+            font-size: 36px;
+          }
+          .ai-stepper {
+            padding: 20px 24px;
+          }
+          .ai-review {
+            padding: 36px;
+          }
+          .ai-review__content {
+            grid-template-columns: 1fr;
+            gap: 24px;
+          }
+          .ai-review__sidebar {
+            order: 2;
+          }
+          .ai-review__main {
+            order: 1;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .ai-builder {
+            padding: 24px 12px 60px;
+          }
+          .ai-builder__hero {
+            padding: 32px 24px;
+            flex-direction: column;
+            gap: 24px;
+          }
+          .ai-builder__hero h1 {
+            font-size: 28px;
+          }
+          .ai-hero__subtitle {
+            font-size: 15px;
+          }
+          .ai-hero__stats {
+            width: 100%;
+            justify-content: space-between;
+            gap: 12px;
+          }
+          .ai-hero__stats > div {
+            flex: 1;
+            min-width: 0;
+            padding: 16px;
+          }
+          .ai-hero__value {
+            font-size: 24px;
+          }
+          .ai-stepper {
+            flex-direction: column;
+            padding: 16px 20px;
+            gap: 12px;
+          }
+          .ai-stepper::before {
+            display: none;
+          }
+          .ai-step {
+            opacity: 1;
+          }
+          .ai-step__dot {
+            width: 40px;
+            height: 40px;
+            font-size: 16px;
+          }
+          .ai-card {
+            padding: 28px 20px;
+          }
+          .ai-review {
+            padding: 28px 20px;
+          }
+          .ai-review__header h2 {
+            font-size: 24px;
+          }
+          .ai-review__actions {
+            flex-direction: column;
+          }
+          .ai-review__actions .ai-btn {
+            width: 100%;
+          }
+          .ai-form__actions {
+            flex-direction: column;
+          }
+          .ai-form__actions .ai-btn {
+            width: 100%;
+          }
+          .ai-deliverables {
+            grid-template-columns: 1fr;
+            padding: 20px;
+          }
+          .ai-creating {
+            padding: 40px 24px;
+          }
+          .ai-creating h2 {
+            font-size: 22px;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .ai-builder__hero h1 {
+            font-size: 24px;
+          }
+          .ai-hero__stats > div {
+            padding: 12px;
+          }
+          .ai-hero__value {
+            font-size: 20px;
+          }
+          .ai-hero__label {
+            font-size: 11px;
+          }
+          .ai-step__title {
+            font-size: 13px;
+          }
+          .ai-step__caption {
+            font-size: 11px;
+          }
+        }
+
+        /* Lesson Card Styles - Inline Override */
+        .ai-card--lessons .lesson-card {
+          margin-bottom: 12px;
+          border-radius: 12px;
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+          overflow: hidden;
+        }
+        .ai-card--lessons .lesson-card__header {
+          display: flex;
+          gap: 14px;
+          padding: 16px 20px;
+          cursor: pointer;
+          align-items: center;
+          background: transparent;
+        }
+        .ai-card--lessons .lesson-card__number {
+          width: 44px;
+          height: 44px;
+          min-width: 44px;
+          border-radius: 12px;
+          background: linear-gradient(135deg, #3b82f6, #06b6d4);
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 800;
+          font-size: 18px;
+          flex-shrink: 0;
+        }
+        .ai-card--lessons .lesson-card__info {
+          flex: 1;
+          min-width: 0;
+        }
+        .ai-card--lessons .lesson-card__title {
+          margin: 0 0 6px;
+          font-weight: 700;
+          font-size: 16px;
+          color: #1e293b;
+          line-height: 1.5;
+        }
+        .ai-card--lessons .lesson-card__hint {
+          margin: 0;
+          font-size: 12px;
+          color: #64748b;
+          font-weight: 500;
+        }
+        .ai-card--lessons .lesson-card__icon {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          background: #f1f5f9;
+          color: #64748b;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        .ai-card--lessons .lesson-card--expanded .lesson-card__icon {
+          background: #3b82f6;
+          color: white;
+        }
+        .ai-card--lessons .lesson-card__content {
+          max-height: 0;
+          overflow: hidden;
+          transition: max-height 0.4s ease;
+          opacity: 0;
+        }
+        .ai-card--lessons .lesson-card__content--visible {
+          max-height: 800px;
+          opacity: 1;
+        }
+        .ai-card--lessons .lesson-card__content-inner {
+          padding: 0 20px 20px 20px;
+        }
+        .ai-card--lessons .content-section {
+          padding: 20px;
+          background: #f8fafc;
+          border-radius: 12px;
+          border: 1px solid #e2e8f0;
+        }
+        .ai-card--lessons .content-section__title {
+          margin: 0 0 16px;
+          font-size: 14px;
+          font-weight: 700;
+          color: #1e40af;
+          padding-bottom: 12px;
+          border-bottom: 1px solid #e2e8f0;
+        }
+        .ai-card--lessons .content-section__text {
+          color: #0f172a;
+          line-height: 1.8;
+          font-size: 15px;
+          white-space: pre-wrap;
         }
       `}</style>
     </div>

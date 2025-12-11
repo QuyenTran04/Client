@@ -1,0 +1,377 @@
+/* Lesson Card Styles - Modern Accordion Design */
+.ai-card--lessons .lessons-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.ai-card--lessons .lessons-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ai-card--lessons .lessons-count {
+  padding: 6px 14px;
+  background: linear-gradient(135deg, #3b82f6, #06b6d4);
+  color: white;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+}
+
+.ai-card--lessons .lessons-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-height: 600px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.lessons-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.lessons-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.lessons-list::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #3b82f6, #06b6d4);
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+.lessons-list::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #2563eb, #0891b2);
+}
+
+.ai-card--lessons .lesson-card {
+  margin-bottom: 12px;
+  border-radius: 12px;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+.ai-card--lessons .lesson-card:last-child {
+  margin-bottom: 0;
+}
+
+.ai-card--lessons .lesson-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(135deg, #3b82f6, #06b6d4);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 4px 0 0 4px;
+}
+
+.ai-card--lessons .lesson-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.1);
+  transform: translateY(-2px);
+}
+
+.ai-card--lessons .lesson-card:hover::before {
+  opacity: 0.6;
+}
+
+.ai-card--lessons .lesson-card--expanded {
+  border-color: #3b82f6;
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.2);
+  background: #ffffff;
+  transform: translateY(0);
+}
+
+.ai-card--lessons .lesson-card--expanded::before {
+  opacity: 1;
+}
+
+.ai-card--lessons .lesson-card__header {
+  display: flex !important;
+  gap: 14px;
+  padding: 16px 20px;
+  cursor: pointer;
+  align-items: center;
+  transition: all 0.2s ease;
+  user-select: none;
+  position: relative;
+  background: transparent;
+}
+
+.ai-card--lessons .lesson-card__header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 20px;
+  right: 20px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.ai-card--lessons .lesson-card--expanded .lesson-card__header::after {
+  opacity: 1;
+}
+
+.ai-card--lessons .lesson-card__header:hover {
+  background: rgba(59, 130, 246, 0.04);
+}
+
+.ai-card--lessons .lesson-card--expanded .lesson-card__header {
+  background: rgba(59, 130, 246, 0.06);
+}
+
+.ai-card--lessons .lesson-card__number {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #3b82f6, #06b6d4) !important;
+  color: white !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 18px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  transition: all 0.25s ease;
+}
+
+.ai-card--lessons .lesson-card:hover .lesson-card__number {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.ai-card--lessons .lesson-card--expanded .lesson-card__number {
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.45);
+}
+
+.ai-card--lessons .lesson-card__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.ai-card--lessons .lesson-card__title {
+  margin: 0 0 6px;
+  font-weight: 700;
+  font-size: 16px;
+  color: #1e293b !important;
+  line-height: 1.5;
+  transition: color 0.2s ease;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  word-break: break-word;
+}
+
+.ai-card--lessons .lesson-card:hover .lesson-card__title {
+  color: #3b82f6 !important;
+}
+
+.ai-card--lessons .lesson-card--expanded .lesson-card__title {
+  color: #2563eb !important;
+}
+
+.ai-card--lessons .lesson-card__hint {
+  margin: 0;
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s ease;
+}
+
+.ai-card--lessons .lesson-card--expanded .lesson-card__hint {
+  color: #3b82f6;
+}
+
+.ai-card--lessons .lesson-card__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.25s ease;
+}
+
+.ai-card--lessons .lesson-card:hover .lesson-card__icon {
+  background: #e0f2fe;
+  color: #3b82f6;
+}
+
+.ai-card--lessons .lesson-card--expanded .lesson-card__icon {
+  background: #3b82f6;
+  color: white;
+}
+
+.ai-card--lessons .chevron-icon {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ai-card--lessons .lesson-card--expanded .chevron-icon {
+  transform: rotate(180deg);
+}
+
+.ai-card--lessons .lesson-card__content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+  opacity: 0;
+}
+
+.ai-card--lessons .lesson-card__content--visible {
+  max-height: 800px;
+  opacity: 1;
+}
+
+.ai-card--lessons .lesson-card__content-inner {
+  padding: 0 20px 24px 20px;
+  animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ai-card--lessons .content-section {
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.ai-card--lessons .content-section__title {
+  margin: 0 0 16px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e40af;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.ai-card--lessons .content-section__text {
+  color: #0f172a;
+  line-height: 1.9;
+  font-size: 15px;
+  white-space: pre-wrap;
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 16px;
+  font-weight: 400;
+}
+
+.ai-card--lessons .content-section__text::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ai-card--lessons .content-section__text::-webkit-scrollbar-track {
+  background: rgba(59, 130, 246, 0.08);
+  border-radius: 10px;
+}
+
+.ai-card--lessons .content-section__text::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #3b82f6, #06b6d4);
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+.ai-card--lessons .content-section__text::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #2563eb, #0891b2);
+}
+
+/* Empty state for content */
+.ai-card--lessons .content-section__text:empty::before {
+  content: 'Nội dung chi tiết sẽ được tạo tự động khi khóa học được khởi tạo.';
+  color: #64748b;
+  font-style: italic;
+}
+
+/* Responsive adjustments for lesson cards */
+@media (max-width: 768px) {
+  .ai-card--lessons .lessons-header h3 {
+    font-size: 16px;
+  }
+
+  .ai-card--lessons .lessons-count {
+    font-size: 12px;
+    padding: 5px 12px;
+  }
+
+  .ai-card--lessons .lesson-card__number {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    font-size: 16px;
+    border-radius: 10px;
+  }
+
+  .ai-card--lessons .lesson-card__title {
+    font-size: 14px;
+  }
+
+  .ai-card--lessons .lesson-card__hint {
+    font-size: 11px;
+  }
+
+  .ai-card--lessons .lesson-card__icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .ai-card--lessons .content-section {
+    padding: 16px;
+  }
+
+  .ai-card--lessons .content-section__title {
+    font-size: 13px;
+  }
+
+  .ai-card--lessons .content-section__text {
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .ai-card--lessons .lessons-list {
+    max-height: 500px;
+  }
+}
