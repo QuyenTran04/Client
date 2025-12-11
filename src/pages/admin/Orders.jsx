@@ -1,163 +1,390 @@
-import React, { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { adminApi } from "../../services/admin";
-import { Loader2, RefreshCcw, DollarSign } from "lucide-react";
-
-const currencyFormatter = new Intl.NumberFormat("vi-VN", {
-  style: "currency",
-  currency: "VND",
-  maximumFractionDigits: 0,
-});
-
-const statusBadge = {
-  paid: "bg-emerald-100 text-emerald-700 border border-emerald-200",
-  pending: "bg-amber-100 text-amber-700 border border-amber-200",
-  failed: "bg-rose-100 text-rose-700 border border-rose-200",
-};
+import { useState } from "react";
+import { CreditCard, Wallet } from "lucide-react";
+import TopupTab from "./orders/TopupTab";
+import WalletsTab from "./orders/WalletsTab";
 
 export default function Orders() {
-  const qc = useQueryClient();
-  const [status, setStatus] = useState("");
+  const [activeTab, setActiveTab] = useState("topup");
+  const [q, setQ] = useState("");
   const [page, setPage] = useState(1);
 
-  const { data, isFetching } = useQuery({
-    queryKey: ["admin-orders", { status, page }],
-    queryFn: () => adminApi.listOrders({ status, page, limit: 10 }),
-    keepPreviousData: true,
-  });
-
-  const refundMut = useMutation({
-    mutationFn: (id) => adminApi.refundOrder(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-orders"] }),
-  });
-
-  const items = data?.items || [];
-  const totalPages = data?.pages || 1;
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setQ("");
+    setPage(1);
+  };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-800">💳 Quản lý đơn hàng</h1>
-        <p className="text-gray-500 mt-1">
-          Xem tất cả các giao dịch và xử lý hoàn tiền
-        </p>
+    <div className="admin-orders-page">
+      <div className="page-header">
+        <div className="header-content">
+          <div className="header-icon-wrapper">
+            <CreditCard className="header-icon" />
+            <div className="icon-glow" />
+          </div>
+          <div>
+            <h1 className="page-title">Quản lý đơn hàng</h1>
+            <p className="page-subtitle">Theo dõi giao dịch nạp tiền và ví xu của người dùng</p>
+          </div>
+        </div>
       </div>
 
-      <div className="bg-white p-4 rounded-xl shadow-sm flex gap-3 items-center border border-gray-100">
-        <select
-          value={status}
-          onChange={(e) => {
-            setStatus(e.target.value);
-            setPage(1);
-          }}
-          className="border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+      <div className="tabs-container">
+        <button
+          className={`tab-button ${activeTab === "topup" ? "active" : ""}`}
+          onClick={() => handleTabChange("topup")}
         >
-          <option value="">Tất cả trạng thái</option>
-          <option value="paid">Đã thanh toán</option>
-          <option value="pending">Chờ xử lý</option>
-          <option value="failed">Thất bại</option>
-        </select>
-        {isFetching && <Loader2 className="animate-spin text-gray-400" size={18} />}
+          <CreditCard size={18} />
+          <span>Giao dịch nạp tiền</span>
+        </button>
+        <button
+          className={`tab-button ${activeTab === "wallets" ? "active" : ""}`}
+          onClick={() => handleTabChange("wallets")}
+        >
+          <Wallet size={18} />
+          <span>Ví xu người dùng</span>
+        </button>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead className="bg-gray-50 text-gray-700 border-b">
-              <tr>
-                <th className="p-3 text-left font-semibold">Học viên</th>
-                <th className="p-3 text-left font-semibold">Khóa học</th>
-                <th className="p-3 text-right font-semibold">Số tiền</th>
-                <th className="p-3 text-center font-semibold">Trạng thái</th>
-                <th className="p-3 text-center font-semibold">Ngày</th>
-                <th className="p-3 text-right font-semibold">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {items.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="p-4 text-center text-gray-500">
-                    Không có đơn hàng nào
-                  </td>
-                </tr>
-              ) : (
-                items.map((order) => (
-                  <tr key={order._id} className="hover:bg-gray-50">
-                    <td className="p-3">
-                      <p className="font-medium text-gray-800">
-                        {order.student?.name || "Ẩn danh"}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {order.student?.email}
-                      </p>
-                    </td>
-                    <td className="p-3 text-gray-700">
-                      {order.course?.title || "Khóa học"}
-                    </td>
-                    <td className="p-3 text-right font-semibold text-indigo-600">
-                      {currencyFormatter.format(order.amount || order.course?.price || 0)}
-                    </td>
-                    <td className="p-3 text-center">
-                      <span
-                        className={`text-xs px-2.5 py-1 rounded-full font-medium ${
-                          statusBadge[order.status] || "bg-gray-100 text-gray-600"
-                        }`}
-                      >
-                        {order.status === "paid"
-                          ? "Đã thanh toán"
-                          : order.status === "pending"
-                          ? "Chờ xử lý"
-                          : "Thất bại"}
-                      </span>
-                    </td>
-                    <td className="p-3 text-center text-gray-600">
-                      {new Date(order.createdAt).toLocaleDateString("vi-VN")}
-                    </td>
-                    <td className="p-3 text-right">
-                      {order.status === "paid" && (
-                        <button
-                          onClick={() => refundMut.mutate(order._id)}
-                          disabled={refundMut.isLoading}
-                          className="text-amber-600 hover:bg-amber-50 p-1.5 rounded-lg inline-flex items-center gap-1 text-xs font-medium disabled:opacity-50"
-                        >
-                          {refundMut.isLoading ? (
-                            <Loader2 size={14} className="animate-spin" />
-                          ) : (
-                            <RefreshCcw size={14} />
-                          )}
-                          Hoàn tiền
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      {activeTab === "topup" && (
+        <TopupTab q={q} setQ={setQ} page={page} setPage={setPage} />
+      )}
+      {activeTab === "wallets" && (
+        <WalletsTab q={q} setQ={setQ} page={page} setPage={setPage} />
+      )}
 
-      <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-600">
-          Trang <b>{page}</b> / {totalPages}
-        </span>
-        <div className="flex gap-2">
-          <button
-            disabled={page <= 1}
-            onClick={() => setPage((p) => p - 1)}
-            className="px-3 py-1.5 border rounded-lg hover:bg-gray-50 disabled:opacity-40"
-          >
-            ← Trước
-          </button>
-          <button
-            disabled={page >= totalPages}
-            onClick={() => setPage((p) => p + 1)}
-            className="px-3 py-1.5 border rounded-lg hover:bg-gray-50 disabled:opacity-40"
-          >
-            Sau →
-          </button>
-        </div>
-      </div>
+      <style>{`
+        .admin-orders-page {
+          padding: 24px;
+          background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #dbeafe 100%);
+          min-height: 100vh;
+          border-radius: 24px;
+        }
+
+        .page-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 24px;
+        }
+
+        .header-content {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+
+        .header-icon-wrapper {
+          position: relative;
+          width: 56px;
+          height: 56px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: linear-gradient(135deg, #3b82f6, #2563eb);
+          border-radius: 16px;
+          box-shadow: 0 8px 16px rgba(59, 130, 246, 0.3);
+        }
+
+        .header-icon {
+          width: 32px;
+          height: 32px;
+          color: white;
+          z-index: 1;
+        }
+
+        .icon-glow {
+          position: absolute;
+          inset: -4px;
+          background: linear-gradient(135deg, #3b82f6, #2563eb);
+          border-radius: 18px;
+          opacity: 0.3;
+          filter: blur(8px);
+          animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+          0%, 100% { opacity: 0.3; }
+          50% { opacity: 0.5; }
+        }
+
+        .page-title {
+          font-size: 32px;
+          font-weight: 700;
+          background: linear-gradient(135deg, #1e40af, #3b82f6);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          margin: 0;
+        }
+
+        .page-subtitle {
+          font-size: 14px;
+          color: #64748b;
+          margin: 4px 0 0;
+        }
+
+        .tabs-container {
+          display: flex;
+          gap: 8px;
+          margin-bottom: 20px;
+          background: white;
+          padding: 8px;
+          border-radius: 12px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .tab-button {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 12px 24px;
+          border: none;
+          border-radius: 8px;
+          background: transparent;
+          color: #64748b;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+
+        .tab-button:hover {
+          background: #f1f5f9;
+          color: #334155;
+        }
+
+        .tab-button.active {
+          background: linear-gradient(135deg, #3b82f6, #2563eb);
+          color: white;
+          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .tab-content {
+          background: white;
+          border-radius: 16px;
+          padding: 20px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .filter-bar {
+          background: white;
+          padding: 20px;
+          border-radius: 16px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+          border: 1px solid rgba(59, 130, 246, 0.1);
+          margin-bottom: 20px;
+        }
+
+        .filter-controls {
+          display: flex;
+          gap: 12px;
+          align-items: center;
+          flex-wrap: wrap;
+        }
+
+        .search-box {
+          position: relative;
+          flex: 1;
+          min-width: 280px;
+        }
+
+        .search-icon {
+          position: absolute;
+          left: 14px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: #9ca3af;
+        }
+
+        .search-input {
+          width: 100%;
+          padding: 12px 12px 12px 44px;
+          border: 2px solid #e5e7eb;
+          border-radius: 12px;
+          font-size: 14px;
+          transition: all 0.3s ease;
+          background: #f9fafb;
+        }
+
+        .search-input:focus {
+          outline: none;
+          border-color: #3b82f6;
+          background: white;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .status-select {
+          padding: 12px 16px;
+          border: 2px solid #e5e7eb;
+          border-radius: 12px;
+          font-size: 14px;
+          font-weight: 600;
+          background: #f9fafb;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          min-width: 180px;
+        }
+
+        .status-select:focus {
+          outline: none;
+          border-color: #3b82f6;
+          background: white;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .loading-indicator {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 13px;
+          color: #6b7280;
+        }
+
+        .table-wrapper {
+          overflow-x: auto;
+          border-radius: 12px;
+          border: 1px solid #e5e7eb;
+        }
+
+        .data-table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+
+        .data-table thead {
+          background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+        }
+
+        .data-table th {
+          padding: 16px;
+          text-align: left;
+          font-size: 12px;
+          font-weight: 700;
+          color: #1e40af;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .data-table td {
+          padding: 16px;
+          border-top: 1px solid #e5e7eb;
+        }
+
+        .data-table tbody tr {
+          transition: all 0.2s ease;
+        }
+
+        .data-table tbody tr:hover {
+          background: #f0f9ff;
+        }
+
+        .empty-cell {
+          padding: 60px 20px;
+          text-align: center;
+        }
+
+        .empty-message {
+          display: inline-flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 12px;
+          color: #9ca3af;
+        }
+
+        .empty-icon {
+          color: #d1d5db;
+        }
+
+        .user-cell {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .user-avatar,
+        .user-avatar-img {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          object-fit: cover;
+          border: 2px solid #dbeafe;
+          box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+        }
+
+        .user-avatar-placeholder {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #3b82f6, #2563eb);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-weight: 700;
+          border: 2px solid #dbeafe;
+          box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+        }
+
+        .user-name {
+          font-weight: 600;
+          color: #1e293b;
+        }
+
+        .user-email {
+          font-size: 12px;
+          color: #64748b;
+        }
+
+        .amount-vnd {
+          font-weight: 700;
+          color: #3b82f6;
+          font-size: 15px;
+        }
+
+        .amount-coins {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 4px 12px;
+          background: linear-gradient(135deg, #fef3c7, #fde68a);
+          border-radius: 20px;
+          font-weight: 600;
+          color: #92400e;
+          font-size: 13px;
+        }
+
+        .status-badge {
+          display: inline-block;
+          padding: 6px 12px;
+          border-radius: 20px;
+          font-size: 12px;
+          font-weight: 600;
+        }
+
+        .status-badge.success,
+        .status-badge.paid {
+          background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+          color: #065f46;
+        }
+
+        .status-badge.pending {
+          background: linear-gradient(135deg, #fef3c7, #fde68a);
+          color: #92400e;
+        }
+
+        .status-badge.failed {
+          background: linear-gradient(135deg, #fee2e2, #fecaca);
+          color: #991b1b;
+        }
+
+        .date-cell {
+          color: #64748b;
+          font-size: 13px;
+        }
+      `}</style>
     </div>
   );
 }

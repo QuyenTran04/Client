@@ -54,16 +54,15 @@ import Overview from "./pages/admin/Overview";
 import Users from "./pages/admin/Users";
 import AdminCourses from "./pages/admin/Courses";
 import Categories from "./pages/admin/Categories";
-import Creators from "./pages/admin/Creators";
-import Students from "./pages/admin/Students";
 import Orders from "./pages/admin/Orders";
 import Reviews from "./pages/admin/Reviews";
-import Lessons from "./pages/admin/Lessons";
-import Quiz from "./pages/admin/Quiz";
 import Documents from "./pages/admin/Documents";
 import Settings from "./pages/admin/Settings";
 import ActivityLogs from "./pages/admin/ActivityLogs";
 import Reports from "./pages/admin/Reports";
+import Announcements from "./pages/admin/Announcements";
+import Certificates from "./pages/admin/Certificates";
+import Analytics from "./pages/admin/Analytics";
 
 /**
  * Hiện chatbot nổi chỉ ở trang home, ẩn ở tất cả các trang khác:
@@ -251,16 +250,15 @@ function AppShell() {
           <Route path="users" element={<Users />} />
           <Route path="courses" element={<AdminCourses />} />
           <Route path="categories" element={<Categories />} />
-          <Route path="creators" element={<Creators />} />
-          <Route path="students" element={<Students />} />
           <Route path="orders" element={<Orders />} />
           <Route path="reviews" element={<Reviews />} />
-          <Route path="lessons" element={<Lessons />} />
-          <Route path="quiz" element={<Quiz />} />
           <Route path="documents" element={<Documents />} />
           <Route path="settings" element={<Settings />} />
           <Route path="activity-logs" element={<ActivityLogs />} />
           <Route path="reports" element={<Reports />} />
+          <Route path="announcements" element={<Announcements />} />
+          <Route path="certificates" element={<Certificates />} />
+          <Route path="analytics" element={<Analytics />} />
         </Route>
 
         {/* 404 fallback */}

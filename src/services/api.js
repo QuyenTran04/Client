@@ -56,6 +56,17 @@ api.interceptors.response.use(
       }
     }
 
+    // Handle 403 Forbidden errors (account locked)
+    if (error.response?.status === 403) {
+      const message = error.response?.data?.message;
+      if (message?.includes('khóa') || message?.includes('locked')) {
+        // Clear token and redirect to login with error message
+        localStorage.removeItem('token');
+        alert('Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.');
+        window.location.href = '/login';
+      }
+    }
+
     // Don't dispatch wallet events for errors
     return Promise.reject(error);
   }
