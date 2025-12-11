@@ -463,15 +463,48 @@ export default function CreateCourseWithAI() {
       {step === 2 && (
         <div className="ai-layout-single">
           {loading ? (
-            <div className="ai-card">
-              <div className="ai-loading">
-                <div className="ai-loading__spinner" />
-                <p>AI đang phân tích kết quả khảo sát...</p>
-                <p className="ai-loading__subtext">Đang tạo lộ trình học tập phù hợp nhất cho bạn</p>
-                <div className="ai-loading__dots">
-                  <span></span>
-                  <span></span>
-                  <span></span>
+            <div className="ai-card ai-analyzing-card">
+              <div className="ai-analyzing">
+                <div className="ai-analyzing__visual">
+                  <div className="ai-analyzing__brain">
+                    <svg viewBox="0 0 100 100" className="ai-analyzing__brain-svg">
+                      <circle className="ai-analyzing__circle ai-analyzing__circle--1" cx="50" cy="50" r="45" />
+                      <circle className="ai-analyzing__circle ai-analyzing__circle--2" cx="50" cy="50" r="35" />
+                      <circle className="ai-analyzing__circle ai-analyzing__circle--3" cx="50" cy="50" r="25" />
+                    </svg>
+                    <div className="ai-analyzing__icon">🧠</div>
+                  </div>
+                  <div className="ai-analyzing__particles">
+                    {[...Array(8)].map((_, i) => (
+                      <span key={i} className="ai-analyzing__particle" style={{ '--i': i }} />
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="ai-analyzing__content">
+                  <h3 className="ai-analyzing__title">AI đang phân tích kết quả khảo sát</h3>
+                  <p className="ai-analyzing__subtitle">Đang tạo lộ trình học tập phù hợp nhất cho bạn</p>
+                  
+                  <div className="ai-analyzing__progress">
+                    <div className="ai-analyzing__progress-bar">
+                      <div className="ai-analyzing__progress-fill" />
+                    </div>
+                  </div>
+                  
+                  <div className="ai-analyzing__steps">
+                    <div className="ai-analyzing__step ai-analyzing__step--active">
+                      <span className="ai-analyzing__step-icon">✓</span>
+                      <span>Phân tích câu trả lời</span>
+                    </div>
+                    <div className="ai-analyzing__step ai-analyzing__step--processing">
+                      <span className="ai-analyzing__step-icon ai-analyzing__step-icon--loading" />
+                      <span>Đánh giá trình độ</span>
+                    </div>
+                    <div className="ai-analyzing__step">
+                      <span className="ai-analyzing__step-icon">○</span>
+                      <span>Tạo lộ trình cá nhân hóa</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -714,172 +747,137 @@ export default function CreateCourseWithAI() {
       )}
 
       {step === 4 && (
-        <div className="ai-creating">
-          <div className="ai-creating__orb" />
-          <h2>AI đang tạo khóa học của bạn</h2>
-          <p>
-            Hệ thống đang sinh tài liệu, quiz và gắn nội dung vào từng bài học. Bài 1 sẽ được hiển thị trước, các bài còn lại sẽ được tạo tự động.
-          </p>
-
-          {creationStatus === "preparing" && (
-            <>
-              <p style={{ marginTop: "20px", fontSize: "14px", color: "#94a3b8" }}>Đang chuẩn bị...</p>
-              <div className="ai-loading__spinner ai-loading__spinner--large" />
-            </>
-          )}
-
-          {(creationStatus === "creating_lessons" || creationStatus === "completed") && (
-            <div className="ai-lessons-progress">
-              <div style={{ marginTop: "24px", marginBottom: "24px" }}>
-                <p style={{ fontSize: "14px", fontWeight: "600", marginBottom: "16px" }}>
-                  Tiến độ tạo bài học: {readyLessons} / {totalLessons}
+        <div className="ai-creating-wrapper">
+          <div className="ai-creating-card">
+            {/* Header với visual */}
+            <div className="ai-creating__header">
+              <div className="ai-creating__visual">
+                <div className="ai-creating__rocket">
+                  <svg viewBox="0 0 120 120" className="ai-creating__rocket-svg">
+                    <defs>
+                      <linearGradient id="rocketGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#3b82f6" />
+                        <stop offset="100%" stopColor="#8b5cf6" />
+                      </linearGradient>
+                    </defs>
+                    <circle className="ai-creating__orbit ai-creating__orbit--1" cx="60" cy="60" r="50" />
+                    <circle className="ai-creating__orbit ai-creating__orbit--2" cx="60" cy="60" r="40" />
+                    <circle className="ai-creating__orbit ai-creating__orbit--3" cx="60" cy="60" r="30" />
+                  </svg>
+                  <div className="ai-creating__icon">🚀</div>
+                </div>
+                <div className="ai-creating__sparks">
+                  {[...Array(6)].map((_, i) => (
+                    <span key={i} className="ai-creating__spark" style={{ '--i': i }} />
+                  ))}
+                </div>
+              </div>
+              
+              <div className="ai-creating__title-section">
+                <h2 className="ai-creating__title">AI đang tạo khóa học</h2>
+                <p className="ai-creating__subtitle">
+                  Hệ thống đang sinh tài liệu, quiz và nội dung cho từng bài học
                 </p>
-                <div className="ai-progress">
-                  <div
-                    className="ai-progress__bar"
-                    style={{
-                      width: `${totalLessons > 0 ? (readyLessons / totalLessons) * 100 : 0}%`,
-                      transition: "width 0.3s ease",
-                    }}
-                  />
+              </div>
+            </div>
+
+            {/* Preparing State */}
+            {creationStatus === "preparing" && (
+              <div className="ai-creating__preparing">
+                <div className="ai-creating__preparing-visual">
+                  <div className="ai-creating__gear-container">
+                    <div className="ai-creating__gear ai-creating__gear--1">⚙️</div>
+                    <div className="ai-creating__gear ai-creating__gear--2">⚙️</div>
+                  </div>
+                </div>
+                <p className="ai-creating__preparing-text">Đang khởi tạo hệ thống...</p>
+                <div className="ai-creating__preparing-bar">
+                  <div className="ai-creating__preparing-fill" />
                 </div>
               </div>
+            )}
 
-              <div style={{ maxHeight: "350px", overflowY: "auto", marginBottom: "24px", paddingRight: "8px" }}>
-                {draft?.lessons?.map((lesson, idx) => {
-                  const progress = lessonProgress[idx];
-                  const isReady = progress?.ready;
-                  const isError = progress?.error;
-                  const isPending = !isReady && !isError;
+            {/* Creating Lessons State */}
+            {(creationStatus === "creating_lessons" || creationStatus === "completed") && (
+              <div className="ai-creating__progress-section">
+                {/* Progress Overview */}
+                <div className="ai-creating__progress-header">
+                  <div className="ai-creating__progress-info">
+                    <span className="ai-creating__progress-label">Tiến độ tạo bài học</span>
+                    <span className="ai-creating__progress-count">{readyLessons} / {totalLessons}</span>
+                  </div>
+                  <div className="ai-creating__progress-bar">
+                    <div 
+                      className="ai-creating__progress-fill"
+                      style={{ width: `${totalLessons > 0 ? (readyLessons / totalLessons) * 100 : 0}%` }}
+                    />
+                  </div>
+                </div>
 
-                  return (
-                    <div
-                      key={`lesson-${idx}`}
-                      style={{
-                        padding: "12px 16px",
-                        marginBottom: "8px",
-                        borderRadius: "8px",
-                        background: isReady
-                          ? "rgba(16, 185, 129, 0.1)"
-                          : isError
-                          ? "rgba(239, 68, 68, 0.1)"
-                          : "rgba(148, 163, 184, 0.1)",
-                        border: `1px solid ${
-                          isReady
-                            ? "#10b981"
-                            : isError
-                            ? "#ef4444"
-                            : "#cbd5e1"
-                        }`,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "12px",
-                      }}
-                    >
+                {/* Lessons List */}
+                <div className="ai-creating__lessons-list">
+                  {draft?.lessons?.map((lesson, idx) => {
+                    const progress = lessonProgress[idx];
+                    const isReady = progress?.ready;
+                    const isError = progress?.error;
+                    const isPending = !isReady && !isError;
+                    const isProcessing = isPending && idx === readyLessons;
+
+                    return (
                       <div
-                        style={{
-                          width: "24px",
-                          height: "24px",
-                          borderRadius: "50%",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: "12px",
-                          fontWeight: "600",
-                          color: "#fff",
-                          background: isReady
-                            ? "#10b981"
-                            : isError
-                            ? "#ef4444"
-                            : "#cbd5e1",
-                          flexShrink: 0,
-                        }}
+                        key={`lesson-${idx}`}
+                        className={`ai-creating__lesson-item ${isReady ? 'ai-creating__lesson-item--ready' : ''} ${isError ? 'ai-creating__lesson-item--error' : ''} ${isProcessing ? 'ai-creating__lesson-item--processing' : ''}`}
                       >
-                        {isReady ? "✓" : isError ? "✕" : idx + 1}
+                        <div className={`ai-creating__lesson-icon ${isProcessing ? 'ai-creating__lesson-icon--spin' : ''}`}>
+                          {isReady ? '✓' : isError ? '✕' : isProcessing ? '◐' : '○'}
+                        </div>
+                        <div className="ai-creating__lesson-info">
+                          <span className="ai-creating__lesson-title">Bài {idx + 1}: {lesson.title}</span>
+                          <span className="ai-creating__lesson-status">
+                            {isReady ? 'Hoàn thành' : isError ? 'Lỗi' : isProcessing ? 'Đang tạo...' : 'Chờ xử lý'}
+                          </span>
+                        </div>
                       </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <p
-                          style={{
-                            margin: "0",
-                            fontSize: "14px",
-                            fontWeight: "500",
-                            color: "#0f172a",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          Bài {idx + 1}: {lesson.title}
-                        </p>
-                        {isReady && (
-                          <p style={{ margin: "4px 0 0", fontSize: "12px", color: "#10b981" }}>
-                            Sẵn sàng
-                          </p>
-                        )}
-                        {isPending && (
-                          <p style={{ margin: "4px 0 0", fontSize: "12px", color: "#94a3b8" }}>
-                            Đang tạo...
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {lessonProgress[0]?.ready && creationStatus !== "completed" && (
-                <div
-                  style={{
-                    padding: "16px",
-                    borderRadius: "12px",
-                    background: "rgba(16, 185, 129, 0.1)",
-                    border: "1px solid #10b981",
-                    marginBottom: "24px",
-                  }}
-                >
-                  <p style={{ margin: "0", fontSize: "14px", color: "#10b981", fontWeight: "500" }}>
-                    ✓ Bài 1 đã sẵn sàng! Bạn có thể vào khóa học ngay bây giờ.
-                  </p>
+                    );
+                  })}
                 </div>
-              )}
 
-              {creationStatus !== "completed" && <div className="ai-loading__spinner ai-loading__spinner--large" />}
-            </div>
-          )}
+                {/* First Lesson Ready Notice */}
+                {lessonProgress[0]?.ready && creationStatus !== "completed" && (
+                  <div className="ai-creating__notice ai-creating__notice--success">
+                    <span className="ai-creating__notice-icon">🎉</span>
+                    <span>Bài 1 đã sẵn sàng! Bạn có thể vào khóa học ngay.</span>
+                  </div>
+                )}
 
-          {creationStatus === "completed" && (
-            <div
-              style={{
-                padding: "24px",
-                borderRadius: "16px",
-                background: "rgba(16, 185, 129, 0.1)",
-                border: "2px solid #10b981",
-                marginTop: "24px",
-                textAlign: "center",
-              }}
-            >
-              <p style={{ fontSize: "18px", fontWeight: "600", color: "#10b981", margin: "0 0 8px" }}>
-                ✓ Hoàn tất!
-              </p>
-              <p style={{ fontSize: "14px", color: "#059669", margin: "0" }}>
-                Khóa học đã được tạo thành công. Đang chuyển hướng...
-              </p>
-            </div>
-          )}
+                {/* Loading indicator */}
+                {creationStatus !== "completed" && (
+                  <div className="ai-creating__loading-indicator">
+                    <div className="ai-creating__loading-dots">
+                      <span></span><span></span><span></span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
-          {creationStatus === "error" && error && (
-            <div
-              style={{
-                padding: "16px",
-                borderRadius: "12px",
-                background: "rgba(239, 68, 68, 0.1)",
-                border: "1px solid #ef4444",
-                marginTop: "24px",
-              }}
-            >
-              <p style={{ margin: "0", fontSize: "14px", color: "#ef4444" }}>{error}</p>
-            </div>
-          )}
+            {/* Completed State */}
+            {creationStatus === "completed" && (
+              <div className="ai-creating__completed">
+                <div className="ai-creating__completed-icon">🎊</div>
+                <h3 className="ai-creating__completed-title">Hoàn tất!</h3>
+                <p className="ai-creating__completed-text">Khóa học đã được tạo thành công. Đang chuyển hướng...</p>
+              </div>
+            )}
+
+            {/* Error State */}
+            {creationStatus === "error" && error && (
+              <div className="ai-creating__notice ai-creating__notice--error">
+                <span className="ai-creating__notice-icon">⚠️</span>
+                <span>{error}</span>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
