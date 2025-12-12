@@ -25,9 +25,8 @@
 
 /* FAB Button - Floating Action Button */
 .ai-fab {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
+  position: fixed !important;
+  inset: auto 24px 24px auto;
   width: 64px;
   height: 64px;
   border-radius: var(--radius-xl);

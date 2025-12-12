@@ -15,24 +15,39 @@ export default function Home() {
       <header className="hero">
         <div className="container hero-wrap">
           <div className="hero-text">
-            <p className="tag">E-learn</p>
-            <h1>Bắt đầu học cùng chúng tôi ngay bây giờ</h1>
+            <p className="tag">AI Course Studio</p>
+            <h1>Khởi tạo & bán khóa học AI trong vài phút</h1>
             <p className="sub">
-              Khám phá những khóa học được tuyển chọn kỹ lưỡng để giúp bạn phát
-              triển kỹ năng và sự nghiệp.
-              {user
-                ? ` Chào mừng trở lại, ${user.name}!`
-                : " Tham gia miễn phí ngay hôm nay."}
+              Viết outline, tạo video, quiz và landing page tự động bằng AI. Cá nhân hóa
+              trải nghiệm học viên với chatbot đồng hành và phân tích dữ liệu học tập thời gian thực.
+              {user ? ` Chào mừng trở lại, ${user.name}!` : " Bắt đầu miễn phí ngay hôm nay."}
             </p>
+            <div className="hero-badges">
+              <span>Gen nội dung tự động</span>
+              <span>Quiz & chứng chỉ tức thì</span>
+              <span>Thanh toán & quản lý học viên</span>
+            </div>
             <div className="cta-row">
-              <Link to="/courses" className="btn primary">
-                Khám phá khóa học
+              <Link to={user ? "/courses/create-ai" : "/register"} className="btn primary">
+                Tạo khóa học với AI
               </Link>
-              {!user && (
-                <Link to="/register" className="btn outline">
-                  Tạo tài khoản miễn phí
-                </Link>
-              )}
+              <Link to="/courses" className="btn outline">
+                Xem thư viện khóa học
+              </Link>
+            </div>
+            <div className="hero-metrics">
+              <div>
+                <strong>2.5K+</strong>
+                <span>khóa học đã tạo</span>
+              </div>
+              <div>
+                <strong>180K+</strong>
+                <span>học viên đang học</span>
+              </div>
+              <div>
+                <strong>4.9/5</strong>
+                <span>điểm hài lòng</span>
+              </div>
             </div>
           </div>
           <div className="hero-ill">
@@ -68,50 +83,58 @@ export default function Home() {
       <section className="section" id="subjects">
         <div className="container">
           <h2 className="section-title">Môn học</h2>
-          <div className="cards four">
+          <div className="cards four subjects-grid">
             <Link to="/courses?subject=physics" className="card subject bg-blue">
+              <span className="sticker sticker-physics">⚛️ STEM</span>
               <div className="card-body">
                 <h3>Vật lý</h3>
                 <p className="muted">Cơ học, điện học, quang học...</p>
               </div>
             </Link>
             <Link to="/courses?subject=chemistry" className="card subject bg-purple">
+              <span className="sticker sticker-chem">🧪 Lab</span>
               <div className="card-body">
                 <h3>Hóa học</h3>
                 <p className="muted">Hóa vô cơ, hữu cơ, phân tích...</p>
               </div>
             </Link>
             <Link to="/courses?subject=biology" className="card subject bg-green">
+              <span className="sticker sticker-bio">🧬 Life</span>
               <div className="card-body">
                 <h3>Sinh học</h3>
                 <p className="muted">Sinh tế bào, di truyền, tiến hóa...</p>
               </div>
             </Link>
             <Link to="/courses?subject=history" className="card subject bg-amber">
+              <span className="sticker sticker-history">🏛️ Culture</span>
               <div className="card-body">
                 <h3>Lịch sử</h3>
                 <p className="muted">Lịch sử Việt Nam và thế giới</p>
               </div>
             </Link>
             <Link to="/courses?subject=geography" className="card subject bg-cyan">
+              <span className="sticker sticker-geo">🧭 Geo</span>
               <div className="card-body">
                 <h3>Địa lý</h3>
                 <p className="muted">Tự nhiên, kinh tế, xã hội</p>
               </div>
             </Link>
             <Link to="/courses?subject=informatics" className="card subject bg-slate">
+              <span className="sticker sticker-code">💻 Code</span>
               <div className="card-body">
                 <h3>Tin học</h3>
                 <p className="muted">Lập trình, dữ liệu, CNTT</p>
               </div>
             </Link>
             <Link to="/courses?subject=english" className="card subject bg-pink">
+              <span className="sticker sticker-lang">🗣️ Lang</span>
               <div className="card-body">
                 <h3>Tiếng Anh</h3>
                 <p className="muted">Ngữ pháp, giao tiếp, luyện thi</p>
               </div>
             </Link>
             <Link to="/courses" className="card subject">
+              <span className="sticker sticker-all">🌐 All</span>
               <div className="card-body">
                 <h3>Xem tất cả</h3>
                 <p className="muted">Khám phá thêm nhiều lĩnh vực khác</p>
@@ -249,8 +272,8 @@ export default function Home() {
       </section>
 
       {/* SECTION: Text + Ảnh + form */}
-      <section className="section">
-        <div className="container two-col reverse">
+      <section className="section signup">
+        <div className="container two-col reverse signup-block">
           <div className="content">
             <h2>
               Bắt đầu học bằng cách tạo
@@ -289,17 +312,46 @@ export default function Home() {
               Tham gia cộng đồng
             </Link>
           </div>
-          <div className="media stack">
-            <img
-              src="/assets/section-2.jpg"
-              alt="Cộng đồng học tập"
-              className="main"
-              loading="lazy"
-            />
-            <img src="/assets/ava-1.jpg" alt="Học viên 1" className="ava a1" loading="lazy" />
-            <img src="/assets/ava-2.jpg" alt="Học viên 2" className="ava a2" loading="lazy" />
-            <img src="/assets/ava-3.jpg" alt="Học viên 3" className="ava a3" loading="lazy" />
-            <img src="/assets/ava-4.jpg" alt="Học viên 4" className="ava a4" loading="lazy" />
+          <div className="media stack modern">
+            <div className="stack-main">
+              <img
+                src="/assets/section-2.jpg"
+                alt="Cộng đồng học tập"
+                className="main"
+                loading="lazy"
+              />
+              <div className="floating-chip">Real-time mentor chat</div>
+            </div>
+            <div className="avatar-grid">
+              <div className="avatar-card">
+                <img src="/assets/ava-1.jpg" alt="Học viên 1" className="ava" loading="lazy" />
+                <div>
+                  <strong>Minh Anh</strong>
+                  <span>UI/UX</span>
+                </div>
+              </div>
+              <div className="avatar-card">
+                <img src="/assets/ava-2.jpg" alt="Học viên 2" className="ava" loading="lazy" />
+                <div>
+                  <strong>Quốc Bình</strong>
+                  <span>Frontend</span>
+                </div>
+              </div>
+              <div className="avatar-card">
+                <img src="/assets/ava-3.jpg" alt="Học viên 3" className="ava" loading="lazy" />
+                <div>
+                  <strong>Hải Đăng</strong>
+                  <span>Data</span>
+                </div>
+              </div>
+              <div className="avatar-card">
+                <img src="/assets/ava-4.jpg" alt="Học viên 4" className="ava" loading="lazy" />
+                <div>
+                  <strong>Lan Chi</strong>
+                  <span>Marketing</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

@@ -20,6 +20,7 @@ import PracticeCompleted from "./pages/PracticeCompleted";
 import CreateCourseWithAI from "./pages/CreateCourseWithAI";
 import CreateQuiz from "./pages/CreateQuiz";
 import AIChat from "./components/AIChat";
+import About from "./pages/About";
 // 🧭 Thành phần giao diện chung
 import NavBar from "./components/NavBar";
 
@@ -119,6 +120,7 @@ function AppShell() {
           }
         />
         <Route path="/courses" element={<Courses />} />
+        <Route path="/about" element={<About />} />
         <Route
           path="/my-courses"
           element={
