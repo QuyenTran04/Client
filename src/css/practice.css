@@ -443,24 +443,32 @@
   height: 300px;
 }
 
-.btn.primary {
+.btn.primary,
+.practice-page .btn.primary,
+.practice-card .btn.primary {
   background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-  color: white;
+  color: #000000 !important;
   border-color: var(--primary-color);
   box-shadow: var(--shadow-md);
 }
 
-.btn.primary:hover:not(:disabled) {
+.btn.primary:hover:not(:disabled),
+.practice-page .btn.primary:hover:not(:disabled),
+.practice-card .btn.primary:hover:not(:disabled) {
   background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
+  color: #000000 !important;
 }
 
-.btn.primary:disabled {
+.btn.primary:disabled,
+.practice-page .btn.primary:disabled,
+.practice-card .btn.primary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
   box-shadow: var(--shadow-sm);
+  color: #000000 !important;
 }
 
 .btn.outline {

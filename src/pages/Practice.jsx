@@ -113,6 +113,7 @@ export default function Practice() {
   const [activeHint, setActiveHint] = useState("");
   const [useCodeEditor, setUseCodeEditor] = useState(false);
   const [codeLanguage, setCodeLanguage] = useState("javascript");
+  const [userProgress, setUserProgress] = useState(null); // Thông tin tiến độ của user
 
   // Sanitize at render-time để gỡ đuôi rác nếu có
   const feedbackText = cleanText(feedback?.feedback || "");
@@ -147,15 +148,18 @@ export default function Practice() {
   // Câu hỏi hiện tại dựa trên chỉ số
   const currentQuestion = practice?.questions?.[currentQuestionIndex];
 
-  // Xác định bài lập trình để bật code editor
+  // Xác định bài lập trình để bật code editor - chỉ dựa vào category của bài học
   const isProgrammingCourse =
     lesson?.category?.name?.toLowerCase().includes("lập trình") ||
     lesson?.category?.name?.toLowerCase().includes("programming") ||
-    lesson?.title?.toLowerCase().includes("code") ||
-    currentQuestion?.question?.toLowerCase().includes("code") ||
-    currentQuestion?.question?.toLowerCase().includes("viết") ||
-    currentQuestion?.question?.toLowerCase().includes("function") ||
-    currentQuestion?.question?.toLowerCase().includes("hàm");
+    lesson?.category?.name?.toLowerCase().includes("code") ||
+    lesson?.category?.name?.toLowerCase().includes("developer") ||
+    lesson?.category?.name?.toLowerCase().includes("javascript") ||
+    lesson?.category?.name?.toLowerCase().includes("python") ||
+    lesson?.category?.name?.toLowerCase().includes("java") ||
+    lesson?.category?.name?.toLowerCase().includes("c++") ||
+    lesson?.category?.name?.toLowerCase().includes("php") ||
+    lesson?.category?.name?.toLowerCase().includes("sql");
 
   // Auto-detect ngôn ngữ lập trình từ câu hỏi
   useEffect(() => {
@@ -203,6 +207,11 @@ export default function Practice() {
         const response = await getPracticeById(practiceId);
         const practiceData = response.practice || response;
         setPractice(practiceData);
+
+        // Lưu thông tin tiến độ của user
+        if (response.userProgress) {
+          setUserProgress(response.userProgress);
+        }
 
         // Lấy thông tin bài học
         if (practiceData.lessonId) {
@@ -360,6 +369,50 @@ export default function Practice() {
         <div className="text-center">
           <h3>AI đang tạo bài luyện tập...</h3>
           <p>Đang phân tích nội dung bài học và tạo câu hỏi phù hợp</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Hiển thị khi bài đã hoàn thành
+  if (userProgress?.isCompleted) {
+    return (
+      <div className="practice-page">
+        <div className="practice-completed-container">
+          <div className="completion-card">
+            <div className="completion-header">
+              <div className="completion-icon">✅</div>
+              <h1>Bài luyện tập đã hoàn thành!</h1>
+              <p className="completion-subtitle">Bạn đã hoàn thành bài luyện tập này và không thể làm lại.</p>
+            </div>
+
+            <div className="score-summary">
+              <div className="main-score">
+                <div className={`score-circle grade-${userProgress.averageScore >= 8 ? 'success' : userProgress.averageScore >= 5 ? 'primary' : 'warning'}`}>
+                  {userProgress.averageScore}/10
+                </div>
+                <div className="score-info">
+                  <h3 className={`grade-text grade-${userProgress.averageScore >= 8 ? 'success' : userProgress.averageScore >= 5 ? 'primary' : 'warning'}`}>
+                    {userProgress.averageScore >= 8 ? 'Xuất sắc!' : userProgress.averageScore >= 5 ? 'Khá tốt!' : 'Cần cải thiện'}
+                  </h3>
+                  <p>Đã trả lời: {userProgress.totalQuestionsAnswered}/{userProgress.totalQuestionsInPractice} câu</p>
+                  <p>Đúng: {userProgress.correctCount} | Sai: {userProgress.incorrectCount}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="completion-actions">
+              <button className="btn ghost" onClick={() => navigate(-1)}>
+                ← Quay lại
+              </button>
+              <button 
+                className="btn primary" 
+                onClick={() => navigate(`/practice-list/${practice?.lessonId?._id || practice?.lessonId}`)}
+              >
+                Tạo bài luyện tập mới →
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );

@@ -33,11 +33,12 @@ export default function PracticeList() {
         console.log("[PracticeList] Lesson loaded:", lessonResponse);
         setLesson(lessonResponse.lesson);
 
-        // Lấy lịch sử bài luyện tập
+        // Lấy lịch sử bài luyện tập (grouped theo bài)
         try {
           const historyResponse = await getPracticeHistory(user._id || user.id, lessonId);
           console.log("[PracticeList] History loaded:", historyResponse);
-          setPracticeHistory(historyResponse.submissions || []);
+          // Sử dụng practiceHistory (grouped) thay vì submissions (từng câu)
+          setPracticeHistory(historyResponse.practiceHistory || []);
         } catch (historyErr) {
           console.warn("[PracticeList] No history found:", historyErr);
           setPracticeHistory([]);
@@ -193,14 +194,7 @@ export default function PracticeList() {
                   </div>
                 )}
               </div>
-              <div className="scoring-rules">
-                <h4>Quy tắc điều chỉnh mức độ:</h4>
-                <ul>
-                  <li>✅ Điểm &gt; 8/10 → Tăng 1 mức độ</li>
-                  <li>➡️ Điểm 5-8/10 → Giữ nguyên mức độ</li>
-                  <li>⬇️ Điểm &lt; 5/10 → Giảm 1 mức độ</li>
-                </ul>
-              </div>
+
             </div>
           </div>
         )}
@@ -228,7 +222,7 @@ export default function PracticeList() {
           {error && <p className="error-message">{error}</p>}
         </div>
 
-        {/* Practice History */}
+        {/* Practice History - Hiển thị theo bài luyện tập */}
         <div className="practice-card history-card">
           <div className="card-head">
             <h3>Lịch sử bài luyện tập</h3>
@@ -242,16 +236,16 @@ export default function PracticeList() {
             </div>
           ) : (
             <div className="history-list">
-              {practiceHistory.map((submission, index) => (
-                <div key={submission._id} className="history-item">
+              {practiceHistory.map((practice, index) => (
+                <div key={practice._id} className="history-item">
                   <div className="history-item-header">
                     <div className="history-item-info">
                       <span className="history-index">#{practiceHistory.length - index}</span>
-                      <span className={`difficulty-badge ${getDifficultyColor(submission.practiceId?.difficulty)}`}>
-                        {submission.practiceId?.difficulty || "Trung bình"}
+                      <span className={`difficulty-badge ${getDifficultyColor(practice.difficulty)}`}>
+                        {practice.difficulty || "Trung bình"}
                       </span>
                       <span className="history-date">
-                        {new Date(submission.submittedAt).toLocaleDateString("vi-VN", {
+                        {new Date(practice.lastSubmittedAt).toLocaleDateString("vi-VN", {
                           day: "2-digit",
                           month: "2-digit",
                           year: "numeric",
@@ -261,32 +255,30 @@ export default function PracticeList() {
                       </span>
                     </div>
                     <div className="history-item-score">
-                      <span className={`score-badge ${getScoreColor(submission.feedback?.score || 0)}`}>
-                        {submission.feedback?.score || 0}/10
+                      <span className={`score-badge ${getScoreColor(practice.averageScore)}`}>
+                        TB: {practice.averageScore}/10
                       </span>
-                      <span className={`result-badge ${submission.isCorrect ? 'correct' : 'incorrect'}`}>
-                        {submission.isCorrect ? '✓ Đúng' : '✗ Sai'}
+                      <span className="result-badge correct">
+                        {practice.correctCount}/{practice.totalQuestions} câu đúng
                       </span>
                     </div>
                   </div>
                   
                   <div className="history-item-content">
                     <div className="history-answer">
-                      <strong>Câu trả lời:</strong>
-                      <p>{submission.answer.substring(0, 150)}{submission.answer.length > 150 ? '...' : ''}</p>
+                      <strong>{practice.title || "Bài luyện tập"}</strong>
+                      <p>
+                        Đã trả lời {practice.totalQuestions} câu hỏi • 
+                        Điểm trung bình: {practice.averageScore}/10 • 
+                        Đúng: {practice.correctCount} • Sai: {practice.incorrectCount}
+                      </p>
                     </div>
-                    {submission.feedback?.feedback && (
-                      <div className="history-feedback">
-                        <strong>Nhận xét:</strong>
-                        <p>{submission.feedback.feedback.substring(0, 100)}...</p>
-                      </div>
-                    )}
                   </div>
 
                   <div className="history-item-actions">
                     <button
                       className="btn outline small"
-                      onClick={() => handleViewPractice(submission.practiceId._id)}
+                      onClick={() => handleViewPractice(practice._id)}
                     >
                       Xem chi tiết
                     </button>
