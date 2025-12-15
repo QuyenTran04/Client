@@ -339,14 +339,14 @@ export default function Lessons() {
                         }
                       }}
                     >
-                      Bai truoc
+                      Bài trước
                     </button>
                     <button
                       type="button"
-                      className="lesson-action accent"
+                      className="lesson-action primary"
                       onClick={handlePracticeNavigate}
                     >
-                      Luyen tap
+                      Luyện tập
                     </button>
                     <button
                       type="button"
@@ -359,7 +359,7 @@ export default function Lessons() {
                         }
                       }}
                     >
-                      {quizzes.length === 0 ? "Tao quiz" : "Lam bai quiz"}
+                      {quizzes.length === 0 ? "Tạo quiz" : "Làm bài quiz"}
                     </button>
                     <button
                       type="button"
@@ -371,7 +371,7 @@ export default function Lessons() {
                         }
                       }}
                     >
-                      Bai tiep theo
+                      Bài tiếp theo
                     </button>
                   </div>
                 </div>
