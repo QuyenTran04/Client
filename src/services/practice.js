@@ -28,3 +28,15 @@ export const getPracticeHistory = async (userId, lessonId) => {
   const response = await api.get(`/practice/history/${userId}/${lessonId}`);
   return response.data;
 };
+
+// Lấy bài luyện tập theo ID
+export const getPracticeById = async (practiceId) => {
+  const response = await api.get(`/practice/${practiceId}`);
+  return response.data;
+};
+
+// Lấy thông tin mức độ tiếp theo
+export const getNextDifficulty = async (lessonId) => {
+  const response = await api.get(`/practice/next-difficulty/${lessonId}`);
+  return response.data;
+};

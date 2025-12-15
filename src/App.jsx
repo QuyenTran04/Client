@@ -17,6 +17,7 @@ import LessonsPage from "./pages/Lessons";
 import QuizPage from "./pages/Quiz";
 import Practice from "./pages/Practice";
 import PracticeCompleted from "./pages/PracticeCompleted";
+import PracticeList from "./pages/PracticeList";
 import CreateCourseWithAI from "./pages/CreateCourseWithAI";
 import CreateQuiz from "./pages/CreateQuiz";
 import AIChat from "./components/AIChat";
@@ -187,7 +188,15 @@ function AppShell() {
           }
         />
         <Route
-          path="/lessons/:id/practice"
+          path="/lessons/:lessonId/practice-list"
+          element={
+            <ProtectedRoute>
+              <PracticeList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/practice/:id"
           element={
             <ProtectedRoute>
               <Practice />

@@ -26,7 +26,6 @@ export default function Lessons() {
   const [selectedTab, setSelectedTab] = useState("content");
   const [quizzes, setQuizzes] = useState([]);
   const [showGenerateQuizModal, setShowGenerateQuizModal] = useState(false);
-  const [practiceLoading, setPracticeLoading] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -119,39 +118,10 @@ export default function Lessons() {
   const currentLessonIndex = lessons.findIndex((l) => l._id === selectedLesson);
   const totalLessons = lessons.length;
 
-  const ensurePracticeExists = async () => {
+  const handlePracticeNavigate = () => {
     if (!selectedLesson) return;
-
-    try {
-      await getPracticeByLesson(selectedLesson);
-    } catch (err) {
-      const status = err?.response?.status;
-      if (status === 404) {
-        await createPractice(selectedLesson, {
-          title: `Luyen tap: ${lessonDetails?.title || "Bai hoc"}`,
-          lessonContent: lessonDetails?.content || lessonDetails?.description || course?.description || "",
-          courseId: course?._id,
-          difficulty: "medium",
-          questionType: "open_ended",
-        });
-      } else {
-        throw err;
-      }
-    }
-  };
-
-  const handlePracticeNavigate = async () => {
-    if (!selectedLesson) return;
-    try {
-      setPracticeLoading(true);
-      await ensurePracticeExists();
-      navigate(`/lessons/${selectedLesson}/practice`);
-    } catch (err) {
-      console.error("[Lessons] Practice prepare failed:", err);
-      alert(err?.response?.data?.message || "Không chuẩn bị được bài luyện tập. Vui lòng thử lại.");
-    } finally {
-      setPracticeLoading(false);
-    }
+    // Chuyển đến trang danh sách bài luyện tập
+    navigate(`/lessons/${selectedLesson}/practice-list`);
   };
 
   return (
@@ -375,9 +345,8 @@ export default function Lessons() {
                       type="button"
                       className="lesson-action accent"
                       onClick={handlePracticeNavigate}
-                      disabled={practiceLoading}
                     >
-                      {practiceLoading ? "Dang chuan bi..." : "Luyen tap"}
+                      Luyen tap
                     </button>
                     <button
                       type="button"

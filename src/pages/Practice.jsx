@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import AceEditor from "react-ace";
 import { getLessonById } from "../services/lesson";
-import { getPracticeByLesson, createPractice, submitPracticeAnswer } from "../services/practice";
+import { getPracticeById, submitPracticeAnswer } from "../services/practice";
 import { useAuth } from "../context/AuthContext";
 import "../css/practice.css";
 
@@ -97,7 +97,7 @@ const normalizeFeedbackResponse = (raw) => {
 };
 
 export default function Practice() {
-  const { id: lessonId } = useParams();
+  const { id: practiceId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -194,45 +194,21 @@ export default function Practice() {
       return;
     }
 
-    const createNewPractice = async (lessonData) => {
-      try {
-        setCreatingPractice(true);
-        setError("");
-
-        const practiceData = await createPractice(lessonId, {
-          title: `Luyện tập: ${lessonData?.title || "Bài học"}`,
-          lessonContent: lessonData?.content || lessonData?.description || `Bài học về ${lessonData?.title || ""}`,
-          courseId: lessonData?.course?._id || lessonData?.courseId,
-          difficulty: "medium",
-          questionType: "open_ended",
-        });
-
-        setPractice(practiceData);
-      } catch (err) {
-        setError(err?.response?.data?.message || "Không tạo được bài luyện tập");
-        console.error("Error creating practice:", err);
-      } finally {
-        setCreatingPractice(false);
-      }
-    };
-
     const loadData = async () => {
       try {
         setLoading(true);
 
-        const lessonResponse = await getLessonById(lessonId);
-        const lessonData = lessonResponse.lesson;
-        setLesson(lessonData);
+        // Lấy bài luyện tập theo ID
+        const { getPracticeById } = await import("../services/practice");
+        const response = await getPracticeById(practiceId);
+        const practiceData = response.practice || response;
+        setPractice(practiceData);
 
-        try {
-          const response = await getPracticeByLesson(lessonId);
-          setPractice(response.practice || response);
-        } catch (practiceError) {
-          if (practiceError.response?.status === 404) {
-            await createNewPractice(lessonData);
-          } else {
-            throw practiceError;
-          }
+        // Lấy thông tin bài học
+        if (practiceData.lessonId) {
+          const lessonId = practiceData.lessonId._id || practiceData.lessonId;
+          const lessonResponse = await getLessonById(lessonId);
+          setLesson(lessonResponse.lesson);
         }
       } catch (err) {
         setError(err?.response?.data?.message || "Không tải được dữ liệu");
@@ -243,7 +219,7 @@ export default function Practice() {
     };
 
     loadData();
-  }, [lessonId, user, navigate]);
+  }, [practiceId, user, navigate]);
 
   const handleSubmitAnswer = async () => {
     // Validate answer based on input mode
