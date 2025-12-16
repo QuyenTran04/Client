@@ -16,6 +16,18 @@
   background: #059669;
 }
 
+.course-card-btn.facebook {
+  background: #1877f2;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.course-card-btn.facebook:hover {
+  background: #166fe5;
+}
+
 .course-card-btn.secondary {
   background: #e0f2fe;
   color: #0284c7;
@@ -367,6 +379,32 @@
 .btn-secondary:hover {
   background: #e5e7eb;
   border-color: #9ca3af;
+}
+
+.btn-facebook {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  background: #1877f2;
+  color: white;
+  border-color: #1877f2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-facebook:hover {
+  background: #166fe5;
+  border-color: #166fe5;
+}
+
+.btn-facebook:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* Responsive Design */

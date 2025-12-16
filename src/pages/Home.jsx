@@ -16,9 +16,9 @@ export default function Home() {
         <div className="container hero-wrap">
           <div className="hero-text">
             <p className="tag">AI Course Studio</p>
-            <h1>Khởi tạo & bán khóa học AI trong vài phút</h1>
+            <h1>Khởi tạo khóa học AI trong vài phút</h1>
             <p className="sub">
-              Viết outline, tạo video, quiz và landing page tự động bằng AI. Cá nhân hóa
+              Viết outline, quiz và landing page tự động bằng AI. Cá nhân hóa
               trải nghiệm học viên với chatbot đồng hành và phân tích dữ liệu học tập thời gian thực.
               {user ? ` Chào mừng trở lại, ${user.name}!` : " Bắt đầu miễn phí ngay hôm nay."}
             </p>
