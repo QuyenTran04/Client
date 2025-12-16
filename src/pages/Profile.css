@@ -1666,3 +1666,266 @@
     height: 56px;
   }
 }
+
+/* ===========================
+   USAGE CHART STYLES
+=========================== */
+
+.usage-chart-content {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding: 8px 0;
+}
+
+.chart-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.chart-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+/* Bar Chart Styles */
+.bar-chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  gap: 12px;
+  height: 200px;
+  padding: 16px;
+  background: var(--surface-muted);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.bar-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.bar-wrapper {
+  width: 100%;
+  height: 160px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  position: relative;
+}
+
+.bar-fill {
+  width: 100%;
+  max-width: 48px;
+  background: var(--gradient-primary);
+  border-radius: 8px 8px 0 0;
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 -4px 12px rgba(14, 165, 233, 0.2);
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 8px;
+}
+
+.bar-fill:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 -8px 20px rgba(14, 165, 233, 0.3);
+}
+
+.bar-value {
+  font-size: 11px;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  white-space: nowrap;
+}
+
+.bar-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Type Stats Styles */
+.type-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.type-stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: var(--surface-muted);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  transition: all 0.3s ease;
+}
+
+.type-stat-item:hover {
+  transform: translateX(4px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-light);
+}
+
+.type-stat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.type-stat-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.type-color-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.type-stat-value {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.type-stat-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--border-light);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.type-stat-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 8px rgba(14, 165, 233, 0.3);
+}
+
+.type-stat-meta {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* Chart Placeholder Enhancement */
+.chart-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  gap: 12px;
+}
+
+.chart-placeholder .chart-icon {
+  width: 64px;
+  height: 64px;
+  color: var(--primary);
+  opacity: 0.5;
+}
+
+.chart-placeholder p {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* Mobile Responsive for Charts */
+@media (max-width: 768px) {
+  .bar-chart {
+    height: 180px;
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .bar-wrapper {
+    height: 140px;
+  }
+
+  .bar-fill {
+    max-width: 36px;
+  }
+
+  .bar-value {
+    font-size: 10px;
+  }
+
+  .bar-label {
+    font-size: 11px;
+  }
+
+  .type-stat-item {
+    padding: 12px;
+  }
+
+  .type-stat-value {
+    font-size: 16px;
+  }
+
+  .chart-title {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .bar-chart {
+    height: 160px;
+    padding: 8px;
+    gap: 6px;
+  }
+
+  .bar-wrapper {
+    height: 120px;
+  }
+
+  .bar-fill {
+    max-width: 28px;
+  }
+
+  .bar-value {
+    font-size: 9px;
+    padding-top: 4px;
+  }
+
+  .bar-label {
+    font-size: 10px;
+  }
+
+  .type-stat-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .type-stat-value {
+    font-size: 14px;
+  }
+
+  .type-stat-meta {
+    font-size: 12px;
+  }
+}
