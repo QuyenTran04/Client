@@ -21,7 +21,8 @@ import {
   User,
   Users,
   Zap,
-  FileText
+  FileText,
+  Check
 } from 'lucide-react';
 import './Profile.css';
 import '../css/course-card-danger.css';
@@ -30,9 +31,10 @@ import CourseCard from '../components/CourseCard';
 import { useAuth } from '../context/AuthContext';
 import { useWallet } from '../context/WalletContext';
 import { useProfileData } from '../hooks/useProfileData';
+import { updateProfileApi } from '../services/auth';
 
 const Profile = () => {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, setUser } = useAuth();
   const { walletData, transactions, refreshing, refreshWallet } = useWallet();
   const {
     myCourses,
@@ -57,6 +59,70 @@ const Profile = () => {
   const [show2FAModal, setShow2FAModal] = useState(false);
   const [email2FA, setEmail2FA] = useState('');
   const DEFAULT_COVER = "/assets/cover-1.png";
+
+  // State cho form thông tin cá nhân
+  const [profileForm, setProfileForm] = useState({
+    name: '',
+    phone: '',
+    dob: '',
+    bio: ''
+  });
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileMessage, setProfileMessage] = useState({ type: '', text: '' });
+
+  // Khởi tạo form khi user thay đổi
+  useEffect(() => {
+    if (user) {
+      setProfileForm({
+        name: user.name || '',
+        phone: user.phone || '',
+        dob: user.dob ? new Date(user.dob).toISOString().split('T')[0] : '',
+        bio: user.bio || ''
+      });
+    }
+  }, [user]);
+
+  // Xử lý thay đổi input
+  const handleProfileChange = (e) => {
+    const { name, value } = e.target;
+    setProfileForm(prev => ({ ...prev, [name]: value }));
+    setProfileMessage({ type: '', text: '' });
+  };
+
+  // Xử lý lưu thông tin
+  const handleSaveProfile = async () => {
+    try {
+      setProfileSaving(true);
+      setProfileMessage({ type: '', text: '' });
+
+      const { data } = await updateProfileApi(profileForm);
+      
+      // Cập nhật user trong context
+      if (data.user) {
+        setUser(data.user);
+      }
+      
+      setProfileMessage({ type: 'success', text: 'Cập nhật thông tin thành công!' });
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại';
+      setProfileMessage({ type: 'error', text: msg });
+    } finally {
+      setProfileSaving(false);
+    }
+  };
+
+  // Hủy thay đổi
+  const handleCancelProfile = () => {
+    if (user) {
+      setProfileForm({
+        name: user.name || '',
+        phone: user.phone || '',
+        dob: user.dob ? new Date(user.dob).toISOString().split('T')[0] : '',
+        bio: user.bio || ''
+      });
+    }
+    setProfileMessage({ type: '', text: '' });
+  };
 
   const formatDate = (dateString) => {
     const options = {
@@ -85,13 +151,13 @@ const Profile = () => {
   const getUsageColor = (type) => {
     switch (type) {
       case 'course_creation':
-        return '#00bfa4';
+        return '#0ea5e9';
       case 'ai_generation':
-        return '#00c6c2';
+        return '#38bdf8';
       case 'quiz_creation':
-        return '#009b87';
+        return '#06b6d4';
       default:
-        return '#7a8a9f';
+        return '#94a3b8';
     }
   };
 
@@ -127,7 +193,7 @@ const Profile = () => {
     switch (type) {
       case 'topup_momo':
       case 'topup_momo_manual':
-        return '#00bfa4';
+        return '#10b981';
       case 'charge':
       case 'charge_aiCourse':
       case 'charge_aiQuiz':
@@ -386,14 +452,24 @@ const Profile = () => {
                 <div className="personal-content">
                   <div className="content-card">
                     <h3 className="card-title">Thông tin cá nhân</h3>
+                    
+                    {profileMessage.text && (
+                      <div className={`profile-message ${profileMessage.type}`}>
+                        {profileMessage.type === 'success' ? <Check size={18} /> : <AlertCircle size={18} />}
+                        {profileMessage.text}
+                      </div>
+                    )}
+                    
                     <div className="form-section">
                       <div className="form-row">
                         <div className="form-group">
                           <label className="form-label">Họ và tên</label>
                           <input
                             type="text"
+                            name="name"
                             className="form-input"
-                            defaultValue={user.name || ''}
+                            value={profileForm.name}
+                            onChange={handleProfileChange}
                             placeholder="Nhập họ và tên"
                           />
                         </div>
@@ -402,7 +478,7 @@ const Profile = () => {
                           <input
                             type="email"
                             className="form-input"
-                            defaultValue={user.email || ''}
+                            value={user?.email || ''}
                             placeholder="Nhập email"
                             disabled
                           />
@@ -413,8 +489,10 @@ const Profile = () => {
                           <label className="form-label">Số điện thoại</label>
                           <input
                             type="tel"
+                            name="phone"
                             className="form-input"
-                            defaultValue={user.phone || ''}
+                            value={profileForm.phone}
+                            onChange={handleProfileChange}
                             placeholder="Nhập số điện thoại"
                           />
                         </div>
@@ -422,24 +500,47 @@ const Profile = () => {
                           <label className="form-label">Ngày sinh</label>
                           <input
                             type="date"
+                            name="dob"
                             className="form-input"
-                            defaultValue={user.dob ? new Date(user.dob).toISOString().split('T')[0] : ''}
+                            value={profileForm.dob}
+                            onChange={handleProfileChange}
                           />
                         </div>
                       </div>
                       <div className="form-group full-width">
                         <label className="form-label">Giới thiệu</label>
                         <textarea
+                          name="bio"
                           className="form-input"
                           rows={4}
                           placeholder="Giới thiệu ngắn về bản thân..."
-                          defaultValue={user.bio || ''}
+                          value={profileForm.bio}
+                          onChange={handleProfileChange}
                         />
                       </div>
                     </div>
                     <div className="btn-group">
-                      <button className="btn-primary">Lưu thay đổi</button>
-                      <button className="btn-secondary">Hủy</button>
+                      <button 
+                        className="btn-primary" 
+                        onClick={handleSaveProfile}
+                        disabled={profileSaving}
+                      >
+                        {profileSaving ? (
+                          <>
+                            <RefreshCw className="spinning" size={16} />
+                            Đang lưu...
+                          </>
+                        ) : (
+                          'Lưu thay đổi'
+                        )}
+                      </button>
+                      <button 
+                        className="btn-secondary" 
+                        onClick={handleCancelProfile}
+                        disabled={profileSaving}
+                      >
+                        Hủy
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -547,68 +648,12 @@ const Profile = () => {
                 <h3 className="card-title">Ví của tôi</h3>
                 <div className="balance-display">
                   <div className="balance-amount">
-                    {walletData?.balance?.toLocaleString() || '0'} xu
+                    {walletData?.wallet?.balance?.toLocaleString() || '0'} xu
                   </div>
                   <div className="balance-label">Số dư khả dụng</div>
                   <button className="refresh-btn" onClick={refreshWallet}>
                     <RefreshCw className={`refresh-icon ${refreshing ? 'spinning' : ''}`} />
                   </button>
-                </div>
-                <div className="btn-group">
-                  <button className="btn-primary">
-                    <Plus />
-                    Nạp xu
-                  </button>
-                  <button className="btn-secondary">
-                    <Download />
-                    Rút xu
-                  </button>
-                </div>
-              </div>
-
-              <div className="content-card">
-                <div className="card-header">
-                  <h3 className="card-title">Phương thức thanh toán</h3>
-                  <button
-                    className="refresh-btn-sm"
-                    onClick={refreshPaymentMethods}
-                    title="Làm mới danh sách"
-                  >
-                    <RefreshCw className="refresh-icon" />
-                  </button>
-                </div>
-                <div className="payment-methods">
-                  {paymentMethods.length === 0 ? (
-                    <div className="empty-payments">
-                      <CreditCard className="empty-icon" />
-                      <h4>Chưa có phương thức thanh toán</h4>
-                      <p>Thêm phương thức thanh toán để tiện lợi hơn</p>
-                      <button className="add-payment-method">
-                        <Plus />
-                        Thêm phương thức
-                      </button>
-                    </div>
-                  ) : (
-                    paymentMethods.map((method) => (
-                      <div key={method.id} className="payment-method">
-                        <div className="method-info">
-                          <div className="method-icon">
-                            {method.type === 'momo' ? <Smartphone /> : <CreditCard />}
-                          </div>
-                          <div className="method-details">
-                            <h4>{method.name}</h4>
-                            <p>**** {method.last4}</p>
-                          </div>
-                        </div>
-                        <div className="method-actions">
-                          {method.isDefault && (
-                            <span className="default-badge">Mặc định</span>
-                          )}
-                          <button className="btn-outline btn-sm">Xóa</button>
-                        </div>
-                      </div>
-                    ))
-                  )}
                 </div>
               </div>
 
