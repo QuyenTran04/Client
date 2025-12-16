@@ -19,7 +19,7 @@ import Practice from "./pages/Practice";
 import PracticeCompleted from "./pages/PracticeCompleted";
 import PracticeList from "./pages/PracticeList";
 import CreateCourseWithAI from "./pages/CreateCourseWithAI";
-import CreateQuiz from "./pages/CreateQuiz";
+
 import AIChat from "./components/AIChat";
 import About from "./pages/About";
 // 🧭 Thành phần giao diện chung
@@ -237,14 +237,7 @@ function AppShell() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/create-quiz"
-          element={
-            <ProtectedRoute>
-              <CreateQuiz />
-            </ProtectedRoute>
-          }
-        />
+
 
         {/* ADMIN ZONE */}
 

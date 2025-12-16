@@ -51,14 +51,9 @@ export default function NavBar() {
         {/* Tìm kiếm + Xác thực */}
         <div className="right-row">
           {user && (
-            <>
-              <Link to="/courses/create-ai" className="btn ai-course desktop-only">
-                Tạo khóa học AI
-              </Link>
-              <Link to="/create-quiz" className="btn ai-course desktop-only">
-                Tạo trắc nghiệm
-              </Link>
-            </>
+            <Link to="/courses/create-ai" className="btn ai-course desktop-only">
+              Tạo khóa học AI
+            </Link>
           )}
           {user ? (
             <>
