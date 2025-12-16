@@ -1472,3 +1472,272 @@
     font-size: 18px;
   }
 }
+
+
+/* ==========================
+   MOBILE RESPONSIVE IMPROVEMENTS
+========================== */
+
+/* Search section mobile */
+@media (max-width: 768px) {
+  .search-wide {
+    flex-direction: column;
+    padding: 16px;
+  }
+  
+  .search-wide .ipt {
+    width: 100%;
+    padding: 14px 16px;
+  }
+  
+  .search-wide .btn.primary {
+    width: 100%;
+    padding: 14px 20px;
+  }
+}
+
+/* Subject cards mobile */
+@media (max-width: 600px) {
+  .subjects-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  
+  .card.subject {
+    min-height: 100px;
+    padding: 16px;
+  }
+  
+  .card.subject h3 {
+    font-size: 14px;
+  }
+  
+  .card.subject p.muted {
+    font-size: 11px;
+    display: none;
+  }
+  
+  .sticker {
+    font-size: 10px;
+    padding: 4px 8px;
+    top: 8px;
+    right: 8px;
+  }
+}
+
+/* Two column sections mobile */
+@media (max-width: 768px) {
+  .two-col {
+    flex-direction: column;
+    gap: 30px;
+  }
+  
+  .two-col.reverse {
+    flex-direction: column;
+  }
+  
+  .two-col .content {
+    max-width: 100%;
+    text-align: center;
+  }
+  
+  .two-col .content h2 {
+    font-size: 26px;
+  }
+  
+  .checklist {
+    text-align: left;
+  }
+  
+  .signup-block {
+    padding: 40px 20px;
+    border-radius: 20px;
+  }
+}
+
+/* Community section mobile */
+@media (max-width: 768px) {
+  .community {
+    padding: 40px 20px;
+    margin: 30px 16px;
+    border-radius: 20px;
+  }
+  
+  .media.stack.modern {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .avatar-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  
+  .avatar-card {
+    padding: 10px;
+    gap: 8px;
+  }
+  
+  .avatar-card .ava {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .avatar-card strong {
+    font-size: 13px;
+  }
+  
+  .avatar-card span {
+    font-size: 11px;
+  }
+}
+
+/* Teacher cards mobile */
+@media (max-width: 600px) {
+  .teacher {
+    flex-direction: column;
+    text-align: center;
+    padding: 20px;
+  }
+  
+  .teacher .avatar {
+    width: 80px;
+    height: 80px;
+  }
+}
+
+/* Quote cards mobile */
+@media (max-width: 600px) {
+  .quote {
+    padding: 20px;
+    padding-left: 20px;
+  }
+  
+  .quote::before {
+    font-size: 40px;
+    left: 8px;
+    top: 4px;
+  }
+  
+  .quote p {
+    font-size: 15px;
+  }
+}
+
+/* Footer mobile */
+@media (max-width: 600px) {
+  .footer {
+    padding: 50px 0 20px;
+    margin-top: 60px;
+  }
+  
+  .footer .fwrap {
+    gap: 30px;
+    padding: 0 16px;
+  }
+  
+  .fcols {
+    width: 100%;
+    gap: 30px;
+  }
+  
+  .fcols > div {
+    width: 100%;
+  }
+  
+  .socials {
+    justify-content: center;
+  }
+}
+
+/* Hero metrics mobile */
+@media (max-width: 480px) {
+  .hero-metrics {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .hero-metrics div {
+    min-width: 100%;
+    text-align: center;
+  }
+  
+  .hero-badges {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .hero-badges span {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* Stats mobile */
+@media (max-width: 480px) {
+  .stats {
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+  }
+  
+  .stat {
+    min-width: 100%;
+  }
+  
+  .stat .num {
+    font-size: 28px;
+  }
+}
+
+/* Thumb images mobile */
+@media (max-width: 480px) {
+  .thumb {
+    height: 160px;
+    margin: -20px -20px 20px -20px;
+    border-radius: 12px 12px 0 0;
+  }
+}
+
+/* Button improvements for touch */
+@media (max-width: 768px) {
+  .btn {
+    padding: 12px 24px;
+    font-size: 15px;
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .hero .btn.primary,
+  .hero .btn.outline {
+    padding: 14px 24px;
+    font-size: 15px;
+    width: 100%;
+    max-width: 280px;
+  }
+}
+
+/* Card icon mobile */
+@media (max-width: 480px) {
+  .card-ico {
+    font-size: 36px;
+    margin-bottom: 12px;
+  }
+}
+
+/* Fix overflow issues */
+@media (max-width: 768px) {
+  .home {
+    overflow-x: hidden;
+  }
+  
+  .section {
+    overflow-x: hidden;
+  }
+  
+  .container {
+    overflow-x: hidden;
+  }
+}

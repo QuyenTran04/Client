@@ -1,16 +1,10 @@
 // src/components/NavBar.jsx
 import { Link, NavLink } from "react-router-dom";
-import React from "react";
 import { useAuth } from "../context/AuthContext";
 import UserDropdown from "./UserDropdown";
 import "../css/navbar.css";
 export default function NavBar() {
   const { user } = useAuth();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
-
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
 
   return (
     <nav className="navbar">
@@ -21,13 +15,8 @@ export default function NavBar() {
           <span>AutoLearn</span>
         </Link>
 
-        {/* Mobile menu toggle */}
-        <button className="menu-toggle" onClick={toggleMobileMenu}>
-          {isMobileMenuOpen ? '✕' : '☰'}
-        </button>
-
         {/* Menu chính */}
-        <ul className={`menu ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
+        <ul className="menu">
           <li>
             <NavLink to="/" end>
               Trang chủ
@@ -39,9 +28,6 @@ export default function NavBar() {
             ) : (
               <Link to="/login">Khóa học</Link>
             )}
-          </li>
-          <li>
-            <NavLink to="/instructors">Người tạo nội dung</NavLink>
           </li>
           <li>
             <NavLink to="/about">Về chúng tôi</NavLink>

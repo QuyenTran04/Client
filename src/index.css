@@ -33,6 +33,25 @@ body{
 }
 a{ color:inherit; }
 
+/* ========== Mobile Navbar Fix ========== */
+/* Thêm padding-top cho nội dung khi navbar fixed trên mobile */
+/* Navbar mobile có 3 hàng nên cần padding lớn hơn (~120px) */
+@media (max-width: 900px) {
+  /* Main content pages - thêm padding để tránh bị navbar che */
+  .home,
+  .course-page,
+  .course-detail,
+  .course-collection,
+  .lessons-shell,
+  .profile-container,
+  .my-courses-page,
+  .about-page,
+  .payment-page {
+    padding-top: 130px !important;
+    margin-top: 0 !important;
+  }
+}
+
 /* ========== AI Auth surfaces ========== */
 .ai-auth{
   position:relative;
