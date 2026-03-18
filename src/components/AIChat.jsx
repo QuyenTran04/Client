@@ -6,6 +6,7 @@ import "../css/chat.css";
 import { chatWithAI } from "../services/ai";
 import { useAuth } from "../context/AuthContext";
 import CourseSuggestionsCard from "./CourseSuggestionsCard";
+import TypingEffect from "./TypingEffect";
 
 export default function AIChat({
   layout = "floating",
@@ -327,11 +328,7 @@ export default function AIChat({
               } ${m.error ? "ai-msg--error" : ""}`}
             >
               {m.role === "assistant" ? (
-                <div className="ai-msg__bubble ai-markdown">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {m.content}
-                  </ReactMarkdown>
-                </div>
+                <TypingEffect content={m.content} speed={20} />
               ) : (
                 <div className="ai-msg__bubble">{m.content}</div>
               )}
