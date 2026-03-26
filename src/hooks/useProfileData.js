@@ -15,6 +15,26 @@ export const useProfileData = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Helper function to get readable description
+  const getTransactionDescription = (reason, metadata) => {
+    const descriptions = {
+      'charge_aiCourse': 'Tạo khóa học bằng AI',
+      'charge_aiQuiz': 'Tạo bài trắc nghiệm bằng AI',
+      'charge_aiPractice': 'Tạo bài luyện tập bằng AI',
+    };
+    
+    let desc = descriptions[reason] || reason || 'Sử dụng dịch vụ';
+    
+    // Add metadata info if available
+    if (metadata?.courseTitle) {
+      desc += `: ${metadata.courseTitle}`;
+    } else if (metadata?.lessonId) {
+      desc += ` (Bài học)`;
+    }
+    
+    return desc;
+  };
+
   // Fetch user's created courses
   const fetchMyCourses = useCallback(async () => {
     try {
@@ -37,9 +57,6 @@ export const useProfileData = () => {
   const fetchPaymentMethods = useCallback(async () => {
     try {
       // TODO: Implement actual API call when backend supports payment methods
-      // const methods = await paymentService.getPaymentMethods();
-
-      // For now, return empty array or mock data if needed
       const methods = [];
       setPaymentMethods(methods);
     } catch (err) {
@@ -59,31 +76,42 @@ export const useProfileData = () => {
       const transactionsArray = Array.isArray(transactions) ? transactions : [];
 
       console.log('Transactions loaded:', transactionsArray.length, 'transactions');
+      console.log('Transaction details:', transactionsArray.map(tx => ({ 
+        type: tx.type, 
+        reason: tx.reason, 
+        amount: tx.amount 
+      })));
 
       // Transform transactions into usage data format
-      console.log('Transaction types:', transactionsArray.map(tx => ({ type: tx.type, reason: tx.reason, amount: tx.amount })));
-
+      // type: "credit" (nạp tiền), "debit" (sử dụng), "refund" (hoàn tiền)
+      // reason: "charge_aiCourse", "charge_aiQuiz", "charge_aiPractice", "topup_momo", etc.
       const usage = transactionsArray
         .filter(tx => {
-          // Include all transactions that show xu spending
-          const isUsageTx = tx.type?.startsWith('charge_') ||
-                           tx.type === 'charge' ||
-                           tx.type?.includes('ai') ||
-                           (tx.amount && tx.amount < 0); // Negative amount = spending
-          return isUsageTx;
+          // Include debit transactions (xu spending) - these are the "usage" transactions
+          return tx.type === 'debit';
         })
-        .map(tx => ({
-          id: tx._id,
-          type: tx.type.replace('charge_', '').replace('charge', '') || 'general',
-          description: tx.reason || `Giao dịch ${tx.type}`,
-          amount: Math.abs(tx.amount || 0),
-          date: tx.createdAt,
-          status: 'completed' // Assume completed if transaction exists
-        }))
+        .map(tx => {
+          // Extract action type from reason (e.g., "charge_aiCourse" -> "aiCourse")
+          const actionType = tx.reason?.replace('charge_', '') || 'general';
+          
+          return {
+            id: tx._id,
+            type: actionType,
+            description: getTransactionDescription(tx.reason, tx.metadata),
+            amount: Math.abs(tx.amount || 0),
+            date: tx.createdAt,
+            status: 'completed'
+          };
+        })
         .sort((a, b) => new Date(b.date) - new Date(a.date));
 
       setUsageData(usage);
       console.log('Usage data transformed:', usage.length, 'usage items');
+      
+      // Debug: Log all transactions if no usage found
+      if (usage.length === 0 && transactionsArray.length > 0) {
+        console.log('No debit transactions found. All transactions:', transactionsArray);
+      }
     } catch (err) {
       console.error('Error fetching usage data:', err);
       setUsageData([]);

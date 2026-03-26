@@ -452,29 +452,32 @@ export default function CourseDetail() {
           <div style={{ background: "#fff", padding: 20, borderRadius: 12 }}>
             <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12, color: "#111" }}>Chia sẻ</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <a
-                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
-                target="_blank"
-                rel="noreferrer"
+              <button
+                type="button"
+                onClick={() => {
+                  const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+                  const shareUrl = `${backendUrl}/api/share/course/${id}`;
+                  const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+                  window.open(facebookUrl, '_blank', 'width=600,height=400');
+                }}
                 style={{
                   display: "block",
                   textAlign: "center",
                   padding: "8px",
-                  background: "#f0f0f0",
+                  background: "#1877f2",
                   border: "none",
                   borderRadius: 6,
-                  textDecoration: "none",
-                  color: "#111",
+                  color: "#fff",
                   fontSize: 13,
                   fontWeight: 500,
                   cursor: "pointer",
                   transition: "all 0.2s ease",
                 }}
-                onMouseEnter={(e) => (e.target.style.background = "#e0e0e0")}
-                onMouseLeave={(e) => (e.target.style.background = "#f0f0f0")}
+                onMouseEnter={(e) => (e.target.style.background = "#166fe5")}
+                onMouseLeave={(e) => (e.target.style.background = "#1877f2")}
               >
                 📘 Facebook
-              </a>
+              </button>
               <a
                 href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(c.title)}`}
                 target="_blank"

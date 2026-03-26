@@ -33,6 +33,25 @@ body{
 }
 a{ color:inherit; }
 
+/* ========== Mobile Navbar Fix ========== */
+/* Thêm padding-top cho nội dung khi navbar fixed trên mobile */
+/* Navbar mobile có 3 hàng nên cần padding lớn hơn (~120px) */
+@media (max-width: 900px) {
+  /* Main content pages - thêm padding để tránh bị navbar che */
+  .home,
+  .course-page,
+  .course-detail,
+  .course-collection,
+  .lessons-shell,
+  .profile-container,
+  .my-courses-page,
+  .about-page,
+  .payment-page {
+    padding-top: 130px !important;
+    margin-top: 0 !important;
+  }
+}
+
 /* ========== AI Auth surfaces ========== */
 .ai-auth{
   position:relative;
@@ -1121,3 +1140,68 @@ a{ color:inherit; }
 /* pager */
 .pager{ display:flex; align-items:center; justify-content:center; gap:12px; margin:18px 0; }
 .pager button{ padding:8px 12px; border:1px solid #ddd; background:#fff; border-radius:10px; }
+
+
+/* ========== OTP Input Styles ========== */
+.otp-container {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin: 24px 0;
+}
+
+.otp-input {
+  width: 52px;
+  height: 60px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 700;
+  border: 2px solid #d7e3f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  color: #0f172a;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.otp-input:focus {
+  outline: none;
+  border-color: #00b3a4;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(0, 179, 164, 0.15);
+}
+
+.resend-section {
+  text-align: center;
+  margin-top: 20px;
+  color: #7c8ba1;
+}
+
+.resend-section p {
+  margin: 0;
+}
+
+.countdown {
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.resend-btn {
+  background: none;
+  border: none;
+  color: #00b3a4;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: inherit;
+  font-family: inherit;
+}
+
+.resend-btn:hover {
+  color: #0f9f9c;
+}
+
+.resend-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

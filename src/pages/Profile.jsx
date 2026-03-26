@@ -21,7 +21,8 @@ import {
   User,
   Users,
   Zap,
-  FileText
+  FileText,
+  Check
 } from 'lucide-react';
 import './Profile.css';
 import '../css/course-card-danger.css';
@@ -30,9 +31,136 @@ import CourseCard from '../components/CourseCard';
 import { useAuth } from '../context/AuthContext';
 import { useWallet } from '../context/WalletContext';
 import { useProfileData } from '../hooks/useProfileData';
+import { updateProfileApi } from '../services/auth';
+
+// Component biểu đồ sử dụng xu
+const UsageChart = ({ data }) => {
+  // Nhóm dữ liệu theo ngày
+  const groupByDate = () => {
+    const grouped = {};
+    data.forEach(item => {
+      const date = new Date(item.date).toLocaleDateString('vi-VN', { 
+        day: '2-digit', 
+        month: '2-digit' 
+      });
+      if (!grouped[date]) {
+        grouped[date] = 0;
+      }
+      grouped[date] += item.amount;
+    });
+    return grouped;
+  };
+
+  // Nhóm dữ liệu theo loại
+  const groupByType = () => {
+    const grouped = {};
+    data.forEach(item => {
+      const type = item.type || 'other';
+      if (!grouped[type]) {
+        grouped[type] = { total: 0, count: 0 };
+      }
+      grouped[type].total += item.amount;
+      grouped[type].count += 1;
+    });
+    return grouped;
+  };
+
+  const dailyData = groupByDate();
+  const typeData = groupByType();
+  
+  // Lấy 7 ngày gần nhất
+  const dates = Object.keys(dailyData).slice(-7);
+  const maxAmount = Math.max(...Object.values(dailyData));
+
+  const getTypeColor = (type) => {
+    const colors = {
+      'aiCourse': '#0ea5e9',
+      'aiQuiz': '#06b6d4',
+      'aiPractice': '#38bdf8',
+      'other': '#94a3b8'
+    };
+    return colors[type] || colors.other;
+  };
+
+  const getTypeLabel = (type) => {
+    const labels = {
+      'aiCourse': 'Tạo khóa học AI',
+      'aiQuiz': 'Tạo quiz AI',
+      'aiPractice': 'Tạo bài luyện tập AI',
+      'other': 'Khác'
+    };
+    return labels[type] || labels.other;
+  };
+
+  return (
+    <div className="usage-chart-content">
+      {/* Biểu đồ cột theo ngày */}
+      <div className="chart-section">
+        <h5 className="chart-title">Xu sử dụng theo ngày (7 ngày gần nhất)</h5>
+        <div className="bar-chart">
+          {dates.map(date => (
+            <div key={date} className="bar-item">
+              <div className="bar-wrapper">
+                <div 
+                  className="bar-fill"
+                  style={{ 
+                    height: `${(dailyData[date] / maxAmount) * 100}%`,
+                    backgroundColor: '#0ea5e9'
+                  }}
+                  title={`${dailyData[date].toLocaleString()} xu`}
+                >
+                  <span className="bar-value">{dailyData[date].toLocaleString()}</span>
+                </div>
+              </div>
+              <div className="bar-label">{date}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Thống kê theo loại */}
+      <div className="chart-section">
+        <h5 className="chart-title">Phân bổ theo loại dịch vụ</h5>
+        <div className="type-stats">
+          {Object.entries(typeData).map(([type, info]) => {
+            const percentage = (info.total / data.reduce((sum, item) => sum + item.amount, 0)) * 100;
+            return (
+              <div key={type} className="type-stat-item">
+                <div className="type-stat-header">
+                  <div className="type-stat-label">
+                    <div 
+                      className="type-color-dot" 
+                      style={{ backgroundColor: getTypeColor(type) }}
+                    />
+                    <span>{getTypeLabel(type)}</span>
+                  </div>
+                  <div className="type-stat-value">
+                    {info.total.toLocaleString()} xu
+                  </div>
+                </div>
+                <div className="type-stat-bar">
+                  <div 
+                    className="type-stat-fill"
+                    style={{ 
+                      width: `${percentage}%`,
+                      backgroundColor: getTypeColor(type)
+                    }}
+                  />
+                </div>
+                <div className="type-stat-meta">
+                  {info.count} lần sử dụng • {percentage.toFixed(1)}%
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Profile = () => {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, setUser } = useAuth();
   const { walletData, transactions, refreshing, refreshWallet } = useWallet();
   const {
     myCourses,
@@ -56,7 +184,72 @@ const Profile = () => {
   });
   const [show2FAModal, setShow2FAModal] = useState(false);
   const [email2FA, setEmail2FA] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const DEFAULT_COVER = "/assets/cover-1.png";
+
+  // State cho form thông tin cá nhân
+  const [profileForm, setProfileForm] = useState({
+    name: '',
+    phone: '',
+    dob: '',
+    bio: ''
+  });
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileMessage, setProfileMessage] = useState({ type: '', text: '' });
+
+  // Khởi tạo form khi user thay đổi
+  useEffect(() => {
+    if (user) {
+      setProfileForm({
+        name: user.name || '',
+        phone: user.phone || '',
+        dob: user.dob ? new Date(user.dob).toISOString().split('T')[0] : '',
+        bio: user.bio || ''
+      });
+    }
+  }, [user]);
+
+  // Xử lý thay đổi input
+  const handleProfileChange = (e) => {
+    const { name, value } = e.target;
+    setProfileForm(prev => ({ ...prev, [name]: value }));
+    setProfileMessage({ type: '', text: '' });
+  };
+
+  // Xử lý lưu thông tin
+  const handleSaveProfile = async () => {
+    try {
+      setProfileSaving(true);
+      setProfileMessage({ type: '', text: '' });
+
+      const { data } = await updateProfileApi(profileForm);
+      
+      // Cập nhật user trong context
+      if (data.user) {
+        setUser(data.user);
+      }
+      
+      setProfileMessage({ type: 'success', text: 'Cập nhật thông tin thành công!' });
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại';
+      setProfileMessage({ type: 'error', text: msg });
+    } finally {
+      setProfileSaving(false);
+    }
+  };
+
+  // Hủy thay đổi
+  const handleCancelProfile = () => {
+    if (user) {
+      setProfileForm({
+        name: user.name || '',
+        phone: user.phone || '',
+        dob: user.dob ? new Date(user.dob).toISOString().split('T')[0] : '',
+        bio: user.bio || ''
+      });
+    }
+    setProfileMessage({ type: '', text: '' });
+  };
 
   const formatDate = (dateString) => {
     const options = {
@@ -71,12 +264,12 @@ const Profile = () => {
 
   const getUsageIcon = (type) => {
     switch (type) {
-      case 'course_creation':
+      case 'aiCourse':
         return <BookOpen className="usage-icon" />;
-      case 'ai_generation':
-        return <Zap className="usage-icon" />;
-      case 'quiz_creation':
+      case 'aiQuiz':
         return <FileText className="usage-icon" />;
+      case 'aiPractice':
+        return <Zap className="usage-icon" />;
       default:
         return <Activity className="usage-icon" />;
     }
@@ -84,27 +277,27 @@ const Profile = () => {
 
   const getUsageColor = (type) => {
     switch (type) {
-      case 'course_creation':
-        return '#00bfa4';
-      case 'ai_generation':
-        return '#00c6c2';
-      case 'quiz_creation':
-        return '#009b87';
+      case 'aiCourse':
+        return '#0ea5e9';
+      case 'aiQuiz':
+        return '#06b6d4';
+      case 'aiPractice':
+        return '#38bdf8';
       default:
-        return '#7a8a9f';
+        return '#94a3b8';
     }
   };
 
   const getUsageTypeText = (type) => {
     switch (type) {
-      case 'course_creation':
-        return 'Tạo khóa học';
-      case 'ai_generation':
-        return 'Tạo nội dung AI';
-      case 'quiz_creation':
-        return 'Tạo bài trắc nghiệm';
+      case 'aiCourse':
+        return 'Tạo khóa học AI';
+      case 'aiQuiz':
+        return 'Tạo bài trắc nghiệm AI';
+      case 'aiPractice':
+        return 'Tạo bài luyện tập AI';
       default:
-        return 'Giao dịch';
+        return 'Sử dụng dịch vụ';
     }
   };
 
@@ -127,7 +320,7 @@ const Profile = () => {
     switch (type) {
       case 'topup_momo':
       case 'topup_momo_manual':
-        return '#00bfa4';
+        return '#10b981';
       case 'charge':
       case 'charge_aiCourse':
       case 'charge_aiQuiz':
@@ -386,14 +579,24 @@ const Profile = () => {
                 <div className="personal-content">
                   <div className="content-card">
                     <h3 className="card-title">Thông tin cá nhân</h3>
+                    
+                    {profileMessage.text && (
+                      <div className={`profile-message ${profileMessage.type}`}>
+                        {profileMessage.type === 'success' ? <Check size={18} /> : <AlertCircle size={18} />}
+                        {profileMessage.text}
+                      </div>
+                    )}
+                    
                     <div className="form-section">
                       <div className="form-row">
                         <div className="form-group">
                           <label className="form-label">Họ và tên</label>
                           <input
                             type="text"
+                            name="name"
                             className="form-input"
-                            defaultValue={user.name || ''}
+                            value={profileForm.name}
+                            onChange={handleProfileChange}
                             placeholder="Nhập họ và tên"
                           />
                         </div>
@@ -402,7 +605,7 @@ const Profile = () => {
                           <input
                             type="email"
                             className="form-input"
-                            defaultValue={user.email || ''}
+                            value={user?.email || ''}
                             placeholder="Nhập email"
                             disabled
                           />
@@ -413,8 +616,10 @@ const Profile = () => {
                           <label className="form-label">Số điện thoại</label>
                           <input
                             type="tel"
+                            name="phone"
                             className="form-input"
-                            defaultValue={user.phone || ''}
+                            value={profileForm.phone}
+                            onChange={handleProfileChange}
                             placeholder="Nhập số điện thoại"
                           />
                         </div>
@@ -422,24 +627,47 @@ const Profile = () => {
                           <label className="form-label">Ngày sinh</label>
                           <input
                             type="date"
+                            name="dob"
                             className="form-input"
-                            defaultValue={user.dob ? new Date(user.dob).toISOString().split('T')[0] : ''}
+                            value={profileForm.dob}
+                            onChange={handleProfileChange}
                           />
                         </div>
                       </div>
                       <div className="form-group full-width">
                         <label className="form-label">Giới thiệu</label>
                         <textarea
+                          name="bio"
                           className="form-input"
                           rows={4}
                           placeholder="Giới thiệu ngắn về bản thân..."
-                          defaultValue={user.bio || ''}
+                          value={profileForm.bio}
+                          onChange={handleProfileChange}
                         />
                       </div>
                     </div>
                     <div className="btn-group">
-                      <button className="btn-primary">Lưu thay đổi</button>
-                      <button className="btn-secondary">Hủy</button>
+                      <button 
+                        className="btn-primary" 
+                        onClick={handleSaveProfile}
+                        disabled={profileSaving}
+                      >
+                        {profileSaving ? (
+                          <>
+                            <RefreshCw className="spinning" size={16} />
+                            Đang lưu...
+                          </>
+                        ) : (
+                          'Lưu thay đổi'
+                        )}
+                      </button>
+                      <button 
+                        className="btn-secondary" 
+                        onClick={handleCancelProfile}
+                        disabled={profileSaving}
+                      >
+                        Hủy
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -547,68 +775,12 @@ const Profile = () => {
                 <h3 className="card-title">Ví của tôi</h3>
                 <div className="balance-display">
                   <div className="balance-amount">
-                    {walletData?.balance?.toLocaleString() || '0'} xu
+                    {walletData?.wallet?.balance?.toLocaleString() || '0'} xu
                   </div>
                   <div className="balance-label">Số dư khả dụng</div>
                   <button className="refresh-btn" onClick={refreshWallet}>
                     <RefreshCw className={`refresh-icon ${refreshing ? 'spinning' : ''}`} />
                   </button>
-                </div>
-                <div className="btn-group">
-                  <button className="btn-primary">
-                    <Plus />
-                    Nạp xu
-                  </button>
-                  <button className="btn-secondary">
-                    <Download />
-                    Rút xu
-                  </button>
-                </div>
-              </div>
-
-              <div className="content-card">
-                <div className="card-header">
-                  <h3 className="card-title">Phương thức thanh toán</h3>
-                  <button
-                    className="refresh-btn-sm"
-                    onClick={refreshPaymentMethods}
-                    title="Làm mới danh sách"
-                  >
-                    <RefreshCw className="refresh-icon" />
-                  </button>
-                </div>
-                <div className="payment-methods">
-                  {paymentMethods.length === 0 ? (
-                    <div className="empty-payments">
-                      <CreditCard className="empty-icon" />
-                      <h4>Chưa có phương thức thanh toán</h4>
-                      <p>Thêm phương thức thanh toán để tiện lợi hơn</p>
-                      <button className="add-payment-method">
-                        <Plus />
-                        Thêm phương thức
-                      </button>
-                    </div>
-                  ) : (
-                    paymentMethods.map((method) => (
-                      <div key={method.id} className="payment-method">
-                        <div className="method-info">
-                          <div className="method-icon">
-                            {method.type === 'momo' ? <Smartphone /> : <CreditCard />}
-                          </div>
-                          <div className="method-details">
-                            <h4>{method.name}</h4>
-                            <p>**** {method.last4}</p>
-                          </div>
-                        </div>
-                        <div className="method-actions">
-                          {method.isDefault && (
-                            <span className="default-badge">Mặc định</span>
-                          )}
-                          <button className="btn-outline btn-sm">Xóa</button>
-                        </div>
-                      </div>
-                    ))
-                  )}
                 </div>
               </div>
 
@@ -753,10 +925,14 @@ const Profile = () => {
                   </div>
                 </div>
                 <div className="chart-container">
-                  <div className="chart-placeholder">
-                    <BarChart3 className="chart-icon" />
-                    <p>Biểu đồ sử dụng xu theo thời gian</p>
-                  </div>
+                  {usageData.length === 0 ? (
+                    <div className="chart-placeholder">
+                      <BarChart3 className="chart-icon" />
+                      <p>Chưa có dữ liệu để hiển thị biểu đồ</p>
+                    </div>
+                  ) : (
+                    <UsageChart data={usageData} />
+                  )}
                 </div>
               </div>
 
@@ -770,19 +946,44 @@ const Profile = () => {
                         type="text"
                         placeholder="Tìm kiếm giao dịch..."
                         className="search-input"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
                       />
                     </div>
                   </div>
                 </div>
                 <div className="usage-items">
-                  {usageData.length === 0 ? (
-                    <div className="empty-state">
-                      <Activity className="empty-icon" />
-                      <h4>Chưa có dữ liệu sử dụng</h4>
-                      <p>Bạn chưa sử dụng xu nào. Sử dụng dịch vụ để xem lịch sử!</p>
-                    </div>
-                  ) : (
-                    usageData.map((item) => (
+                  {(() => {
+                    const filteredData = usageData.filter(item => {
+                      const search = searchTerm.toLowerCase();
+                      return (
+                        item.description.toLowerCase().includes(search) ||
+                        getUsageTypeText(item.type).toLowerCase().includes(search) ||
+                        item.amount.toString().includes(search)
+                      );
+                    });
+
+                    if (usageData.length === 0) {
+                      return (
+                        <div className="empty-state">
+                          <Activity className="empty-icon" />
+                          <h4>Chưa có dữ liệu sử dụng</h4>
+                          <p>Bạn chưa sử dụng xu nào. Sử dụng dịch vụ để xem lịch sử!</p>
+                        </div>
+                      );
+                    }
+
+                    if (filteredData.length === 0) {
+                      return (
+                        <div className="empty-state">
+                          <Search className="empty-icon" />
+                          <h4>Không tìm thấy kết quả</h4>
+                          <p>Không có giao dịch nào khớp với từ khóa "{searchTerm}"</p>
+                        </div>
+                      );
+                    }
+
+                    return filteredData.map((item) => (
                       <div key={item.id} className="usage-item">
                         <div
                           className="usage-icon-wrapper"
@@ -813,8 +1014,8 @@ const Profile = () => {
                           </span>
                         </div>
                       </div>
-                    ))
-                  )}
+                    ));
+                  })()}
                 </div>
               </div>
             </div>

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../services/api";
 import { getYouTubeEmbedUrl } from "../lib/utils";
-import { Share, Eye, Trash2, Users } from "lucide-react";
+import { Share, Eye, Trash2, Users, Facebook } from "lucide-react";
 import "../css/course-card-danger.css";
 
 const DEFAULT_COVER = "/assets/cover-1.png";
@@ -35,6 +35,14 @@ export default function CourseCard({ c = {}, onDeleted = () => {}, isProfile = f
       return;
     }
     setShowShareModal(true);
+  };
+
+  const handleShareFacebook = () => {
+    // Sử dụng BACKEND_URL công khai để Facebook crawler có thể đọc Open Graph meta tags
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+    const shareUrl = `${backendUrl}/api/share/course/${c._id}`;
+    const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+    window.open(facebookShareUrl, '_blank', 'width=600,height=400');
   };
 
   const confirmPublish = async () => {
@@ -133,6 +141,17 @@ export default function CourseCard({ c = {}, onDeleted = () => {}, isProfile = f
                   {publishing ? "Đang chia sẻ..." : "Chia sẻ"}
                 </button>
               )}
+              {c.published && (
+                <button
+                  type="button"
+                  className="course-card-btn facebook"
+                  onClick={handleShareFacebook}
+                  title="Chia sẻ lên Facebook"
+                >
+                  <Facebook size={16} />
+                  Facebook
+                </button>
+              )}
               <button
                 type="button"
                 className="course-card-btn danger"
@@ -168,6 +187,14 @@ export default function CourseCard({ c = {}, onDeleted = () => {}, isProfile = f
                   disabled={publishing}
                 >
                   Hủy
+                </button>
+                <button
+                  className="btn-facebook"
+                  onClick={handleShareFacebook}
+                  disabled={publishing}
+                >
+                  <Facebook size={16} />
+                  Facebook
                 </button>
                 <button
                   className="btn-primary"
